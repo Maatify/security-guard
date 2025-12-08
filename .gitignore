@@ -1,0 +1,4 @@
+/vendor/
+/internal_usage/
+/composer.lock
+/.env.local
