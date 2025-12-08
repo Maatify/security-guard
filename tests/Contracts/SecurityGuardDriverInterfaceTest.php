@@ -24,7 +24,7 @@ final class SecurityGuardDriverInterfaceTest extends TestCase
     public function testInterfaceMethodsExist(): void
     {
         $ref = new ReflectionClass(SecurityGuardDriverInterface::class);
-        $methods = array_map(fn($m) => $m->getName(), $ref->getMethods());
+        $methods = array_map(fn ($m) => $m->getName(), $ref->getMethods());
 
         $expected = [
             'recordFailure',

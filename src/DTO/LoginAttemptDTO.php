@@ -21,6 +21,9 @@ use JsonSerializable;
 
 readonly class LoginAttemptDTO implements JsonSerializable
 {
+    /**
+     * @param array<string, mixed> $context
+     */
     public function __construct(
         public string $ip,
         public string $username,
@@ -37,6 +40,9 @@ readonly class LoginAttemptDTO implements JsonSerializable
         }
     }
 
+    /**
+     * @param array<string, mixed> $context
+     */
     public static function now(
         string $ip,
         string $username,
