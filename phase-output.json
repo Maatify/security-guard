@@ -58,7 +58,7 @@
         "added": [
           "src/DTO/LoginAttemptDTO.php",
           "src/DTO/SecurityBlockDTO.php",
-          "src/DTO/BlockTypeEnum.php",
+          "src/Enums/BlockTypeEnum.php",
           "src/Contracts/SecurityGuardDriverInterface.php",
           "tests/DTO/LoginAttemptDTOTest.php",
           "tests/DTO/SecurityBlockDTOTest.php",

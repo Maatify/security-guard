@@ -1,5 +1,5 @@
 {
-  "Maatify\\SecurityGuard\\DTO\\BlockTypeEnum": {
+  "Maatify\\SecurityGuard\\Enums\\BlockTypeEnum": {
     "type": "enum",
     "cases": [
       "AUTO",
