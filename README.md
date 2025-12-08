@@ -56,7 +56,7 @@ All storage is handled through:
 
 ---
 
-## ✅ Supported Storage Backends
+## ✅ Planned Supported Storage Backends (Phase 3)
 
 | Backend | Layer Type  | Use Case                              |
 |---------|-------------|---------------------------------------|
@@ -64,36 +64,23 @@ All storage is handled through:
 | MongoDB | Real Driver | Security audit & time-series analysis |
 | MySQL   | Real Driver | Persistent compliance & forensic logs |
 
-> ❗ Direct usage of PDO, Redis clients, or MongoDB clients is **forbidden** inside this library.
+⚠️ All drivers listed above are planned for Phase 3 and are not yet available in the current release.
 
+> ❗ Direct usage of PDO, Redis clients, or MongoDB clients is **forbidden** inside this library.
 ---
 
 # 📦 Installation
 
 ```bash
 composer require maatify/security-guard
-````
+```
 
 ---
 
 # ⚡ Quick Usage
 
-```php
-use Maatify\SecurityGuard\Resolver\SecurityGuardResolver;
-
-$resolver = new SecurityGuardResolver(['driver' => 'redis']);
-$guard    = $resolver->resolve();
-
-$guard->handleAttempt(
-    ip: '127.0.0.1',
-    action: 'login',
-    platform: 'web'
-);
-
-if ($guard->isBlocked('127.0.0.1')) {
-    echo 'Access Blocked';
-}
-```
+⚠️ Usage examples will be available starting from **Phase 4** after the
+`SecurityGuardService` and resolver layer are finalized.
 
 📘 **Full usage examples (Native, API, Middleware, Rate Limiter Bridge):**
 ➡️ **[examples/Examples.md](examples/Examples.md)**
@@ -104,12 +91,12 @@ if ($guard->isBlocked('127.0.0.1')) {
 
 * Adaptive brute-force protection
 * Distributed IP-based blocking
-* Multi-driver resolver (Redis / MongoDB / MySQL)
+* (Planned) Multi-driver resolver (Redis / MongoDB / MySQL)
 * Unified attempt / block / reset API
 * DTO-based security events
-* PSR-3 logging support
-* Telegram & Webhook alerts (optional)
-* Rate Limiter bridge support
+* (Planned) PSR-3 logging support
+* (Planned) Telegram & Webhook alerts (optional)
+* (Planned) Rate Limiter bridge support
 * PHPStan Level Max ready
 * 100% adapter-driven storage
 
@@ -135,27 +122,12 @@ if ($guard->isBlocked('127.0.0.1')) {
 
 
 <details>
-<summary><strong>📚 Development History & Phase Details</strong></summary>
+<summary><strong>📚 Development Roadmap & Phase Plan</strong></summary>
 
-* Phase 1 – Environment Setup
-* Phase 2 – Core Architecture & DTOs
-* Phase 3 – Adapter-based Drivers
-* Phase 4 – Core Security Logic
-* Phase 5 – Rate Limiter Bridge
-* Phase 6 – Audit DTO & Storage
-* Phase 7 – Mongo Audit Forwarding
-* Phase 8 – Audit History APIs
-* Phase 9 – Audit Filters & Indexing
-* Phase 10 – PSR Logger Integration
-* Phase 11 – Telegram Alerts
-* Phase 12 – Webhook Dispatcher
-* Phase 13 – Retry Engine
-* Phase 14 – Monitoring APIs
-* Phase 15 – Consistency Tests
-* Phase 16 – Attack Simulations
-* Phase 17 – Stress Testing
-* Phase 18 – Coverage Hardening
-* Phase 19 – Packagist Release
+✅ Phase 1 – Environment Setup (Completed)  
+✅ Phase 2 – Core Architecture & DTOs (Completed)
+
+⚠️ All subsequent phases are planned and not yet released.
 
 </details>
 
@@ -169,10 +141,9 @@ composer test
 
 Runs:
 
-* Fake adapter attack simulations
-* Real adapter stress validation
-* Resolver switching tests
-* Webhook retry tests
+* DTO validation tests
+* Contract interface tests
+* JSON serialization tests
 * Coverage reporting
 
 ---

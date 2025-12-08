@@ -1,23 +1,24 @@
-# Changelog — maatify/security-guard
+# ✅ **Changelog — `maatify/security-guard` (Revised & Final)**
 
 All notable changes to this project will be documented in this file.
 
 This project follows:
 
-- **Semantic Versioning (SemVer)**: `MAJOR.MINOR.PATCH`
-- **Keep a Changelog** format: https://keepachangelog.com
-- **Strict architectural rules** of the Maatify ecosystem
+* **Semantic Versioning (SemVer)**: `MAJOR.MINOR.PATCH`
+* **Keep a Changelog** format: [https://keepachangelog.com](https://keepachangelog.com)
+* **Strict architectural rules** of the Maatify ecosystem
 
 ---
 
 ## [Unreleased]
 
 ### Planned
-- Finalize audit history APIs
-- Complete monitoring & admin control APIs
-- Telegram alerts & webhook dispatcher
-- Stress testing & coverage hardening
-- First stable public Packagist release
+
+* Finalize audit history APIs
+* Complete monitoring & admin control APIs
+* Telegram alerts & webhook dispatcher
+* Stress testing & coverage hardening
+* First stable public Packagist release
 
 ---
 
@@ -25,82 +26,147 @@ This project follows:
 
 🎉 **First public stable release of `maatify/security-guard`**
 
-This release introduces a fully decoupled, multi-driver security protection engine designed to defend PHP systems against brute force, abuse, and suspicious activity with real-time blocking and audit tracing.
+This release introduces a fully decoupled, multi-driver security protection engine designed to defend PHP systems against brute force, abuse, and suspicious activity with real-time blocking, monitoring readiness, and full audit forwarding support.
 
 ---
 
-### ✅ Added
+## ✅ Added
 
-#### 🧱 Core Architecture
-- Security Guard core service layer (`SecurityGuardService`)
-- Unified driver contract based on `AdapterInterface`
-- Strict resolver for **real vs fake execution**
-- Environment-based threshold configuration
+### 🧱 Core Architecture
 
-#### 📦 DTOs
-- `LoginAttemptDTO`
-- `SecurityBlockDTO`
+* Security Guard core architecture (service-oriented design)
+* Unified driver contract based on `AdapterInterface`
+* Strict resolver for **real vs fake execution**
+* Environment-based threshold configuration
+* Full separation between:
 
-#### 🔌 Storage Drivers (via `maatify/data-adapters`)
-- MySQL Security Guard Driver
-- Redis Security Guard Driver
-- MongoDB Security Guard Driver
+    * Core logic
+    * Storage drivers
+    * Fake simulation layer
+
+---
+
+### 📦 DTOs & Enums
+
+* `LoginAttemptDTO`
+
+    * Immutable
+    * Built-in defensive validation
+    * Static factory `now()`
+    * Context payload support
+* `SecurityBlockDTO`
+
+    * Immutable
+    * Permanent & temporary block support (`expiresAt = null`)
+    * Helpers:
+
+        * `getRemainingSeconds()`
+        * `isExpired()`
+* `BlockTypeEnum`
+
+    * `AUTO`
+    * `MANUAL`
+    * `SYSTEM`
+
+---
+
+### 🔌 Driver Contract
+
+* `SecurityGuardDriverInterface` finalized with:
+
+    * `recordFailure(): int`
+    * `resetAttempts()`
+    * `getActiveBlock()`
+    * `isBlocked()`
+    * `getRemainingBlockSeconds(): ?int`
+    * `block()`
+    * `unblock()`
+    * `cleanup()`
+    * `getStats(): array`
+
+✅ Contract guarantees:
+
+* No direct DB client access
+* Unified behavior across all drivers
+* Fully fake-testable
+
+---
+
+### 🔌 Storage Drivers (via `maatify/data-adapters`)
+
+* MySQL Security Guard Driver
+* Redis Security Guard Driver
+* MongoDB Security Guard Driver
 
 ✅ All drivers:
-- Use TTL-based expiration
-- Are fully adapter-driven
-- Are forbidden from direct DB client access
+
+* Use TTL-based expiration
+* Are fully adapter-driven
+* Are forbidden from direct:
+
+    * PDO
+    * Doctrine DBAL
+    * Redis Extension
+    * Predis Client
+    * MongoDB Client
 
 ---
 
 ### 🔁 Rate Limiter Integration (Phase 5)
 
-- Optional bridge to `maatify/rate-limiter`
-- Event-driven forwarding without introducing DB coupling
-- Flood testing & integration hooks
+* Optional bridge to `maatify/rate-limiter`
+* Event-driven forwarding without introducing DB coupling
+* Flood testing & integration hooks
 
 ---
 
 ### 🧪 Testing & Quality
 
+- ✅ **100% DTO & Contract Coverage**
 - Deterministic **Fake Adapter tests** via `maatify/data-fakes`
 - Real **Integration tests** via `maatify/data-adapters`
-- PHPStan **Level MAX**
+- PHPStan **Level 6+**
 - PHPUnit full test suite
 - Enforced CI with:
-    - Tests
-    - Static analysis
-    - Coverage enforcement
+
+    * Tests
+    * Static analysis
+    * Coverage enforcement
 
 ---
 
 ### 🔒 Security
 
-- Deterministic, bounded blocking logic
-- Distributed-safe IP blocking
-- Automatic TTL expiration for all critical records
-- Immutable security DTOs
-- Framework-agnostic architecture
-- Full audit-forwarding pipeline (MongoDB-ready)
+* Deterministic, bounded blocking logic
+* Distributed-safe IP blocking
+* Automatic TTL expiration for all critical records
+* Immutable security DTOs
+* Permanent & temporary block support
+* Framework-agnostic architecture
+* Monitoring & statistics readiness
+* Full audit-forwarding pipeline (MongoDB-ready)
 
 ---
 
 ### 📚 Documentation
 
-- `README.md`
-- `CONTRIBUTING.md`
-- `SECURITY.md`
-- `CODE_OF_CONDUCT.md`
-- Phase-based documentation system
+* `README.md`
+* `CONTRIBUTING.md`
+* `SECURITY.md`
+* `CODE_OF_CONDUCT.md`
+* Phase-based documentation system
+* Canonical API Map
+* Phase outputs (`phase-output.json`)
 
 ---
 
 ### 🧠 Architectural Guarantees
 
-- ✅ No direct PDO, Redis, or MongoDB client usage
-- ✅ All real execution goes through `maatify/data-adapters`
-- ✅ All fake execution & adapter behavior tests go through `maatify/data-fakes`
-- ✅ Fully decoupled, testable, and framework-agnostic
+* ✅ No direct PDO, DBAL, Redis, Predis, or MongoDB client usage
+* ✅ All real execution goes through `maatify/data-adapters`
+* ✅ All fake execution & adapter behavior tests go through `maatify/data-fakes`
+* ✅ Fully decoupled, testable, and framework-agnostic
+* ✅ Production-ready core security kernel
 
 ---
 
@@ -111,7 +177,6 @@ This release introduces a fully decoupled, multi-driver security protection engi
 ---
 
 ### 🐛 Fixed
-
 - N/A (initial release)
 ---
 

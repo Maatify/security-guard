@@ -1,13 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace Maatify\SecurityGuard\Tests\DTO;
-
-use DateTimeImmutable;
-use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
-use PHPUnit\Framework\TestCase;
-
 /**
  * @copyright   ©2025 Maatify.dev
  * @Library     maatify/security-guard
@@ -18,26 +10,57 @@ use PHPUnit\Framework\TestCase;
  * @link        https://github.com/Maatify/security-guard view project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
  */
-class LoginAttemptDTOTest extends TestCase
+
+declare(strict_types=1);
+
+namespace Maatify\SecurityGuard\Tests\DTO;
+
+use InvalidArgumentException;
+use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
+use PHPUnit\Framework\TestCase;
+
+final class LoginAttemptDTOTest extends TestCase
 {
-    public function testCanInstantiate(): void
+    public function testValidConstruction(): void
     {
-        $dto = new LoginAttemptDTO('127.0.0.1', 'user');
+        $dto = LoginAttemptDTO::now(
+            ip: '127.0.0.1',
+            username: 'admin',
+            userAgent: 'PHPUnit',
+            context: ['key' => 'value']
+        );
+
         $this->assertSame('127.0.0.1', $dto->ip);
-        $this->assertSame('user', $dto->username);
-        $this->assertInstanceOf(DateTimeImmutable::class, $dto->occurredAt);
-        $this->assertNull($dto->userAgent);
+        $this->assertSame('admin', $dto->username);
+        $this->assertSame('PHPUnit', $dto->userAgent);
+        $this->assertSame(['key' => 'value'], $dto->context);
     }
 
-    public function testJsonSerialize(): void
+    public function testJsonSerialization(): void
     {
-        $time = new DateTimeImmutable();
-        $dto = new LoginAttemptDTO('127.0.0.1', 'user', $time, 'Mozilla/5.0');
+        $dto = LoginAttemptDTO::now(
+            ip: '1.1.1.1',
+            username: 'user'
+        );
 
-        $json = $dto->jsonSerialize();
-        $this->assertSame('127.0.0.1', $json['ip']);
-        $this->assertSame('user', $json['username']);
-        $this->assertSame($time->format(DateTimeImmutable::ATOM), $json['occurred_at']);
-        $this->assertSame('Mozilla/5.0', $json['user_agent']);
+        $data = $dto->jsonSerialize();
+
+        $this->assertSame('1.1.1.1', $data['ip']);
+        $this->assertSame('user', $data['username']);
+        $this->assertArrayHasKey('occurred_at', $data);
+        $this->assertNull($data['user_agent']);
+        $this->assertSame([], $data['context']);
+    }
+
+    public function testEmptyIpThrowsException(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        new LoginAttemptDTO('', 'user');
+    }
+
+    public function testEmptyUsernameThrowsException(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        new LoginAttemptDTO('127.0.0.1', '');
     }
 }

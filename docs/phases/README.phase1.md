@@ -1,5 +1,8 @@
 # Phase 1: Environment Setup
 
+[![Maatify Security Guard](https://img.shields.io/badge/Maatify-Security--Guard-blue?style=for-the-badge)](../README.md)
+[![Maatify Ecosystem](https://img.shields.io/badge/Maatify-Ecosystem-9C27B0?style=for-the-badge)](https://github.com/Maatify)
+
 **Summary:** This phase focused on bootstrapping the `maatify/security-guard` project, establishing a robust development and testing environment, and preparing for future development. The primary goal was to lay a solid foundation for the entire project.
 
 **Tasks Completed:**

@@ -1,27 +1,41 @@
 {
-    "Maatify\\SecurityGuard\\DTO\\LoginAttemptDTO": {
-        "type": "class",
-        "methods": [
-            "__construct",
-            "jsonSerialize"
-        ]
-    },
-    "Maatify\\SecurityGuard\\DTO\\SecurityBlockDTO": {
-        "type": "class",
-        "methods": [
-            "__construct",
-            "jsonSerialize"
-        ]
-    },
-    "Maatify\\SecurityGuard\\Contracts\\SecurityGuardDriverInterface": {
-        "type": "interface",
-        "methods": [
-            "recordFailure",
-            "resetAttempts",
-            "isBlocked",
-            "getBlockDetails",
-            "block",
-            "unblock"
-        ]
-    }
+  "Maatify\\SecurityGuard\\DTO\\BlockTypeEnum": {
+    "type": "enum",
+    "cases": [
+      "AUTO",
+      "MANUAL",
+      "SYSTEM"
+    ]
+  },
+  "Maatify\\SecurityGuard\\DTO\\LoginAttemptDTO": {
+    "type": "class",
+    "methods": [
+      "__construct",
+      "now",
+      "jsonSerialize"
+    ]
+  },
+  "Maatify\\SecurityGuard\\DTO\\SecurityBlockDTO": {
+    "type": "class",
+    "methods": [
+      "__construct",
+      "getRemainingSeconds",
+      "isExpired",
+      "jsonSerialize"
+    ]
+  },
+  "Maatify\\SecurityGuard\\Contracts\\SecurityGuardDriverInterface": {
+    "type": "interface",
+    "methods": [
+      "recordFailure",
+      "resetAttempts",
+      "getActiveBlock",
+      "isBlocked",
+      "getRemainingBlockSeconds",
+      "block",
+      "unblock",
+      "cleanup",
+      "getStats"
+    ]
+  }
 }

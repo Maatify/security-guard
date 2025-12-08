@@ -1,12 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace Maatify\SecurityGuard\DTO;
-
-use DateTimeImmutable;
-use JsonSerializable;
-
 /**
  * @copyright   ©2025 Maatify.dev
  * @Library     maatify/security-guard
@@ -17,6 +10,15 @@ use JsonSerializable;
  * @link        https://github.com/Maatify/security-guard view project on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
  */
+
+declare(strict_types=1);
+
+namespace Maatify\SecurityGuard\DTO;
+
+use DateTimeImmutable;
+use InvalidArgumentException;
+use JsonSerializable;
+
 readonly class LoginAttemptDTO implements JsonSerializable
 {
     public function __construct(
@@ -24,11 +26,34 @@ readonly class LoginAttemptDTO implements JsonSerializable
         public string $username,
         public DateTimeImmutable $occurredAt = new DateTimeImmutable(),
         public ?string $userAgent = null,
+        public array $context = [],
     ) {
+        if (trim($ip) === '') {
+            throw new InvalidArgumentException('IP cannot be empty.');
+        }
+
+        if (trim($username) === '') {
+            throw new InvalidArgumentException('Username cannot be empty.');
+        }
+    }
+
+    public static function now(
+        string $ip,
+        string $username,
+        ?string $userAgent = null,
+        array $context = []
+    ): self {
+        return new self(
+            $ip,
+            $username,
+            new DateTimeImmutable(),
+            $userAgent,
+            $context
+        );
     }
 
     /**
-     * @return array<string, string|null>
+     * @return array<string, mixed>
      */
     public function jsonSerialize(): array
     {
@@ -37,6 +62,7 @@ readonly class LoginAttemptDTO implements JsonSerializable
             'username' => $this->username,
             'occurred_at' => $this->occurredAt->format(DateTimeImmutable::ATOM),
             'user_agent' => $this->userAgent,
+            'context' => $this->context,
         ];
     }
 }
