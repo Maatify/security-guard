@@ -1,0 +1,345 @@
+{
+  "roadmap_version": "1.0.1",
+  "project": "maatify/security-guard",
+  "note": "Security Guard is a multi-driver adaptive security engine that protects systems from brute force, abuse, and suspicious activity using MySQL, Redis, and MongoDB. This roadmap is normalized for safe executor execution with integer-only phases.",
+
+  "core_dependencies": {
+    "storage_layer": "maatify/data-adapters",
+    "fake_layer": "maatify/data-fakes",
+    "contracts": "maatify/common",
+    "rules": [
+      "All MySQL, Redis, and MongoDB access MUST go through AdapterInterface",
+      "All real execution MUST use maatify/data-adapters",
+      "All fake execution and adapter behavior tests MUST use maatify/data-fakes",
+      "Direct PDO, Redis, or MongoDB client usage inside security-guard is forbidden"
+    ]
+  },
+
+  "phases": [
+    {
+      "id": "phase1",
+      "title": "Environment Setup",
+      "version": "1.0.0",
+      "status": "completed",
+      "summary": "Project bootstrap, Composer setup, testing environment, and namespace preparation.",
+      "tasks": [
+        "Create GitHub repository",
+        "Initialize Composer project",
+        "Prepare .env.example",
+        "Setup PHPUnit",
+        "Prepare CI environment",
+        "Setup autoloading namespaces"
+      ],
+      "outputs": [
+        "composer.json",
+        ".env.example",
+        "tests/bootstrap.php"
+      ]
+    },
+
+    {
+      "id": "phase2",
+      "title": "Core Architecture & DTOs",
+      "version": "1.0.0",
+      "status": "completed",
+      "summary": "Design internal structure and security DTOs.",
+      "tasks": [
+        "Create LoginAttemptDTO",
+        "Create SecurityBlockDTO",
+        "Design SecurityGuardDriverInterface",
+        "Create SecurityGuardService",
+        "Prepare config loader"
+      ],
+      "outputs": [
+        "src/DTO/LoginAttemptDTO.php",
+        "src/DTO/SecurityBlockDTO.php",
+        "src/Contracts/SecurityGuardDriverInterface.php"
+      ]
+    },
+
+    {
+      "id": "phase3",
+      "title": "Driver Implementations",
+      "version": "1.0.0",
+      "status": "completed",
+      "summary": "Implement Security Guard storage drivers on top of maatify/data-adapters.",
+      "tasks": [
+        "Implement MySQLSecurityGuard via maatify/data-adapters only",
+        "Implement RedisSecurityGuard via maatify/data-adapters only",
+        "Implement MongoSecurityGuard via maatify/data-adapters only",
+        "TTL management via adapter layer",
+        "Automatic Redis fallback via resolver",
+        "SecurityGuardResolver (real vs fake switching)",
+        "Direct DB clients are explicitly forbidden in this phase"
+      ],
+      "outputs": [
+        "src/Drivers/MySQLSecurityGuard.php",
+        "src/Drivers/RedisSecurityGuard.php",
+        "src/Drivers/MongoSecurityGuard.php"
+      ]
+    },
+
+    {
+      "id": "phase4",
+      "title": "Core Logic & Service Layer",
+      "version": "1.0.0",
+      "status": "completed",
+      "summary": "Main security orchestration logic.",
+      "tasks": [
+        "handleAttempt() logic",
+        "Reset on success",
+        "Block/unblock logic",
+        "IP failure counters",
+        "Expose isBlocked() method",
+        "ENV thresholds"
+      ],
+      "outputs": [
+        "src/SecurityGuardService.php"
+      ]
+    },
+
+    {
+      "id": "phase5",
+      "title": "Rate Limiter Bridge",
+      "version": "1.0.0",
+      "status": "in_progress",
+      "summary": "Optional integration with maatify/rate-limiter.",
+      "tasks": [
+        "Design event hooks",
+        "Implement bridge listener",
+        "Manual integration support",
+        "Flood attack testing",
+        "Security events must be forwarded without creating any DB dependency",
+        "Documentation"
+      ],
+      "outputs": [
+        "src/Bridge/RateLimiterBridge.php",
+        "docs/phases/README.phase5.md"
+      ]
+    },
+
+    {
+      "id": "phase6",
+      "title": "Audit DTO & Storage",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Introduce core audit event DTO and base storage abstraction.",
+      "tasks": [
+        "Create AuditEventDTO",
+        "Define audit storage interface based on AdapterInterface",
+        "Implement base audit repository via maatify/data-adapters (no direct DB)"
+      ],
+      "outputs": [
+        "src/Audit/AuditEventDTO.php",
+        "src/Audit/Contracts/AuditStorageInterface.php"
+      ]
+    },
+
+    {
+      "id": "phase7",
+      "title": "Mongo Audit Forwarding",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Forward all audit events into MongoDB collections.",
+      "tasks": [
+        "Create Mongo audit driver via maatify/data-adapters",
+        "TTL index setup via adapter layer",
+        "Safe fallback handling via resolver"
+      ],
+      "outputs": [
+        "src/Audit/Drivers/MongoAuditDriver.php"
+      ]
+    },
+
+    {
+      "id": "phase8",
+      "title": "Audit History API",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Expose security audit history through API-ready service methods.",
+      "tasks": [
+        "Create audit query service via maatify/data-adapters",
+        "Paginated history retrieval",
+        "Date range filtering"
+      ],
+      "outputs": [
+        "src/Audit/AuditHistoryService.php"
+      ]
+    },
+
+    {
+      "id": "phase9",
+      "title": "Audit Filters & Indexes",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Advanced filtering and indexing for audit queries.",
+      "tasks": [
+        "IP based filtering",
+        "User type filtering",
+        "Composite index design"
+      ],
+      "outputs": [
+        "docs/phases/README.phase9.md"
+      ]
+    },
+
+    {
+      "id": "phase10",
+      "title": "PSR Logger Integration",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Structured logging using PSR logger.",
+      "tasks": [
+        "Inject PSR logger",
+        "Log all block/unblock actions",
+        "Log suspicious patterns"
+      ],
+      "outputs": [
+        "src/Logging/SecurityLogger.php"
+      ]
+    },
+
+    {
+      "id": "phase11",
+      "title": "Telegram Alerts",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Admin real-time alerts via Telegram bot.",
+      "tasks": [
+        "Telegram notifier integration",
+        "Configurable alert channels",
+        "Critical alert levels"
+      ],
+      "outputs": [
+        "src/Alerts/TelegramAlertService.php"
+      ]
+    },
+
+    {
+      "id": "phase12",
+      "title": "Webhook Dispatcher",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Generic webhook dispatcher for security events.",
+      "tasks": [
+        "Webhook payload schema",
+        "POST dispatcher",
+        "Async retry policy"
+      ],
+      "outputs": [
+        "src/Webhook/WebhookDispatcher.php"
+      ]
+    },
+
+    {
+      "id": "phase13",
+      "title": "Retry Engine & Delivery Tests",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Reliable delivery system for webhook notifications.",
+      "tasks": [
+        "Retry queue",
+        "Backoff strategy",
+        "Failure simulations"
+      ],
+      "outputs": [
+        "tests/Webhook/RetryTest.php"
+      ]
+    },
+
+    {
+      "id": "phase14",
+      "title": "Monitoring APIs",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Monitoring endpoints and admin control APIs.",
+      "tasks": [
+        "Health endpoint",
+        "Stats endpoint",
+        "Manual unblock API"
+      ],
+      "outputs": [
+        "src/Monitoring/SecurityMetricsService.php"
+      ]
+    },
+
+    {
+      "id": "phase15",
+      "title": "Unit Consistency Tests",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Validate logic consistency across all drivers using maatify/data-fakes.",
+      "tasks": [
+        "Driver behavioral parity tests",
+        "Edge case consistency"
+      ],
+      "outputs": [
+        "tests/Consistency/"
+      ]
+    },
+
+    {
+      "id": "phase16",
+      "title": "Attack Simulations",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Simulate distributed and burst attacks using fake adapters (maatify/data-fakes).",
+      "tasks": [
+        "Multi-IP brute force",
+        "Burst login attempts"
+      ],
+      "outputs": [
+        "tests/Simulation/"
+      ]
+    },
+
+    {
+      "id": "phase17",
+      "title": "Redis & Mongo Stress",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "High load performance stress testing via real adapters using maatify/data-adapters.",
+      "tasks": [
+        "10k rps Redis load test",
+        "Mongo TTL stress"
+      ],
+      "outputs": [
+        "tests/Stress/"
+      ]
+    },
+
+    {
+      "id": "phase18",
+      "title": "Coverage Hardening",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Achieve stable 85%+ coverage across all components.",
+      "tasks": [
+        "Coverage gap analysis",
+        "Critical path coverage enforcement"
+      ],
+      "outputs": [
+        "coverage/"
+      ]
+    },
+
+    {
+      "id": "phase19",
+      "title": "Documentation & Packagist Release",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Finalize documentation and public release.",
+      "tasks": [
+        "README.md",
+        "CHANGELOG.md",
+        "Phase documentation",
+        "Packagist publishing",
+        "Integration validation"
+      ],
+      "outputs": [
+        "README.md",
+        "CHANGELOG.md"
+      ]
+    }
+  ]
+}

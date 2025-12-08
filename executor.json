@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "engine_version": "1.0.0",
+
+  "project": {
+    "name": "maatify/security-guard",
+    "slug": "maatify/security-guard",
+    "version": "1.0.0",
+    "owner": "Maatify.dev",
+    "description": "Multi-driver security protection engine for login attempts, IP blocking, abuse detection, and adaptive response."
+  },
+
+  "tests_policy": {
+    "unit": "Deterministic fake tests for all drivers and services",
+    "integration": "Real MySQL, Redis, MongoDB integration tests via maatify/data-adapters only. All adapter behavior tests MUST be executed in maatify/data-fakes.",
+    "require_fake": true,
+    "require_real": true
+  },
+
+  "quality": {
+    "testing": "PHPUnit",
+    "coverage": ">= 85%",
+    "coding_standard": "PSR-12",
+    "static_analysis": "phpstan level 6",
+    "uses_common": "maatify/common"
+  },
+
+  "storage_architecture": {
+    "owner": "maatify/data-adapters",
+    "access_rule": "Security Guard MUST access all MySQL, Redis, and MongoDB only through AdapterInterface",
+    "direct_clients_forbidden": [
+      "PDO",
+      "mysqli",
+      "Redis",
+      "MongoDB\\Client"
+    ],
+    "resolver_required": true,
+    "note": "This rule is required to keep the library decoupled and fully testable with FakeAdapters."
+  },
+
+  "execution_modes": {
+    "real": {
+      "description": "Production and integration execution using real MySQL, Redis, and MongoDB via maatify/data-adapters",
+      "resolver_source": "data-adapters"
+    },
+    "fake": {
+      "description": "Unit testing and behavior simulation using in-memory adapters via maatify/data-fakes",
+      "resolver_source": "data-fakes"
+    },
+    "security_guard_awareness": "Security Guard MUST remain agnostic to whether execution is real or fake"
+  },
+
+  "documentation_policy": {
+    "per_phase_readme": true,
+    "phase_readme_format": "README.phase{ID}.md",
+    "update_full_readme_per_phase": false,
+    "update_full_readme_per_version": true,
+    "full_readme_file": "README.full.md"
+  },
+
+  "phase_output_policy": {
+    "required": true,
+    "file": "phase-output.json",
+    "generated_after_each_phase": true,
+    "contains": [
+      "phase metadata",
+      "summary",
+      "changes (added/updated/removed)",
+      "tests result (fake + real)",
+      "coverage",
+      "documentation files created",
+      "commit metadata",
+      "git patch file"
+    ],
+    "signature_schema_version": "2.0",
+    "include_reflection": true,
+    "reflection_details": {
+      "only_modified_classes": true,
+      "include_methods": true,
+      "method_arguments": true,
+      "method_return_types": true,
+      "method_visibility": true,
+      "method_exceptions": true
+    },
+    "generate_git_patch": true,
+    "git_patch_filename": "phase{ID}.patch",
+    "git_patch_format": "unified",
+    "git_patch_include_metadata": true,
+    "auto_fill_missing_outputs": true,
+    "default_outputs": [
+      "README.phase{ID}.md",
+      "phase-output.json",
+      "phase{ID}.patch"
+    ]
+  },
+
+  "commit_policy": {
+    "conventional_commits": true,
+    "auto_generate": true,
+    "types": ["feat", "fix", "refactor", "docs", "test", "chore"],
+    "breaking_change_flag": "!"
+  },
+
+  "release_policy": {
+    "auto_tag": true,
+    "tag_format": "v{version}",
+    "generate_release_notes": true,
+    "append_changelog": true,
+    "publish_to_packagist": true
+  },
+
+  "changelog_policy": {
+    "auto_update": true,
+    "file": "CHANGELOG.md",
+    "format": "keep-a-changelog",
+    "include_phase_links": true,
+    "include_reflection_changes": true
+  },
+
+  "validation_rules": {
+    "require_phases": true,
+    "require_unique_ids": true,
+    "validate_version_format": true,
+    "validate_tasks": true
+  },
+
+  "phase_execution_rules": {
+    "enforce_order": true,
+    "require_completion_of_previous": true,
+    "block_if_tests_fail": true,
+    "block_if_phpstan_errors": true,
+    "allow_replay": false
+  },
+
+  "repository_structure": {
+    "src": "src/",
+    "tests": "tests/",
+    "docs": "docs/",
+    "output": "build/",
+    "examples": "examples/"
+  },
+
+  "ci_pipeline": {
+    "run_phpstan": true,
+    "run_phpunit": true,
+    "min_coverage": 85,
+    "run_psalm": false,
+    "run_formatter": true
+  },
+
+  "code_generation_policy": {
+    "phpstan_compliant": true,
+    "phpstan_level": 6,
+    "forbid_mixed": true,
+    "require_return_types": true,
+    "require_parameter_types": true,
+    "forbid_dynamic_properties": true,
+    "forbid_error_suppression": true,
+    "strict_docblocks": true,
+    "forbid_direct_db_connections": true,
+    "enforce_adapter_interface": true
+  },
+
+  "backward_compatibility": {
+    "strict": true,
+    "detect_breaking_changes": true,
+    "block_phase_if_breaking": true,
+    "allowed_in_versions": ["1.x"]
+  },
+
+  "naming_policy": {
+    "enforce_dto_suffix": true,
+    "enforce_interface_suffix": true,
+    "enforce_repository_suffix": false,
+    "enforce_enum_suffix": true
+  },
+
+  "dependency_policy": {
+    "verify_versions": true,
+    "lockfile_required": true,
+    "block_on_incompatible_versions": true,
+    "forbid_adapter_tests_inside_project": true,
+    "adapter_tests_must_live_in": "maatify/data-fakes"
+  },
+
+  "file_header_policy": {
+    "enabled": true,
+    "header_template": [
+      "/**",
+      " * @copyright   ©{YEAR} Maatify.dev",
+      " * @Library     maatify/security-guard",
+      " * @Project     maatify:{PROJECT_SLUG}",
+      " * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>",
+      " * @since       {DATETIME}",
+      " * @see         https://www.maatify.dev Maatify.dev",
+      " * @link        https://github.com/{GITHUB_REPO} view project on GitHub",
+      " * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.",
+      " */"
+    ],
+    "variables": {
+      "PROJECT_SLUG": "security-guard",
+      "GITHUB_REPO": "Maatify/security-guard"
+    }
+  },
+
+  "project_defaults": {
+    "php_version": ">=8.4",
+    "namespace_root": "Maatify\\SecurityGuard",
+    "library_vendor": "maatify",
+    "common_minimum": "1.0.0"
+  }
+}
