@@ -1,2 +1,27 @@
 {
+    "Maatify\\SecurityGuard\\DTO\\LoginAttemptDTO": {
+        "type": "class",
+        "methods": [
+            "__construct",
+            "jsonSerialize"
+        ]
+    },
+    "Maatify\\SecurityGuard\\DTO\\SecurityBlockDTO": {
+        "type": "class",
+        "methods": [
+            "__construct",
+            "jsonSerialize"
+        ]
+    },
+    "Maatify\\SecurityGuard\\Contracts\\SecurityGuardDriverInterface": {
+        "type": "interface",
+        "methods": [
+            "recordFailure",
+            "resetAttempts",
+            "isBlocked",
+            "getBlockDetails",
+            "block",
+            "unblock"
+        ]
+    }
 }
