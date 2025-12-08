@@ -51,6 +51,11 @@ All storage is handled through:
 
 ---
 
+📘 Looking for the complete technical documentation?  
+➡️ **[Read the Full Documentation](docs/README.full.md)**
+
+---
+
 ## ✅ Supported Storage Backends
 
 | Backend | Layer Type  | Use Case                              |
@@ -123,9 +128,11 @@ if ($guard->isBlocked('127.0.0.1')) {
 
 # 📄 Documentation
 
-* [**Changelog**](CHANGELOG.md)
-* [**Security Policy**](SECURITY.md)
-* [**Usage Examples**](examples/Examples.md)
+* 📘 **[Full Documentation](docs/README.full.md)** — Complete architecture, adapters, audits, and advanced usage
+* 📚 **[Usage Examples](examples/Examples.md)** — Native, API, Middleware & Integration examples
+* 🧾 **[Changelog](CHANGELOG.md)** — Full version history
+* 🔐 **[Security Policy](SECURITY.md)** — Vulnerability reporting & security rules
+
 
 <details>
 <summary><strong>📚 Development History & Phase Details</strong></summary>
@@ -179,7 +186,7 @@ Runs:
 
 ## 👤 Author
 
-Engineered by **Mohamed Abdulalim** ([@megyptm](https://github.com/megyptm))
+Engineered by **Mohamed Abdulalim** ([@megyptm](https://github.com/megyptm))  
 Backend Lead & Technical Architect — [https://www.maatify.dev](https://www.maatify.dev)
 
 ---
