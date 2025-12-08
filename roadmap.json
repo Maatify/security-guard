@@ -41,7 +41,7 @@
       "id": "phase2",
       "title": "Core Architecture & DTOs",
       "version": "1.0.0",
-      "status": "completed",
+      "status": "pending",
       "summary": "Design internal structure and security DTOs.",
       "tasks": [
         "Create LoginAttemptDTO",
@@ -61,7 +61,7 @@
       "id": "phase3",
       "title": "Driver Implementations",
       "version": "1.0.0",
-      "status": "completed",
+      "status": "pending",
       "summary": "Implement Security Guard storage drivers on top of maatify/data-adapters.",
       "tasks": [
         "Implement MySQLSecurityGuard via maatify/data-adapters only",
@@ -83,7 +83,7 @@
       "id": "phase4",
       "title": "Core Logic & Service Layer",
       "version": "1.0.0",
-      "status": "completed",
+      "status": "pending",
       "summary": "Main security orchestration logic.",
       "tasks": [
         "handleAttempt() logic",
