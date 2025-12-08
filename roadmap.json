@@ -1,7 +1,7 @@
 {
-  "roadmap_version": "1.0.2",
+  "roadmap_version": "1.0.1",
   "project": "maatify/security-guard",
-  "note": "Security Guard is a multi-driver adaptive security engine that protects systems from brute force, abuse, and suspicious activity using MySQL, Redis, and MongoDB. This roadmap is normalized for safe executor execution with strict task-to-output mapping.",
+  "note": "Security Guard is a multi-driver adaptive security engine that protects systems from brute force, abuse, and suspicious activity using MySQL, Redis, and MongoDB. This roadmap is normalized for safe executor execution with integer-only phases.",
 
   "core_dependencies": {
     "storage_layer": "maatify/data-adapters",
@@ -40,13 +40,15 @@
     {
       "id": "phase2",
       "title": "Core Architecture & DTOs",
-      "version": "1.0.1",
+      "version": "1.0.0",
       "status": "pending",
       "summary": "Design internal structure and security DTOs.",
       "tasks": [
         "Create LoginAttemptDTO",
         "Create SecurityBlockDTO",
-        "Design SecurityGuardDriverInterface"
+        "Design SecurityGuardDriverInterface",
+        "Create SecurityGuardService",
+        "Prepare config loader"
       ],
       "outputs": [
         "src/DTO/LoginAttemptDTO.php",
@@ -80,12 +82,10 @@
     {
       "id": "phase4",
       "title": "Core Logic & Service Layer",
-      "version": "1.0.1",
+      "version": "1.0.0",
       "status": "pending",
-      "summary": "Main security orchestration logic and configuration loading.",
+      "summary": "Main security orchestration logic.",
       "tasks": [
-        "Create SecurityGuardService",
-        "Prepare config loader",
         "handleAttempt() logic",
         "Reset on success",
         "Block/unblock logic",
@@ -94,8 +94,7 @@
         "ENV thresholds"
       ],
       "outputs": [
-        "src/SecurityGuardService.php",
-        "src/Config/ConfigLoader.php"
+        "src/SecurityGuardService.php"
       ]
     },
 
