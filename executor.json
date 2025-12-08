@@ -30,8 +30,9 @@
     "access_rule": "Security Guard MUST access all MySQL, Redis, and MongoDB only through AdapterInterface",
     "direct_clients_forbidden": [
       "PDO",
-      "mysqli",
+      "Doctrine\\DBAL",
       "Redis",
+      "Predis\\Client",
       "MongoDB\\Client"
     ],
     "resolver_required": true,
