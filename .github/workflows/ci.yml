@@ -1,4 +1,4 @@
-name: CI – Maatify Security Guard
+name: Security Guard Tests
 
 on:
   push:
@@ -8,9 +8,7 @@ on:
 
 jobs:
   test:
-    name: 🧪 Security Guard Tests
     runs-on: ubuntu-latest
-
     permissions:
       contents: write
 
@@ -22,38 +20,50 @@ jobs:
       REDIS_HOST: 127.0.0.1
       REDIS_PORT: 6379
       REDIS_PASS: ""
-      REDIS_DSN: "redis://127.0.0.1:6379"
+      REDIS_MAIN_DSN: "redis://127.0.0.1:6379"
 
       # Mongo
       MONGO_HOST: 127.0.0.1
       MONGO_PORT: 27017
-      MONGO_DB: security_guard_test
-      MONGO_DSN: "mongodb://127.0.0.1:27017/security_guard_test"
+      MONGO_USER: ""
+      MONGO_PASS: ""
+      MONGO_DB: security_guard
+      MONGO_AUTH_SOURCE: admin
+      MONGO_MAIN_DSN: "mongodb://127.0.0.1:27017/security_guard"
 
       # MySQL
       MYSQL_HOST: 127.0.0.1
       MYSQL_PORT: 3306
       MYSQL_USER: root
       MYSQL_PASS: root
-      MYSQL_DB: security_guard_test
-      MYSQL_DSN: "mysql:host=127.0.0.1;dbname=security_guard_test;charset=utf8mb4"
+      MYSQL_DB: security_guard_dev
+      MYSQL_DRIVER: dbal
+
+      MYSQL_DSN: "mysql:host=127.0.0.1;dbname=security_guard_dev;charset=utf8mb4"
+      MYSQL_MAIN_DSN: "mysql:host=127.0.0.1;dbname=security_guard_main;charset=utf8mb4"
+      MYSQL_MAIN_USER: root
+      MYSQL_MAIN_PASS: root
+      MYSQL_DEV_DSN: "mysql:host=127.0.0.1;dbname=security_guard_dev;charset=utf8mb4"
+      MYSQL_LOGS_DSN: "mysql://root:root@127.0.0.1:3306/security_guard_logs"
+      MYSQL_LOGS_DRIVER: dbal
+
+      # Registry (phase 13)
+      DB_REGISTRY_PATH: tests/fixtures/database_registry.json
 
     services:
       redis:
         image: redis:7
-        ports:
-          - "6379:6379"
+        ports: [ "6379:6379" ]
 
       mongo:
         image: mongo:7
-        ports:
-          - "27017:27017"
+        ports: [ "27017:27017" ]
 
       mysql:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: security_guard_test
+          MYSQL_DATABASE: security_guard_dev
           MYSQL_AUTHENTICATION_PLUGIN: mysql_native_password
         ports:
           - "3306:3306"
@@ -62,7 +72,7 @@ jobs:
       # ---------------------------------------------
       # 1) Checkout
       # ---------------------------------------------
-      - name: 📦 Checkout Repository
+      - name: Checkout full repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -78,9 +88,9 @@ jobs:
           tools: composer
 
       # ---------------------------------------------
-      # 3) Composer cache
+      # 2.5) Composer cache + GitHub token (avoid 429)
       # ---------------------------------------------
-      - name: 🧰 Cache Composer
+      - name: Cache Composer
         uses: actions/cache@v4
         with:
           path: |
@@ -89,53 +99,102 @@ jobs:
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
 
-      - name: 🔑 Configure Composer GitHub token
+      - name: Configure Composer GitHub token
         run: composer config -g github-oauth.github.com "${{ github.token }}"
 
       # ---------------------------------------------
-      # 4) Install dependencies
+      # 3) Install Dependencies
       # ---------------------------------------------
-      - name: 📥 Install dependencies
+      - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
-      - name: ⚙️ Rebuild Autoload
+      # ---------------------------------------------
+      # 4) Regenerate Autoload (CRITICAL)
+      # ---------------------------------------------
+      - name: Rebuild Autoload
         run: composer dump-autoload --optimize
 
       # ---------------------------------------------
-      # 5) Wait for MySQL
+      # 4.5) Install jq (required for Telegram JSON formatting)
       # ---------------------------------------------
-      - name: 🕒 Wait for MySQL
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      # ---------------------------------------------
+      # 5) Debug Services (optional)
+      # ---------------------------------------------
+      - name: 🔍 Debug Connections
         run: |
+          echo "Environment: $APP_ENV"
+          echo "Checking Redis..."
+          redis-cli -h $REDIS_HOST ping || echo "Redis not responding"
+          echo "Checking MySQL..."
+          mysql -h $MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASS -e "SELECT VERSION();" || echo "MySQL not responding"
+          echo "Checking Mongo..."
+          mongo --host $MONGO_HOST --port $MONGO_PORT --eval "db.runCommand({ ping: 1 })" || echo "Mongo not responding"
+        continue-on-error: true
+
+      # ---------------------------------------------
+      # 6) Wait for MySQL
+      # ---------------------------------------------
+      - name: Wait for MySQL
+        run: |
+          echo "Waiting for MySQL..."
           for i in {1..25}; do
-            mysqladmin ping -h $MYSQL_HOST --silent && break
-            echo "⏳ Waiting for MySQL..."
+            if mysqladmin ping -h $MYSQL_HOST --silent; then
+              echo "MySQL ready!"
+              break
+            fi
+            echo "Still waiting..."
             sleep 2
           done
 
-      - name: 🗄️ Init MySQL database
+      # ---------------------------------------------
+      # 7) Create Required Databases
+      # ---------------------------------------------
+      - name: Init MySQL databases
         run: |
           mysql -h $MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASS \
-            -e "CREATE DATABASE IF NOT EXISTS security_guard_test;"
+            -e "CREATE DATABASE IF NOT EXISTS security_guard_main;"
+          mysql -h $MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASS \
+            -e "CREATE DATABASE IF NOT EXISTS security_guard_logs;"
+          mysql -h $MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASS \
+            -e "CREATE DATABASE IF NOT EXISTS security_guard_dev;"
+          mysql -h $MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASS \
+            -e "CREATE DATABASE IF NOT EXISTS security_guard;"
 
       # ---------------------------------------------
-      # 6) PHPStan
+      # 8) Run PHPStan (non-blocking)
       # ---------------------------------------------
-      - name: 🧹 Run PHPStan
+      - name: Debug PHPStan version and command
+        run: |
+          which phpstan || true
+          php -v
+          composer show phpstan/phpstan | cat
+          composer run-script analyse -- --version || true
+
+      - name: Run PHPStan
         id: phpstan
         run: |
           set +e
           vendor/bin/phpstan analyse src tests --level=max > phpstan.log
-          EXIT=${?}
-          ERR=$(grep -Eo "Found [0-9]+ errors" phpstan.log | grep -Eo "[0-9]+")
-          echo "phpstan_exit=$EXIT" >> $GITHUB_OUTPUT
-          echo "phpstan_errors=${ERR:-0}" >> $GITHUB_OUTPUT
+          EXIT_CODE=$?
+          ERRORS=$(grep -Eo "Found [0-9]+ errors" phpstan.log | grep -Eo "[0-9]+")
+          if [ -z "$ERRORS" ]; then ERRORS=0; fi
 
-      - name: 📄 Show PHPStan output
+          echo "phpstan_exit=$EXIT_CODE" >> $GITHUB_OUTPUT
+          echo "phpstan_errors=$ERRORS" >> $GITHUB_OUTPUT
+
+          echo "PHPStan completed. Errors: $ERRORS"
+
+      - name: Show PHPStan output
         if: always()
-        run: cat phpstan.log
+        run: |
+          echo "---- PHPStan log ----"
+          cat phpstan.log
 
       # ---------------------------------------------
-      # 7) PHPUnit + Coverage
+      # 9) Run PHPUnit
       # ---------------------------------------------
       - name: Install bc
         run: sudo apt-get install -y bc
@@ -143,7 +202,6 @@ jobs:
       - name: 🧪 Run PHPUnit with Coverage
         id: tests
         run: |
-          touch phpunit.log
           php -d pcov.enabled=1 \
             -d pcov.directory=./src \
             -d pcov.exclude="~(tests|vendor)~" \
@@ -151,11 +209,8 @@ jobs:
             --configuration phpunit.xml.dist \
             --coverage-clover coverage.xml \
             --coverage-html coverage \
-            | tee -a phpunit.log
+            | tee phpunit.log
 
-      # ---------------------------------------------
-      # 8) Extract Coverage
-      # ---------------------------------------------
       - name: Extract Coverage % (Clover)
         id: coverage
         run: |
@@ -168,8 +223,10 @@ jobs:
             $xml=@simplexml_load_file("coverage.xml");
             if(!$xml){ echo "0"; exit; }
 
+            // Prefer project/metrics
             $m = $xml->project->metrics ?? null;
 
+            // Fallback: sum all metrics nodes
             if(!$m){
               $statements=0; $covered=0;
               foreach($xml->xpath("//metrics") ?: [] as $mx){
@@ -228,32 +285,45 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes"
           else
-            git commit -m "Update coverage badge to ${{ steps.coverage.outputs.coverage }}%"
+            git commit -m "Update Security Guard coverage to ${{ steps.coverage.outputs.coverage }}%"
           fi
 
           git push origin badges --force
 
       # ---------------------------------------------
-      # 9) Summary Report
+      # 🔥 10) Summary (always)
       # ---------------------------------------------
       - name: 🧾 Summary Report
         if: always()
         run: |
-          echo "### 🧾 Security Guard CI Summary" >> $GITHUB_STEP_SUMMARY
-          echo "🧹 PHPStan: ${{ steps.phpstan.outputs.phpstan_errors }} errors" >> $GITHUB_STEP_SUMMARY
-          echo "📊 Coverage: ${{ steps.coverage.outputs.coverage }}%" >> $GITHUB_STEP_SUMMARY
+          echo "### 🧾 Security Guard Test Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [ -f phpunit.log ]; then
-            tail -n 20 phpunit.log >> $GITHUB_STEP_SUMMARY
-          elif [ -f /tmp/phpunit.log ]; then
-            tail -n 20 /tmp/phpunit.log >> $GITHUB_STEP_SUMMARY
+          echo "📦 Environment: $APP_ENV" >> $GITHUB_STEP_SUMMARY
+          echo "🧱 Redis: $REDIS_HOST" >> $GITHUB_STEP_SUMMARY
+          echo "🗄️ MySQL: $MYSQL_HOST" >> $GITHUB_STEP_SUMMARY
+          echo "📁 Mongo: $MONGO_HOST" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          tail -n 20 /tmp/phpunit.log >> $GITHUB_STEP_SUMMARY || tail -n 20 phpunit.log >> $GITHUB_STEP_SUMMARY || echo "(phpunit.log missing)" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if grep -q "FAILURES!" /tmp/phpunit.log 2>/dev/null || grep -q "FAILURES!" phpunit.log 2>/dev/null; then
+            echo "❌ Some tests failed." >> $GITHUB_STEP_SUMMARY
           else
-            echo "⚠️ phpunit.log not found — PHPUnit may have failed before log creation." >> $GITHUB_STEP_SUMMARY
+            echo "✅ All tests passed successfully." >> $GITHUB_STEP_SUMMARY
           fi
 
+          PHPSTAN_ERR=${{ steps.phpstan.outputs.phpstan_errors }}
+          if [ "$PHPSTAN_ERR" -eq 0 ]; then
+            echo "🧹 PHPStan: Passed (0 errors)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ PHPStan: $PHPSTAN_ERR errors" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "📊 Coverage: ${{ steps.coverage.outputs.coverage }}%" >> $GITHUB_STEP_SUMMARY
+
       # ---------------------------------------------
-      # 10) Telegram Notification
+      # 11) Telegram Notification
       # ---------------------------------------------
       - name: 📲 Notify Telegram
         if: always()
@@ -263,44 +333,60 @@ jobs:
         run: |
           START_TS=$(date -u -d "$GH_START_ISO" +%s)
           END_TS=$(date +%s)
+          START_TIME=$(date -u -d "@$START_TS" +"%H:%M:%S UTC")
+          END_TIME=$(date -u +"%H:%M:%S UTC")
           DURATION=$((END_TS - START_TS))
 
-          if [ "$DURATION" -lt 60 ]; then
+          if [ $DURATION -lt 60 ]; then
             DURATION_STR="${DURATION}s"
           else
             DURATION_STR="$(($DURATION / 60))m $(($DURATION % 60))s"
           fi
 
-          PHPSTAN_ERR=${{ steps.phpstan.outputs.phpstan_errors }}
-          COV=${{ steps.coverage.outputs.coverage }}
-
-          STATUS="🟢 All tests passed"
-          HEADER="Security Guard CI Report"
+          STATUS="✅ Security Guard Tests passed successfully!"
           COLOR="🟢"
+          HEADER="Security Guard CI Report (${GITHUB_REPOSITORY})"
 
-          if grep -q "FAILURES!" phpunit.log 2>/dev/null || [ "${{ job.status }}" != "success" ]; then
-            STATUS="🔴 Tests or PHPStan failed!"
-            HEADER="Security Guard CI Alert"
+          if grep -q "FAILURES!" phpunit.log || [ "${{ job.status }}" != "success" ]; then
+            STATUS="❌ Test or PHPStan failure!"
             COLOR="🔴"
+            HEADER="Security Guard CI Alert ${GITHUB_REPOSITORY}"
           fi
 
-          MSG="📢 <b>${HEADER}</b>
+          PHPSTAN_ERR=${{ steps.phpstan.outputs.phpstan_errors }}
+          if [ "$PHPSTAN_ERR" -eq 0 ]; then
+            PHPSTAN_SUMMARY="🧹 <b>PHPStan:</b> Passed (0 errors)"
+          else
+            PHPSTAN_SUMMARY="🧹 <b>PHPStan:</b> ${PHPSTAN_ERR} errors"
+          fi
           
+          COVERAGE_SUMMARY="📊 <b>Coverage:</b> ${{ steps.coverage.outputs.coverage }}%"
+
+          PROJECT="${GITHUB_REPOSITORY}"
+          BRANCH="$GITHUB_REF_NAME"
+          ACTOR="$GITHUB_ACTOR"
+          URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+
+          MESSAGE="📢 <b>${HEADER}</b>
+
           ${COLOR} ${STATUS}
+
+          ${PHPSTAN_SUMMARY}
           
-          🧹 <b>PHPStan:</b> ${PHPSTAN_ERR} errors
-          📊 <b>Coverage:</b> ${COV}%
-          
-          📦 <b>Project:</b> ${GITHUB_REPOSITORY}
-          🌿 <b>Branch:</b> ${GITHUB_REF_NAME}
-          👨‍💻 <b>By:</b> ${GITHUB_ACTOR}
-          
+          ${COVERAGE_SUMMARY}
+
+          📦 <b>Project:</b> ${PROJECT}
+          🧱 <b>Branch:</b> ${BRANCH}
+          👨‍💻 <b>By:</b> ${ACTOR}
+
+          ⏱ <b>Start:</b> ${START_TIME}
+          🕒 <b>End:</b> ${END_TIME}
           ⏳ <b>Duration:</b> ${DURATION_STR}
-          
-          🔗 <a href='${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'>View CI Logs</a>
+
+          🔗 <a href='${URL}'>View CI Logs</a>
           "
 
           curl -s -X POST \
             "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-          -H "Content-Type: application/json" \
-          -d "$(jq -n --arg chat_id "$TELEGRAM_CHAT_ID" --arg text "$MSG" --arg pm "HTML" '{chat_id: $chat_id, text: $text, parse_mode: $pm }')"
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg chat_id "$TELEGRAM_CHAT_ID" --arg text "$MESSAGE" --arg pm "HTML" '{chat_id: $chat_id, text: $text, parse_mode: $pm}')"
