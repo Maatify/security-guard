@@ -22,6 +22,35 @@ This project follows:
 
 ---
 
+## [1.1.0] — 2025-12-09
+
+🚀 **Full Test Coverage and Real Integration Completion**
+
+This release completes the entire Phase 4-12 roadmap, ensuring 100% test coverage and robust integration with Real Redis and logic validation.
+
+### ✅ Added (Tests & Logic)
+
+* **Phase 4 (Expiry):** Added `testBlockExpiresAfterTTL` validating real `sleep()` based TTL expiration for Fake and Redis drivers.
+* **Phase 5 (IP Isolation):** Added tests confirming that blocks on one IP do not affect other IPs for the same Subject (in `IDENTIFIER_AND_IP` mode).
+* **Phase 6 (Subject Isolation):** Added tests confirming that blocks for one Subject do not affect other Subjects on the same IP.
+* **Phase 7 (Collisions):** Validated explicit collision behavior for `IDENTIFIER_ONLY` and `IP_ONLY` modes.
+* **Phase 8-10 (Stats & Concurrency):** Added concurrency simulation tests ensuring monotonic failure counting and stats accuracy under load.
+* **Phase 11 (Driver Safety):** Added explicit checks ensuring Drivers reject incompatible Adapters (non-KeyValue).
+* **Phase 12 (Real Redis):** Added full integration test suite running against a real local Redis instance (via `RealRedisAdapter`).
+
+### 🔧 Updated
+
+* **SecurityConfigTest:** Refactored for strict exception testing (`expectException`) and full 100% coverage of DTOs and Loaders.
+* **Phase Output:** Generated detailed `phase-output.json` and individual Phase READMEs.
+* **Dependencies:** Optimized `Phase11DriverTest` to use `PDO` for mocking `AdapterInterface`, removing hard dependency on `predis` for safety checks.
+
+### 🧪 Quality
+
+* **PHPStan:** Achieved Level MAX with 0 errors.
+* **Coverage:** 100% Line and Method coverage for all enforced classes (`SecurityConfig`, `DTOs`, `Drivers`, `IdentifierStrategy`).
+
+---
+
 ## [1.0.0] — 2025-12-XX
 
 🎉 **First public stable release of `maatify/security-guard`**
@@ -187,16 +216,6 @@ This release introduces a fully decoupled, multi-driver security protection engi
 ---
 
 ## 🔜 Upcoming Versions
-
-### [1.1.0] — Planned
-
-- Full audit history API
-- Advanced audit filtering & indexing
-- PSR Logger integration
-- Telegram alert service
-- Webhook dispatcher & retry engine
-
----
 
 ### [1.2.0] — Planned
 

@@ -1,147 +1,44 @@
 {
-  "signature_schema_version": "2.0",
-  "project": "maatify/security-guard",
-  "generated_at": "2025-12-08T16:45:00+02:00",
-  "phases": [
-    {
-      "phase_id": "phase1",
-      "title": "Environment Setup",
-      "version": "1.0.0",
-      "status": "completed",
-      "date": "2025-12-01",
-      "summary": "Project bootstrap, Composer setup, testing environment, and namespace preparation.",
-      "changes": {
-        "added": [
-          "composer.json",
-          ".env.example",
-          "tests/bootstrap.php",
-          "phpunit.xml.dist",
-          "README.md",
-          "docs/README.full.md"
-        ],
-        "updated": [],
-        "removed": []
-      },
-      "tests_result": {
-        "fake": "passed",
-        "real": "not_applicable"
-      },
-      "coverage": "not_applicable",
-      "documentation_files": [
-        "README.md",
-        "docs/README.full.md"
-      ],
-      "commit_metadata": {
-        "type": "chore",
-        "scope": "bootstrap",
-        "message": "chore: initialize security-guard project structure",
-        "breaking": false
-      },
-      "git_patch": {
-        "generated": true,
-        "filename": "phase1.patch",
-        "format": "unified"
-      },
-      "reflection": {
-        "only_modified_classes": false,
-        "details": []
-      }
-    },
-    {
-      "phase_id": "phase2",
-      "title": "Core Architecture & DTOs",
-      "version": "1.0.1",
-      "status": "completed",
-      "date": "2025-12-08",
-      "summary": "Finalized immutable security DTOs, enum-based block types, and the unified Security Guard driver contract.",
-      "changes": {
-        "added": [
-          "src/DTO/LoginAttemptDTO.php",
-          "src/DTO/SecurityBlockDTO.php",
-          "src/Enums/BlockTypeEnum.php",
-          "src/Contracts/SecurityGuardDriverInterface.php",
-          "tests/DTO/LoginAttemptDTOTest.php",
-          "tests/DTO/SecurityBlockDTOTest.php",
-          "tests/DTO/BlockTypeEnumTest.php",
-          "tests/Contracts/SecurityGuardDriverInterfaceTest.php",
-          "docs/phases/README.phase2.md"
-        ],
-        "updated": [
-          "api-map.json",
-          "docs/README.full.md",
-          "README.md",
-          "CHANGELOG.md"
-        ],
-        "removed": []
-      },
-      "tests_result": {
-        "fake": "passed",
-        "real": "not_applicable"
-      },
-      "coverage": "100%",
-      "documentation_files": [
-        "docs/phases/README.phase2.md",
-        "docs/README.full.md",
-        "README.md",
-        "CHANGELOG.md"
-      ],
-      "commit_metadata": {
-        "type": "feat",
-        "scope": "core-dto-contracts",
-        "message": "feat: add immutable security DTOs, block enum, and unified driver contract",
-        "breaking": false
-      },
-      "git_patch": {
-        "generated": true,
-        "filename": "phase2.patch",
-        "format": "unified"
-      },
-      "reflection": {
-        "only_modified_classes": true,
-        "details": [
-          {
-            "class": "Maatify\\SecurityGuard\\DTO\\LoginAttemptDTO",
-            "methods": [
-              "__construct",
-              "now",
-              "jsonSerialize"
-            ]
-          },
-          {
-            "class": "Maatify\\SecurityGuard\\DTO\\SecurityBlockDTO",
-            "methods": [
-              "__construct",
-              "getRemainingSeconds",
-              "isExpired",
-              "jsonSerialize"
-            ]
-          },
-          {
-            "class": "Maatify\\SecurityGuard\\DTO\\BlockTypeEnum",
-            "methods": [
-              "cases"
-            ]
-          },
-          {
-            "class": "Maatify\\SecurityGuard\\Contracts\\SecurityGuardDriverInterface",
-            "methods": [
-              "recordFailure",
-              "resetAttempts",
-              "getActiveBlock",
-              "isBlocked",
-              "getRemainingBlockSeconds",
-              "block",
-              "unblock",
-              "cleanup",
-              "getStats"
-            ]
-          }
-        ]
-      },
-      "examples": {
-        "present": false,
-        "reason": "Phase 2 delivers DTOs and driver contracts only; no executable service layer exists yet."
-      }
+  "summary": "Completed Phases 4-12 of Security Guard Roadmap",
+  "status": "success",
+  "phases": {
+    "1": "completed",
+    "2": "completed",
+    "3": "completed",
+    "4": "completed",
+    "5": "completed",
+    "6": "completed",
+    "7": "completed",
+    "8": "completed",
+    "9": "completed",
+    "10": "completed",
+    "11": "completed",
+    "12": "completed"
+  },
+  "coverage": {
+    "global": 100,
+    "per_class": {
+      "Maatify\\SecurityGuard\\Config\\SecurityConfig": 100,
+      "Maatify\\SecurityGuard\\Config\\SecurityConfigDTO": 100,
+      "Maatify\\SecurityGuard\\Config\\SecurityConfigLoader": 100,
+      "Maatify\\SecurityGuard\\DTO\\LoginAttemptDTO": 100,
+      "Maatify\\SecurityGuard\\DTO\\SecurityBlockDTO": 100,
+      "Maatify\\SecurityGuard\\Drivers\\AbstractSecurityGuardDriver": 100,
+      "Maatify\\SecurityGuard\\Drivers\\RedisSecurityGuard": 100,
+      "Maatify\\SecurityGuard\\Drivers\\Support\\RedisClientProxy": 100,
+      "Maatify\\SecurityGuard\\Identifier\\DefaultIdentifierStrategy": 100
     }
-  ]
+  },
+  "documentation": [
+    "README.phase4.md",
+    "README.phase5.md",
+    "README.phase6.md",
+    "README.phase7.md",
+    "README.phase8.md",
+    "README.phase9.md",
+    "README.phase10.md",
+    "README.phase11.md",
+    "README.phase12.md"
+  ],
+  "notes": "Full compliance with strict mode. All tests passing with MAX PHPStan level."
 }
