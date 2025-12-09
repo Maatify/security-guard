@@ -54,6 +54,9 @@ class Phase12RealRedisTest extends TestCase
 
     public function testRedisIntegrationRecordFailure(): void
     {
+        $driver = $this->driver;
+        $this->assertNotNull($driver);
+
         $attempt = new LoginAttemptDTO(
             ip: '127.0.0.1',
             subject: 'user_fail',
@@ -63,15 +66,18 @@ class Phase12RealRedisTest extends TestCase
             context: []
         );
 
-        $count = $this->driver->recordFailure($attempt);
+        $count = $driver->recordFailure($attempt);
         $this->assertSame(1, $count);
 
-        $count = $this->driver->recordFailure($attempt);
+        $count = $driver->recordFailure($attempt);
         $this->assertSame(2, $count);
     }
 
     public function testRedisIntegrationBlock(): void
     {
+        $driver = $this->driver;
+        $this->assertNotNull($driver);
+
         $block = new SecurityBlockDTO(
             ip: '127.0.0.1',
             subject: 'user_block',
@@ -80,17 +86,20 @@ class Phase12RealRedisTest extends TestCase
             createdAt: time()
         );
 
-        $this->driver->block($block);
+        $driver->block($block);
 
-        $this->assertTrue($this->driver->isBlocked('127.0.0.1', 'user_block'));
+        $this->assertTrue($driver->isBlocked('127.0.0.1', 'user_block'));
 
-        $retrieved = $this->driver->getActiveBlock('127.0.0.1', 'user_block');
+        $retrieved = $driver->getActiveBlock('127.0.0.1', 'user_block');
         $this->assertNotNull($retrieved);
         $this->assertSame('user_block', $retrieved->subject);
     }
 
     public function testRedisIntegrationUnblock(): void
     {
+        $driver = $this->driver;
+        $this->assertNotNull($driver);
+
         $block = new SecurityBlockDTO(
             ip: '127.0.0.1',
             subject: 'user_unblock',
@@ -99,18 +108,21 @@ class Phase12RealRedisTest extends TestCase
             createdAt: time()
         );
 
-        $this->driver->block($block);
-        $this->assertTrue($this->driver->isBlocked('127.0.0.1', 'user_unblock'));
+        $driver->block($block);
+        $this->assertTrue($driver->isBlocked('127.0.0.1', 'user_unblock'));
 
-        $this->driver->unblock('127.0.0.1', 'user_unblock');
-        $this->assertFalse($this->driver->isBlocked('127.0.0.1', 'user_unblock'));
+        $driver->unblock('127.0.0.1', 'user_unblock');
+        $this->assertFalse($driver->isBlocked('127.0.0.1', 'user_unblock'));
     }
 
     public function testRedisIntegrationCleanup(): void
     {
+        $driver = $this->driver;
+        $this->assertNotNull($driver);
+
         // Redis cleans up automatically, so this test mainly verifies no exception is thrown
         // and behavior is consistent.
-        $this->driver->cleanup();
+        $driver->cleanup();
         $this->assertTrue(true);
     }
 }

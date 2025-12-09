@@ -19,8 +19,14 @@ class Phase11DriverTest extends TestCase
             public function disconnect(): void {}
             public function isConnected(): bool { return true; }
             public function healthCheck(): bool { return true; }
-            public function getDriver(): object { return new \stdClass(); }
-            public function getConnection(): object { return new \stdClass(); }
+            /**
+             * @return \Predis\Client
+             */
+            public function getDriver(): object { return new \Predis\Client(); }
+            /**
+             * @return \Predis\Client
+             */
+            public function getConnection(): object { return new \Predis\Client(); }
         };
 
         $driver = new FakeSecurityGuardDriver($badAdapter, new FakeIdentifierStrategy());

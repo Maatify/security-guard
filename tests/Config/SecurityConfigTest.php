@@ -36,53 +36,52 @@ class SecurityConfigTest extends TestCase
         $this->assertTrue($config->backoffEnabled());
     }
 
-    public function testValidationExceptions(): void
+    public function testValidationExceptionsWindowSeconds(): void
     {
-        // WindowSeconds < 1
-        try {
-            new SecurityConfig(new SecurityConfigDTO(0, 10, 1, IdentifierModeEnum::IP_ONLY, 'p', false, 0, 1.0, 0));
-            $this->fail('Expected InvalidArgumentException for windowSeconds');
-        } catch (\InvalidArgumentException) {
-            $this->assertTrue(true);
-        }
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('windowSeconds must be >= 1');
 
-        // BlockSeconds < 1
-        try {
-            new SecurityConfig(new SecurityConfigDTO(10, 0, 1, IdentifierModeEnum::IP_ONLY, 'p', false, 0, 1.0, 0));
-            $this->fail('Expected InvalidArgumentException for blockSeconds');
-        } catch (\InvalidArgumentException) {
-            $this->assertTrue(true);
-        }
+        new SecurityConfig(new SecurityConfigDTO(0, 10, 1, IdentifierModeEnum::IP_ONLY, 'p', false, 0, 1.0, 0));
+    }
 
-        // MaxFailures < 1
-        try {
-            new SecurityConfig(new SecurityConfigDTO(10, 10, 0, IdentifierModeEnum::IP_ONLY, 'p', false, 0, 1.0, 0));
-            $this->fail('Expected InvalidArgumentException for maxFailures');
-        } catch (\InvalidArgumentException) {
-            $this->assertTrue(true);
-        }
+    public function testValidationExceptionsBlockSeconds(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('blockSeconds must be >= 1');
 
-        // Backoff enabled but invalid params
-        try {
-            new SecurityConfig(new SecurityConfigDTO(10, 10, 1, IdentifierModeEnum::IP_ONLY, 'p', true, 0, 1.0, 10));
-            $this->fail('Expected InvalidArgumentException for initialBackoffSeconds < 1');
-        } catch (\InvalidArgumentException) {
-            $this->assertTrue(true);
-        }
+        new SecurityConfig(new SecurityConfigDTO(10, 0, 1, IdentifierModeEnum::IP_ONLY, 'p', false, 0, 1.0, 0));
+    }
 
-        try {
-            new SecurityConfig(new SecurityConfigDTO(10, 10, 1, IdentifierModeEnum::IP_ONLY, 'p', true, 10, 0.9, 10));
-            $this->fail('Expected InvalidArgumentException for backoffMultiplier < 1.0');
-        } catch (\InvalidArgumentException) {
-            $this->assertTrue(true);
-        }
+    public function testValidationExceptionsMaxFailures(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('maxFailures must be >= 1');
 
-        try {
-            new SecurityConfig(new SecurityConfigDTO(10, 10, 1, IdentifierModeEnum::IP_ONLY, 'p', true, 10, 2.0, 5));
-            $this->fail('Expected InvalidArgumentException for maxBackoffSeconds < initialBackoffSeconds');
-        } catch (\InvalidArgumentException) {
-            $this->assertTrue(true);
-        }
+        new SecurityConfig(new SecurityConfigDTO(10, 10, 0, IdentifierModeEnum::IP_ONLY, 'p', false, 0, 1.0, 0));
+    }
+
+    public function testValidationExceptionsInitialBackoff(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('initialBackoffSeconds must be >= 1');
+
+        new SecurityConfig(new SecurityConfigDTO(10, 10, 1, IdentifierModeEnum::IP_ONLY, 'p', true, 0, 1.0, 10));
+    }
+
+    public function testValidationExceptionsBackoffMultiplier(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('backoffMultiplier must be >= 1.0');
+
+        new SecurityConfig(new SecurityConfigDTO(10, 10, 1, IdentifierModeEnum::IP_ONLY, 'p', true, 10, 0.9, 10));
+    }
+
+    public function testValidationExceptionsMaxBackoff(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('maxBackoffSeconds must be >= initialBackoffSeconds');
+
+        new SecurityConfig(new SecurityConfigDTO(10, 10, 1, IdentifierModeEnum::IP_ONLY, 'p', true, 10, 2.0, 5));
     }
 
     public function testComputeBackoffSeconds(): void
