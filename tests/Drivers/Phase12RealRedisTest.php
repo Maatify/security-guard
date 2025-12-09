@@ -120,9 +120,7 @@ class Phase12RealRedisTest extends TestCase
         $driver = $this->driver;
         $this->assertNotNull($driver);
 
-        // Redis cleans up automatically, so this test mainly verifies no exception is thrown
-        // and behavior is consistent.
+        $this->expectNotToPerformAssertions();
         $driver->cleanup();
-        $this->assertTrue(true);
     }
 }

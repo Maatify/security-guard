@@ -41,16 +41,11 @@ class SecurityGuardStatsTest extends TestCase
         $driver = $this->createDriver();
         $stats = $driver->getStats();
 
-        $this->assertIsArray($stats);
-        // Fake driver returns boolean flags for support, not counters usually.
-        // Let's check what FakeSecurityGuardDriver returns: ['failures' => true, 'blocks' => true]
-        // The test requirement "Accuracy" suggests we might need to verify counters if the driver supported them.
-        // But Abstract/Fake implementation might not expose global counters.
-        // AbstractSecurityGuardDriver manual says "doGetStats(): array".
-        // Fake returns constant.
+        $this->assertNotEmpty($stats);
+        $this->assertArrayHasKey('failures', $stats);
+        $this->assertArrayHasKey('blocks', $stats);
 
-        // If the requirement assumes we check "count of blocks", we can't unless we inspect the adapter.
-        // But we can check that it returns what it promises.
+        // Fake driver returns boolean flags for support
         $this->assertTrue($stats['failures']);
         $this->assertTrue($stats['blocks']);
     }

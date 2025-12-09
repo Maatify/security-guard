@@ -20,13 +20,17 @@ class Phase11DriverTest extends TestCase
             public function isConnected(): bool { return true; }
             public function healthCheck(): bool { return true; }
             /**
-             * @return \Predis\Client
+             * Return a safe standard object (PDO) that is guaranteed to be in the union type
+             * but is NOT a KeyValue-compatible client. This avoids dependency on 'predis'
+             * or 'redis' extension being present for this specific test.
+             *
+             * @return \PDO
              */
-            public function getDriver(): object { return new \Predis\Client(); }
+            public function getDriver(): object { return new \PDO('sqlite::memory:'); }
             /**
-             * @return \Predis\Client
+             * @return \PDO
              */
-            public function getConnection(): object { return new \Predis\Client(); }
+            public function getConnection(): object { return new \PDO('sqlite::memory:'); }
         };
 
         $driver = new FakeSecurityGuardDriver($badAdapter, new FakeIdentifierStrategy());
