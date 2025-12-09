@@ -41,19 +41,34 @@
       "id": "phase2",
       "title": "Core Architecture & DTOs",
       "version": "1.0.0",
-      "status": "pending",
-      "summary": "Design internal structure and security DTOs.",
+      "status": "completed",
+      "summary": "Finalize core DTO structures, interfaces, and the high-level Facade.",
       "tasks": [
         "Create LoginAttemptDTO",
-        "Create SecurityBlockDTO",
+        "Create SecurityBlockDTO (final int-based timestamps version)",
         "Design SecurityGuardDriverInterface",
-        "Create SecurityGuardService",
+        "Create AbstractSecurityGuardDriver (shared logic)",
+        "Create SecurityGuardService (Unified Facade)",
+        "IdentifierStrategy integration",
+        "Normalization + block encoding/decoding",
         "Prepare config loader"
       ],
       "outputs": [
         "src/DTO/LoginAttemptDTO.php",
         "src/DTO/SecurityBlockDTO.php",
-        "src/Contracts/SecurityGuardDriverInterface.php"
+        "src/Contracts/SecurityGuardDriverInterface.php",
+        "src/Drivers/AbstractSecurityGuardDriver.php",
+        "src/Service/SecurityGuardService.php",
+        "src/Identifier/Contracts/IdentifierStrategyInterface.php",
+        "src/Config/SecurityConfigLoader.php"
+      ],
+      "changes": [
+        "SecurityBlockDTO was refactored into int timestamps (expiresAt, createdAt)",
+        "LoginAttemptDTO gained strict context typing",
+        "AbstractSecurityGuardDriver added encodeBlock + decodeBlock + makeIdentifier + time helpers",
+        "SecurityGuardService now delegates to resolved driver only",
+        "Identifier strategy unified using strategy->makeId()",
+        "Config loader updated for PHPStan compliance"
       ]
     },
 
@@ -61,23 +76,42 @@
       "id": "phase3",
       "title": "Driver Implementations",
       "version": "1.0.0",
-      "status": "pending",
-      "summary": "Implement Security Guard storage drivers on top of maatify/data-adapters.",
+      "status": "completed",
+      "summary": "Implement all Security Guard storage drivers on top of maatify/data-adapters with unified behavior.",
       "tasks": [
-        "Implement MySQLSecurityGuard via maatify/data-adapters only",
-        "Implement RedisSecurityGuard via maatify/data-adapters only",
-        "Implement MongoSecurityGuard via maatify/data-adapters only",
-        "TTL management via adapter layer",
-        "Automatic Redis fallback via resolver",
-        "SecurityGuardResolver (real vs fake switching)",
-        "Direct DB clients are explicitly forbidden in this phase"
+        "Implement RedisSecurityGuard using RedisClientProxy",
+        "Implement PdoMySQLDriver (strict SQL + timestamps)",
+        "Implement DbalMySQLDriver with fetchAssociative/fetchOne",
+        "Implement MySQLSecurityGuard wrapping both PDO & DBAL",
+        "Implement MongoSecurityGuard using MongoDB Database instance",
+        "Create SecurityGuardResolver with DataAdapters driver type matching",
+        "Enforce no raw client creation — all drivers must use adapter->getDriver()",
+        "Fix PHPStan generics, mixed reduction, safe casting",
+        "Unified remainingSeconds(), block(), unblock(), cleanup() behaviors",
+        "Normalize identifier using strategy"
       ],
       "outputs": [
-        "src/Drivers/MySQLSecurityGuard.php",
         "src/Drivers/RedisSecurityGuard.php",
-        "src/Drivers/MongoSecurityGuard.php"
+        "src/Drivers/MySQL/PdoMySQLDriver.php",
+        "src/Drivers/MySQL/DbalMySQLDriver.php",
+        "src/Drivers/MySQL/MySQLSecurityGuard.php",
+        "src/Drivers/Mongo/MongoSecurityGuard.php",
+        "src/Drivers/Support/RedisClientProxy.php",
+        "src/Resolver/SecurityGuardResolver.php"
+      ],
+      "changes": [
+        "RedisSecurityGuard now fully uses RedisClientProxy abstraction",
+        "PdoMySQLDriver: fixed fetchColumn|false logic + strict int timestamps",
+        "DbalMySQLDriver: safe casting + consistent SQL + REPLACE INTO support",
+        "MySQLSecurityGuard delegates to PDO/DBAL transparently",
+        "MongoSecurityGuard rewritten with proper Collection handling + indexes",
+        "Resolver fixed to match MongoDatabase instead of MongoClient",
+        "Resolver refactored to remove unreachable conditions",
+        "Redis proxy unified commands: hGet, hSet, hDel, hGetAll, expire, del, info",
+        "Abstract driver now strictly validates block payload during decodeBlock()"
       ]
     },
+
 
     {
       "id": "phase4",

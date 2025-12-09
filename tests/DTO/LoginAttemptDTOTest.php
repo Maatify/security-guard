@@ -19,48 +19,86 @@ use InvalidArgumentException;
 use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
 use PHPUnit\Framework\TestCase;
 
-final class LoginAttemptDTOTest extends TestCase
+class LoginAttemptDTOTest extends TestCase
 {
-    public function testValidConstruction(): void
+    public function testConstructorSuccess(): void
     {
-        $dto = LoginAttemptDTO::now(
+        $dto = new LoginAttemptDTO(
             ip: '127.0.0.1',
-            username: 'admin',
-            userAgent: 'PHPUnit',
-            context: ['key' => 'value']
+            subject: 'login',
+            occurredAt: 1234567890,
+            resetAfter: 60,
+            userAgent: 'Mozilla',
+            context: ['foo' => 'bar']
         );
 
         $this->assertSame('127.0.0.1', $dto->ip);
-        $this->assertSame('admin', $dto->username);
-        $this->assertSame('PHPUnit', $dto->userAgent);
-        $this->assertSame(['key' => 'value'], $dto->context);
+        $this->assertSame('login', $dto->subject);
+        $this->assertSame(1234567890, $dto->occurredAt);
+        $this->assertSame(60, $dto->resetAfter);
+        $this->assertSame('Mozilla', $dto->userAgent);
+        $this->assertSame(['foo' => 'bar'], $dto->context);
     }
 
-    public function testJsonSerialization(): void
+    public function testConstructorThrowsOnEmptyIp(): void
     {
+        $this->expectException(InvalidArgumentException::class);
+        new LoginAttemptDTO('', 'login', 1234567890, 60);
+    }
+
+    public function testConstructorThrowsOnEmptySubject(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        new LoginAttemptDTO('127.0.0.1', '   ', 1234567890, 60);
+    }
+
+    public function testConstructorThrowsOnNegativeResetAfter(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        new LoginAttemptDTO('127.0.0.1', 'login', 1234567890, -1);
+    }
+
+    public function testNowFactory(): void
+    {
+        $before = time();
         $dto = LoginAttemptDTO::now(
+            ip: '10.0.0.1',
+            subject: 'api',
+            resetAfter: 120,
+            userAgent: 'TestAgent',
+            context: ['a' => 1]
+        );
+        $after = time();
+
+        $this->assertSame('10.0.0.1', $dto->ip);
+        $this->assertSame('api', $dto->subject);
+        $this->assertSame(120, $dto->resetAfter);
+        $this->assertSame('TestAgent', $dto->userAgent);
+        $this->assertSame(['a' => 1], $dto->context);
+
+        // occurredAt must be between before and after
+        $this->assertGreaterThanOrEqual($before, $dto->occurredAt);
+        $this->assertLessThanOrEqual($after, $dto->occurredAt);
+    }
+
+    public function testJsonSerialize(): void
+    {
+        $dto = new LoginAttemptDTO(
             ip: '1.1.1.1',
-            username: 'user'
+            subject: 'login',
+            occurredAt: 222222,
+            resetAfter: 30,
+            userAgent: 'UA',
+            context: ['k' => 'v']
         );
 
-        $data = $dto->jsonSerialize();
+        $json = $dto->jsonSerialize();
 
-        $this->assertSame('1.1.1.1', $data['ip']);
-        $this->assertSame('user', $data['username']);
-        $this->assertArrayHasKey('occurred_at', $data);
-        $this->assertNull($data['user_agent']);
-        $this->assertSame([], $data['context']);
-    }
-
-    public function testEmptyIpThrowsException(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        new LoginAttemptDTO('', 'user');
-    }
-
-    public function testEmptyUsernameThrowsException(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        new LoginAttemptDTO('127.0.0.1', '');
+        $this->assertSame('1.1.1.1', $json['ip']);
+        $this->assertSame('login', $json['subject']);
+        $this->assertSame(222222, $json['occurred_at']);
+        $this->assertSame(30, $json['reset_after']);
+        $this->assertSame('UA', $json['user_agent']);
+        $this->assertSame(['k' => 'v'], $json['context']);
     }
 }

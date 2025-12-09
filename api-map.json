@@ -37,5 +37,573 @@
       "cleanup",
       "getStats"
     ]
+  },
+  "src/DTO/LoginAttemptDTO.php": {
+    "class": "Maatify\\SecurityGuard\\DTO\\LoginAttemptDTO",
+    "type": "class",
+    "methods": {
+      "__construct": {
+        "visibility": "public",
+        "arguments": [
+          {
+            "name": "ip",
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "type": "string"
+          },
+          {
+            "name": "occurredAt",
+            "type": "int"
+          },
+          {
+            "name": "context",
+            "type": "array<string,mixed>"
+          }
+        ]
+      },
+      "now": {
+        "visibility": "public",
+        "static": true,
+        "return_type": "self",
+        "arguments": [
+          {
+            "name": "ip",
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "type": "string"
+          },
+          {
+            "name": "context",
+            "type": "array<string,mixed>"
+          }
+        ]
+      }
+    }
+  },
+  "src/DTO/SecurityBlockDTO.php": {
+    "class": "Maatify\\SecurityGuard\\DTO\\SecurityBlockDTO",
+    "type": "class",
+    "methods": {
+      "__construct": {
+        "visibility": "public",
+        "arguments": [
+          {
+            "name": "ip",
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "type": "string"
+          },
+          {
+            "name": "type",
+            "type": "Maatify\\SecurityGuard\\Enums\\BlockTypeEnum"
+          },
+          {
+            "name": "expiresAt",
+            "type": "int"
+          },
+          {
+            "name": "createdAt",
+            "type": "int"
+          }
+        ]
+      }
+    }
+  },
+  "src/Enums/BlockTypeEnum.php": {
+    "class": "Maatify\\SecurityGuard\\Enums\\BlockTypeEnum",
+    "type": "enum",
+    "cases": [
+      "TEMPORARY",
+      "PERMANENT"
+    ]
+  },
+  "src/Contracts/SecurityGuardDriverInterface.php": {
+    "interface": "Maatify\\SecurityGuard\\Contracts\\SecurityGuardDriverInterface",
+    "methods": {
+      "recordFailure": {
+        "return_type": "int",
+        "arguments": [
+          {
+            "name": "dto",
+            "type": "LoginAttemptDTO"
+          }
+        ]
+      },
+      "resetAttempts": {
+        "return_type": "void",
+        "arguments": [
+          {
+            "name": "ip",
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "type": "string"
+          }
+        ]
+      },
+      "getActiveBlock": {
+        "return_type": "SecurityBlockDTO|null",
+        "arguments": [
+          {
+            "name": "ip",
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "type": "string"
+          }
+        ]
+      },
+      "getRemainingBlockSeconds": {
+        "return_type": "int|null",
+        "arguments": [
+          {
+            "name": "ip",
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "type": "string"
+          }
+        ]
+      },
+      "block": {
+        "return_type": "void",
+        "arguments": [
+          {
+            "name": "dto",
+            "type": "SecurityBlockDTO"
+          }
+        ]
+      },
+      "unblock": {
+        "return_type": "void",
+        "arguments": [
+          {
+            "name": "ip",
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "type": "string"
+          }
+        ]
+      },
+      "cleanup": {
+        "return_type": "void"
+      },
+      "getStats": {
+        "return_type": "array<string,mixed>"
+      },
+      "isBlocked": {
+        "return_type": "bool",
+        "arguments": [
+          {
+            "name": "ip",
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  },
+  "src/Identifier/Contracts/IdentifierStrategyInterface.php": {
+    "interface": "Maatify\\SecurityGuard\\Identifier\\Contracts\\IdentifierStrategyInterface",
+    "methods": {
+      "makeId": {
+        "visibility": "public",
+        "return_type": "string",
+        "arguments": [
+          {
+            "name": "ip",
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  },
+  "src/Drivers/AbstractSecurityGuardDriver.php": {
+    "class": "Maatify\\SecurityGuard\\Drivers\\AbstractSecurityGuardDriver",
+    "type": "abstract",
+    "methods": {
+      "makeIdentifier": {
+        "visibility": "protected",
+        "return_type": "string",
+        "arguments": [
+          {
+            "name": "ip",
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "type": "string"
+          }
+        ]
+      },
+      "encodeBlock": {
+        "visibility": "protected",
+        "return_type": "array<string,mixed>",
+        "arguments": [
+          {
+            "name": "dto",
+            "type": "SecurityBlockDTO"
+          }
+        ]
+      },
+      "decodeBlock": {
+        "visibility": "protected",
+        "return_type": "SecurityBlockDTO|null",
+        "arguments": [
+          {
+            "name": "payload",
+            "type": "array<string,mixed>"
+          }
+        ]
+      },
+      "now": {
+        "visibility": "protected",
+        "static": true,
+        "return_type": "int",
+        "arguments": []
+      }
+    }
+  },
+  "src/Drivers/Support/RedisClientProxy.php": {
+    "class": "Maatify\\SecurityGuard\\Drivers\\Support\\RedisClientProxy",
+    "methods": {
+      "__construct": {
+        "arguments": [
+          {
+            "name": "driver",
+            "type": "Redis|Predis\\Client"
+          }
+        ]
+      },
+      "hGet": {
+        "return_type": "string|null"
+      },
+      "hSet": {
+        "return_type": "bool|int"
+      },
+      "hDel": {
+        "return_type": "int"
+      },
+      "hGetAll": {
+        "return_type": "array<string,string>"
+      },
+      "expire": {
+        "return_type": "bool"
+      },
+      "del": {
+        "return_type": "int"
+      },
+      "info": {
+        "return_type": "array<string,mixed>"
+      }
+    }
+  },
+  "src/Drivers/RedisSecurityGuard.php": {
+    "class": "Maatify\\SecurityGuard\\Drivers\\RedisSecurityGuard",
+    "extends": "AbstractSecurityGuardDriver",
+    "implements": [
+      "SecurityGuardDriverInterface"
+    ],
+    "methods": {
+      "__construct": {
+        "arguments": [
+          {
+            "name": "adapter",
+            "type": "AdapterInterface"
+          },
+          {
+            "name": "strategy",
+            "type": "IdentifierStrategyInterface"
+          }
+        ]
+      },
+      "recordFailure": {
+        "return_type": "int"
+      },
+      "resetAttempts": {
+        "return_type": "void"
+      },
+      "getActiveBlock": {
+        "return_type": "SecurityBlockDTO|null"
+      },
+      "getRemainingBlockSeconds": {
+        "return_type": "int|null"
+      },
+      "block": {
+        "return_type": "void"
+      },
+      "unblock": {
+        "return_type": "void"
+      },
+      "cleanup": {
+        "return_type": "void"
+      },
+      "getStats": {
+        "return_type": "array<string,mixed>"
+      },
+      "isBlocked": {
+        "return_type": "bool"
+      }
+    }
+  },
+  "src/Drivers/MySQL/PdoMySQLDriver.php": {
+    "class": "Maatify\\SecurityGuard\\Drivers\\MySQL\\PdoMySQLDriver",
+    "implements": [
+      "MySQLDriverInterface"
+    ],
+    "methods": {
+      "__construct": {
+        "arguments": [
+          {
+            "name": "adapter",
+            "type": "AdapterInterface"
+          }
+        ]
+      },
+      "recordFailure": {
+        "return_type": "int"
+      },
+      "resetAttempts": {
+        "return_type": "void"
+      },
+      "getActiveBlock": {
+        "return_type": "SecurityBlockDTO|null"
+      },
+      "getRemainingBlockSeconds": {
+        "return_type": "int|null"
+      },
+      "block": {
+        "return_type": "void"
+      },
+      "unblock": {
+        "return_type": "void"
+      },
+      "cleanup": {
+        "return_type": "void"
+      },
+      "getStats": {
+        "return_type": "array<string,mixed>"
+      }
+    }
+  },
+  "src/Drivers/MySQL/DbalMySQLDriver.php": {
+    "class": "Maatify\\SecurityGuard\\Drivers\\MySQL\\DbalMySQLDriver",
+    "implements": [
+      "MySQLDriverInterface"
+    ],
+    "methods": {
+      "__construct": {
+        "arguments": [
+          {
+            "name": "adapter",
+            "type": "AdapterInterface"
+          }
+        ]
+      },
+      "recordFailure": {
+        "return_type": "int"
+      },
+      "resetAttempts": {
+        "return_type": "void"
+      },
+      "getActiveBlock": {
+        "return_type": "SecurityBlockDTO|null"
+      },
+      "getRemainingBlockSeconds": {
+        "return_type": "int|null"
+      },
+      "block": {
+        "return_type": "void"
+      },
+      "unblock": {
+        "return_type": "void"
+      },
+      "cleanup": {
+        "return_type": "void"
+      },
+      "getStats": {
+        "return_type": "array<string,mixed>"
+      }
+    }
+  },
+  "src/Drivers/MySQL/MySQLSecurityGuard.php": {
+    "class": "Maatify\\SecurityGuard\\Drivers\\MySQL\\MySQLSecurityGuard",
+    "extends": "AbstractSecurityGuardDriver",
+    "implements": [
+      "SecurityGuardDriverInterface"
+    ],
+    "methods": {
+      "__construct": {
+        "arguments": [
+          {
+            "name": "adapter",
+            "type": "AdapterInterface"
+          },
+          {
+            "name": "strategy",
+            "type": "IdentifierStrategyInterface"
+          }
+        ]
+      },
+      "resolveDriver": {
+        "return_type": "MySQLDriverInterface"
+      },
+      "recordFailure": {
+        "return_type": "int"
+      },
+      "resetAttempts": {
+        "return_type": "void"
+      },
+      "getActiveBlock": {
+        "return_type": "SecurityBlockDTO|null"
+      },
+      "getRemainingBlockSeconds": {
+        "return_type": "int|null"
+      },
+      "block": {
+        "return_type": "void"
+      },
+      "unblock": {
+        "return_type": "void"
+      },
+      "cleanup": {
+        "return_type": "void"
+      },
+      "getStats": {
+        "return_type": "array<string,mixed>"
+      },
+      "isBlocked": {
+        "return_type": "bool"
+      }
+    }
+  },
+  "src/Drivers/Mongo/MongoSecurityGuard.php": {
+    "class": "Maatify\\SecurityGuard\\Drivers\\Mongo\\MongoSecurityGuard",
+    "extends": "AbstractSecurityGuardDriver",
+    "implements": [
+      "SecurityGuardDriverInterface"
+    ],
+    "methods": {
+      "__construct": {
+        "arguments": [
+          {
+            "name": "adapter",
+            "type": "AdapterInterface"
+          },
+          {
+            "name": "strategy",
+            "type": "IdentifierStrategyInterface"
+          }
+        ]
+      },
+      "recordFailure": {
+        "return_type": "int"
+      },
+      "resetAttempts": {
+        "return_type": "void"
+      },
+      "getActiveBlock": {
+        "return_type": "SecurityBlockDTO|null"
+      },
+      "getRemainingBlockSeconds": {
+        "return_type": "int|null"
+      },
+      "block": {
+        "return_type": "void"
+      },
+      "unblock": {
+        "return_type": "void"
+      },
+      "cleanup": {
+        "return_type": "void"
+      },
+      "getStats": {
+        "return_type": "array<string,mixed>"
+      },
+      "isBlocked": {
+        "return_type": "bool"
+      }
+    }
+  },
+  "src/Resolver/SecurityGuardResolver.php": {
+    "class": "Maatify\\SecurityGuard\\Resolver\\SecurityGuardResolver",
+    "methods": {
+      "resolve": {
+        "visibility": "public",
+        "return_type": "SecurityGuardDriverInterface",
+        "arguments": [
+          {
+            "name": "adapter",
+            "type": "AdapterInterface"
+          },
+          {
+            "name": "strategy",
+            "type": "IdentifierStrategyInterface"
+          }
+        ]
+      }
+    }
+  },
+  "src/Service/SecurityGuardService.php": {
+    "class": "Maatify\\SecurityGuard\\Service\\SecurityGuardService",
+    "methods": {
+      "__construct": {
+        "arguments": [
+          {
+            "name": "adapter",
+            "type": "AdapterInterface"
+          },
+          {
+            "name": "strategy",
+            "type": "IdentifierStrategyInterface"
+          }
+        ]
+      },
+      "recordFailure": {
+        "return_type": "int"
+      },
+      "resetAttempts": {
+        "return_type": "void"
+      },
+      "getActiveBlock": {
+        "return_type": "SecurityBlockDTO|null"
+      },
+      "isBlocked": {
+        "return_type": "bool"
+      },
+      "getRemainingBlockSeconds": {
+        "return_type": "int|null"
+      },
+      "block": {
+        "return_type": "void"
+      },
+      "unblock": {
+        "return_type": "void"
+      },
+      "cleanup": {
+        "return_type": "void"
+      },
+      "getStats": {
+        "return_type": "array<string,mixed>"
+      }
+    }
   }
 }

@@ -13,7 +13,7 @@
 
 declare(strict_types=1);
 
-namespace Maatify\SecurityGuard\Tests\DTO;
+namespace Maatify\SecurityGuard\Tests\Enum;
 
 use Maatify\SecurityGuard\Enums\BlockTypeEnum;
 use PHPUnit\Framework\TestCase;

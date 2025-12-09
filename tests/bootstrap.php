@@ -37,6 +37,9 @@ use Maatify\Bootstrap\Core\EnvironmentLoader;
  * ```
  */
 
+// Override Predis with a fake client BEFORE autoload loads original Predis classes
+require __DIR__ . '/Fake/FakePredisClient.php';
+
 // ------------------------------------------------------------
 // 1) Load composer autoload
 // ------------------------------------------------------------

@@ -15,44 +15,65 @@ declare(strict_types=1);
 
 namespace Maatify\SecurityGuard\DTO;
 
-use DateTimeImmutable;
 use JsonSerializable;
 use Maatify\SecurityGuard\Enums\BlockTypeEnum;
 
+
+/**
+ * 🧩 SecurityBlockDTO
+ *
+ * Immutable block descriptor used by all drivers (Redis/MySQL/Mongo).
+ * Designed for:
+ * - fast serialization
+ * - cross-driver consistency
+ * - safe storage formats
+ * - predictable auditing
+ *
+ * @package Maatify\SecurityGuard\DTO
+ */
 readonly class SecurityBlockDTO implements JsonSerializable
 {
+    /**
+     * @param string        $ip         Client IP
+     * @param string        $subject    Normalized subject (username/email/mobile/UID)
+     * @param BlockTypeEnum $type       Type of block (manual, auto, permanent...)
+     * @param int           $expiresAt  UNIX timestamp (0 = permanent)
+     * @param int           $createdAt  UNIX timestamp
+     */
     public function __construct(
         public string $ip,
-        public string $reason,
-        public DateTimeImmutable $blockedAt,
-        public ?DateTimeImmutable $expiresAt = null, // null = permanent block
-        public BlockTypeEnum $blockType = BlockTypeEnum::AUTO
+        public string $subject,
+        public BlockTypeEnum $type,
+        public int $expiresAt,
+        public int $createdAt,
     ) {
     }
 
     /**
      * Returns the remaining block duration in seconds.
-     * Null means permanent block.
+     * Null means permanent.
+     *
+     * @return int|null
      */
     public function getRemainingSeconds(): ?int
     {
-        if ($this->expiresAt === null) {
-            return null;
+        if ($this->expiresAt === 0) {
+            return null; // permanent
         }
 
-        return max(0, $this->expiresAt->getTimestamp() - time());
+        return max(0, $this->expiresAt - time());
     }
 
     /**
-     * Indicates whether the block is expired.
+     * Whether the block is expired.
      */
     public function isExpired(): bool
     {
-        if ($this->expiresAt === null) {
-            return false;
+        if ($this->expiresAt === 0) {
+            return false; // a permanent block never expires
         }
 
-        return $this->expiresAt->getTimestamp() <= time();
+        return $this->expiresAt <= time();
     }
 
     /**
@@ -61,13 +82,13 @@ readonly class SecurityBlockDTO implements JsonSerializable
     public function jsonSerialize(): array
     {
         return [
-            'ip' => $this->ip,
-            'reason' => $this->reason,
-            'blocked_at' => $this->blockedAt->format(DateTimeImmutable::ATOM),
-            'expires_at' => $this->expiresAt?->format(DateTimeImmutable::ATOM),
-            'block_type' => $this->blockType->value,
+            'ip'                => $this->ip,
+            'subject'           => $this->subject,
+            'type'              => $this->type->value,
+            'expires_at'        => $this->expiresAt,
+            'created_at'        => $this->createdAt,
             'remaining_seconds' => $this->getRemainingSeconds(),
-            'is_expired' => $this->isExpired(),
+            'is_expired'        => $this->isExpired(),
         ];
     }
 }

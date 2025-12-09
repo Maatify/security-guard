@@ -28,22 +28,22 @@ interface SecurityGuardDriverInterface
     /**
      * Resets failure counters for a given IP and username.
      */
-    public function resetAttempts(string $ip, string $username): void;
+    public function resetAttempts(string $ip, string $subject): void;
 
     /**
      * Returns the active block if it exists.
      */
-    public function getActiveBlock(string $ip, string $username): ?SecurityBlockDTO;
+    public function getActiveBlock(string $ip, string $subject): ?SecurityBlockDTO;
 
     /**
      * Quick boolean check wrapper.
      */
-    public function isBlocked(string $ip, string $username): bool;
+    public function isBlocked(string $ip, string $subject): bool;
 
     /**
      * Returns the remaining block duration in seconds.
      */
-    public function getRemainingBlockSeconds(string $ip, string $username): ?int;
+    public function getRemainingBlockSeconds(string $ip, string $subject): ?int;
 
     /**
      * Manually blocks an IP or user.
@@ -53,7 +53,7 @@ interface SecurityGuardDriverInterface
     /**
      * Manually unblocks an IP or user.
      */
-    public function unblock(string $ip, string $username): void;
+    public function unblock(string $ip, string $subject): void;
 
     /**
      * Cleanup expired blocks and old login attempts.
