@@ -42,35 +42,47 @@ class SecurityConfigTest extends TestCase
         try {
             new SecurityConfig(new SecurityConfigDTO(0, 10, 1, IdentifierModeEnum::IP_ONLY, 'p', false, 0, 1.0, 0));
             $this->fail('Expected InvalidArgumentException for windowSeconds');
-        } catch (\InvalidArgumentException) {}
+        } catch (\InvalidArgumentException) {
+            $this->assertTrue(true);
+        }
 
         // BlockSeconds < 1
         try {
             new SecurityConfig(new SecurityConfigDTO(10, 0, 1, IdentifierModeEnum::IP_ONLY, 'p', false, 0, 1.0, 0));
             $this->fail('Expected InvalidArgumentException for blockSeconds');
-        } catch (\InvalidArgumentException) {}
+        } catch (\InvalidArgumentException) {
+            $this->assertTrue(true);
+        }
 
         // MaxFailures < 1
         try {
             new SecurityConfig(new SecurityConfigDTO(10, 10, 0, IdentifierModeEnum::IP_ONLY, 'p', false, 0, 1.0, 0));
             $this->fail('Expected InvalidArgumentException for maxFailures');
-        } catch (\InvalidArgumentException) {}
+        } catch (\InvalidArgumentException) {
+            $this->assertTrue(true);
+        }
 
         // Backoff enabled but invalid params
         try {
             new SecurityConfig(new SecurityConfigDTO(10, 10, 1, IdentifierModeEnum::IP_ONLY, 'p', true, 0, 1.0, 10));
             $this->fail('Expected InvalidArgumentException for initialBackoffSeconds < 1');
-        } catch (\InvalidArgumentException) {}
+        } catch (\InvalidArgumentException) {
+            $this->assertTrue(true);
+        }
 
         try {
             new SecurityConfig(new SecurityConfigDTO(10, 10, 1, IdentifierModeEnum::IP_ONLY, 'p', true, 10, 0.9, 10));
             $this->fail('Expected InvalidArgumentException for backoffMultiplier < 1.0');
-        } catch (\InvalidArgumentException) {}
+        } catch (\InvalidArgumentException) {
+            $this->assertTrue(true);
+        }
 
         try {
             new SecurityConfig(new SecurityConfigDTO(10, 10, 1, IdentifierModeEnum::IP_ONLY, 'p', true, 10, 2.0, 5));
             $this->fail('Expected InvalidArgumentException for maxBackoffSeconds < initialBackoffSeconds');
-        } catch (\InvalidArgumentException) {}
+        } catch (\InvalidArgumentException) {
+            $this->assertTrue(true);
+        }
     }
 
     public function testComputeBackoffSeconds(): void
@@ -131,7 +143,7 @@ class SecurityConfigTest extends TestCase
     {
         // Mock ENV
         $_ENV['SG_WINDOW_SECONDS'] = '120';
-        $_ENV['SG_IDENTIFIER_MODE'] = 'IP_ONLY';
+        $_ENV['SG_IDENTIFIER_MODE'] = 'ip_only'; // Fixed: using lowercase value
 
         $config = SecurityConfigLoader::fromEnv();
         $this->assertSame(120, $config->windowSeconds());
