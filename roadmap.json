@@ -1,7 +1,7 @@
 {
-  "roadmap_version": "1.0.1",
+  "roadmap_version": "1.0.2",
   "project": "maatify/security-guard",
-  "note": "Security Guard is a multi-driver adaptive security engine that protects systems from brute force, abuse, and suspicious activity using MySQL, Redis, and MongoDB. This roadmap is normalized for safe executor execution with integer-only phases.",
+  "note": "v1.0.2 introduces the new unified SecurityEventDTO architecture and shifts phase numbering forward accordingly.",
 
   "core_dependencies": {
     "storage_layer": "maatify/data-adapters",
@@ -16,6 +16,7 @@
   },
 
   "phases": [
+
     {
       "id": "phase1",
       "title": "Environment Setup",
@@ -47,8 +48,8 @@
         "Create LoginAttemptDTO",
         "Create SecurityBlockDTO (final int-based timestamps version)",
         "Design SecurityGuardDriverInterface",
-        "Create AbstractSecurityGuardDriver (shared logic)",
-        "Create SecurityGuardService (Unified Facade)",
+        "Create AbstractSecurityGuardDriver",
+        "Create SecurityGuardService (Facade)",
         "IdentifierStrategy integration",
         "Normalization + block encoding/decoding",
         "Prepare config loader"
@@ -61,14 +62,6 @@
         "src/Service/SecurityGuardService.php",
         "src/Identifier/Contracts/IdentifierStrategyInterface.php",
         "src/Config/SecurityConfigLoader.php"
-      ],
-      "changes": [
-        "SecurityBlockDTO was refactored into int timestamps (expiresAt, createdAt)",
-        "LoginAttemptDTO gained strict context typing",
-        "AbstractSecurityGuardDriver added encodeBlock + decodeBlock + makeIdentifier + time helpers",
-        "SecurityGuardService now delegates to resolved driver only",
-        "Identifier strategy unified using strategy->makeId()",
-        "Config loader updated for PHPStan compliance"
       ]
     },
 
@@ -77,17 +70,16 @@
       "title": "Driver Implementations",
       "version": "1.0.0",
       "status": "completed",
-      "summary": "Implement all Security Guard storage drivers on top of maatify/data-adapters with unified behavior.",
+      "summary": "Implement all Security Guard storage drivers on top of maatify/data-adapters.",
       "tasks": [
         "Implement RedisSecurityGuard using RedisClientProxy",
-        "Implement PdoMySQLDriver (strict SQL + timestamps)",
-        "Implement DbalMySQLDriver with fetchAssociative/fetchOne",
-        "Implement MySQLSecurityGuard wrapping both PDO & DBAL",
-        "Implement MongoSecurityGuard using MongoDB Database instance",
-        "Create SecurityGuardResolver with DataAdapters driver type matching",
-        "Enforce no raw client creation — all drivers must use adapter->getDriver()",
-        "Fix PHPStan generics, mixed reduction, safe casting",
-        "Unified remainingSeconds(), block(), unblock(), cleanup() behaviors",
+        "Implement PdoMySQLDriver",
+        "Implement DbalMySQLDriver",
+        "Implement MySQLSecurityGuard",
+        "Implement MongoSecurityGuard",
+        "Create SecurityGuardResolver",
+        "Fix PHPStan generics + safe casting",
+        "Unify block/unblock/cleanup behavior",
         "Normalize identifier using strategy"
       ],
       "outputs": [
@@ -112,20 +104,44 @@
       ]
     },
 
-
     {
       "id": "phase4",
+      "title": "Unified Security Events (NEW)",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Introduce unified SecurityEventDTO and event normalization across all security actions.",
+      "tasks": [
+        "Create SecurityEventDTO (action/platform/userId/userType/context)",
+        "Create SecurityEventTypeEnum",
+        "Refactor LoginAttemptDTO to extend SecurityEventDTO",
+        "Introduce SecurityEventFactory",
+        "Unify event timestamps",
+        "Normalize subject/platform/action rules",
+        "Ensure driver compatibility with unified event model"
+      ],
+      "outputs": [
+        "src/DTO/SecurityEventDTO.php",
+        "src/Enums/SecurityEventTypeEnum.php",
+        "src/DTO/LoginAttemptDTO.php",
+        "src/Event/SecurityEventFactory.php",
+        "docs/phases/README.phase4.md"
+      ]
+    },
+
+    {
+      "id": "phase5",
       "title": "Core Logic & Service Layer",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Main security orchestration logic.",
+      "summary": "Main security orchestration logic built on top of unified security events.",
       "tasks": [
+        "handleEvent() logic",
         "handleAttempt() logic",
         "Reset on success",
         "Block/unblock logic",
         "IP failure counters",
-        "Expose isBlocked() method",
-        "ENV thresholds"
+        "Expose isBlocked()",
+        "ENV thresholds integration"
       ],
       "outputs": [
         "src/SecurityGuardService.php"
@@ -133,35 +149,35 @@
     },
 
     {
-      "id": "phase5",
+      "id": "phase6",
       "title": "Rate Limiter Bridge",
       "version": "1.0.0",
-      "status": "in_progress",
-      "summary": "Optional integration with maatify/rate-limiter.",
+      "status": "pending",
+      "summary": "Integration with maatify/rate-limiter using unified event pipeline.",
       "tasks": [
         "Design event hooks",
         "Implement bridge listener",
+        "Forward rate-limit violations as SecurityEventDTO",
         "Manual integration support",
         "Flood attack testing",
-        "Security events must be forwarded without creating any DB dependency",
         "Documentation"
       ],
       "outputs": [
         "src/Bridge/RateLimiterBridge.php",
-        "docs/phases/README.phase5.md"
+        "docs/phases/README.phase6.md"
       ]
     },
 
     {
-      "id": "phase6",
+      "id": "phase7",
       "title": "Audit DTO & Storage",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Introduce core audit event DTO and base storage abstraction.",
+      "summary": "Introduce audit event DTO and base storage abstraction.",
       "tasks": [
         "Create AuditEventDTO",
-        "Define audit storage interface based on AdapterInterface",
-        "Implement base audit repository via maatify/data-adapters (no direct DB)"
+        "Define AuditStorageInterface",
+        "Implement base audit repository via maatify/data-adapters"
       ],
       "outputs": [
         "src/Audit/AuditEventDTO.php",
@@ -170,15 +186,15 @@
     },
 
     {
-      "id": "phase7",
+      "id": "phase8",
       "title": "Mongo Audit Forwarding",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Forward all audit events into MongoDB collections.",
+      "summary": "Forward unified audit events into MongoDB collections.",
       "tasks": [
-        "Create Mongo audit driver via maatify/data-adapters",
-        "TTL index setup via adapter layer",
-        "Safe fallback handling via resolver"
+        "Create Mongo audit driver",
+        "TTL index setup",
+        "Fallback handling via resolver"
       ],
       "outputs": [
         "src/Audit/Drivers/MongoAuditDriver.php"
@@ -186,14 +202,14 @@
     },
 
     {
-      "id": "phase8",
+      "id": "phase9",
       "title": "Audit History API",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Expose security audit history through API-ready service methods.",
+      "summary": "Expose security audit history.",
       "tasks": [
-        "Create audit query service via maatify/data-adapters",
-        "Paginated history retrieval",
+        "Audit query service",
+        "Pagination",
         "Date range filtering"
       ],
       "outputs": [
@@ -202,30 +218,30 @@
     },
 
     {
-      "id": "phase9",
+      "id": "phase10",
       "title": "Audit Filters & Indexes",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Advanced filtering and indexing for audit queries.",
+      "summary": "Advanced filtering and indexing.",
       "tasks": [
-        "IP based filtering",
+        "IP filtering",
         "User type filtering",
-        "Composite index design"
+        "Composite indexes"
       ],
       "outputs": [
-        "docs/phases/README.phase9.md"
+        "docs/phases/README.phase10.md"
       ]
     },
 
     {
-      "id": "phase10",
+      "id": "phase11",
       "title": "PSR Logger Integration",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Structured logging using PSR logger.",
+      "summary": "Structured logging for security actions.",
       "tasks": [
         "Inject PSR logger",
-        "Log all block/unblock actions",
+        "Log block/unblock actions",
         "Log suspicious patterns"
       ],
       "outputs": [
@@ -234,13 +250,13 @@
     },
 
     {
-      "id": "phase11",
+      "id": "phase12",
       "title": "Telegram Alerts",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Admin real-time alerts via Telegram bot.",
+      "summary": "Real-time alerts via Telegram bot.",
       "tasks": [
-        "Telegram notifier integration",
+        "Telegram notifier",
         "Configurable alert channels",
         "Critical alert levels"
       ],
@@ -250,11 +266,11 @@
     },
 
     {
-      "id": "phase12",
+      "id": "phase13",
       "title": "Webhook Dispatcher",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Generic webhook dispatcher for security events.",
+      "summary": "Generic webhook dispatcher.",
       "tasks": [
         "Webhook payload schema",
         "POST dispatcher",
@@ -266,11 +282,11 @@
     },
 
     {
-      "id": "phase13",
+      "id": "phase14",
       "title": "Retry Engine & Delivery Tests",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Reliable delivery system for webhook notifications.",
+      "summary": "Reliable delivery system.",
       "tasks": [
         "Retry queue",
         "Backoff strategy",
@@ -282,11 +298,11 @@
     },
 
     {
-      "id": "phase14",
+      "id": "phase15",
       "title": "Monitoring APIs",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Monitoring endpoints and admin control APIs.",
+      "summary": "Monitoring endpoints and admin API controls.",
       "tasks": [
         "Health endpoint",
         "Stats endpoint",
@@ -298,13 +314,13 @@
     },
 
     {
-      "id": "phase15",
+      "id": "phase16",
       "title": "Unit Consistency Tests",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Validate logic consistency across all drivers using maatify/data-fakes.",
+      "summary": "Validate driver parity.",
       "tasks": [
-        "Driver behavioral parity tests",
+        "Driver parity tests",
         "Edge case consistency"
       ],
       "outputs": [
@@ -313,11 +329,11 @@
     },
 
     {
-      "id": "phase16",
+      "id": "phase17",
       "title": "Attack Simulations",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Simulate distributed and burst attacks using fake adapters (maatify/data-fakes).",
+      "summary": "Simulate distributed and burst attacks.",
       "tasks": [
         "Multi-IP brute force",
         "Burst login attempts"
@@ -328,13 +344,13 @@
     },
 
     {
-      "id": "phase17",
+      "id": "phase18",
       "title": "Redis & Mongo Stress",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "High load performance stress testing via real adapters using maatify/data-adapters.",
+      "summary": "High-load performance stress tests.",
       "tasks": [
-        "10k rps Redis load test",
+        "Redis load",
         "Mongo TTL stress"
       ],
       "outputs": [
@@ -343,11 +359,11 @@
     },
 
     {
-      "id": "phase18",
+      "id": "phase19",
       "title": "Coverage Hardening",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Achieve stable 85%+ coverage across all components.",
+      "summary": "Achieve stable 85%+ coverage.",
       "tasks": [
         "Coverage gap analysis",
         "Critical path coverage enforcement"
@@ -358,11 +374,11 @@
     },
 
     {
-      "id": "phase19",
+      "id": "phase20",
       "title": "Documentation & Packagist Release",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Finalize documentation and public release.",
+      "summary": "Finalize documentation & release.",
       "tasks": [
         "README.md",
         "CHANGELOG.md",
