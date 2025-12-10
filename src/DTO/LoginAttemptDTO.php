@@ -7,7 +7,7 @@
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2025-12-08 14:50:00
  * @see         https://www.maatify.dev Maatify.dev
- * @link        https://github.com/Maatify/security-guard view project on GitHub
+ * @link        https://github.com/Maatify/security-guard view Library on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
  */
 
@@ -17,6 +17,8 @@ namespace Maatify\SecurityGuard\DTO;
 
 use InvalidArgumentException;
 use JsonSerializable;
+use Maatify\SecurityGuard\Event\SecurityEventFactory;
+use Maatify\SecurityGuard\Event\SecurityPlatform;
 
 /**
  * 🧩 LoginAttemptDTO
@@ -88,5 +90,22 @@ readonly class LoginAttemptDTO implements JsonSerializable
             'context'     => $this->context,
         ];
     }
+
+    /**
+     * Convert this login attempt into a unified security event.
+     */
+    public function toEvent(
+        SecurityPlatform $platform,
+        ?int $userId = null,
+        ?string $userType = null
+    ): SecurityEventDTO {
+        return SecurityEventFactory::fromLoginAttempt(
+            dto: $this,
+            platform: $platform,
+            userId: $userId,
+            userType: $userType
+        );
+    }
+
 }
 

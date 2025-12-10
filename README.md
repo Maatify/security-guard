@@ -1,6 +1,6 @@
 # Maatify Security Guard
 
-**PSR-compliant adaptive security engine for brute-force protection, abuse detection, and real-time blocking using Redis, MongoDB, and MySQL via unified adapters.**
+**PSR-compliant adaptive security engine for brute-force protection, abuse detection, security event tracking, and real-time blocking — powered by unified multi-driver architecture (MySQL, Redis, MongoDB).**
 
 ![Maatify.dev](https://www.maatify.dev/assets/img/img/maatify_logo_white.svg)
 
@@ -18,8 +18,6 @@
 ![Stars](https://img.shields.io/github/stars/Maatify/security-guard?label=Stars&color=FFD43B)
 [![License](https://img.shields.io/github/license/Maatify/security-guard?label=License&color=blueviolet)](LICENSE)
 ![Status](https://img.shields.io/badge/Status-Stable-success)
-[![Code Quality](https://img.shields.io/codefactor/grade/github/Maatify/security-guard/main?color=brightgreen)](https://www.codefactor.io/repository/github/Maatify/security-guard)
-
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level%20Max-4E8CAE)
 ![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Maatify/security-guard/badges/coverage.json)
 
@@ -30,106 +28,234 @@
 
 # 🚀 Overview
 
-**Maatify Security Guard** is a fully decoupled, adaptive security protection engine designed to prevent:
+**Maatify Security Guard** is a fully decoupled, high-performance, multi-driver security engine for:
 
-- Brute-force login attacks
-- Credential stuffing
-- IP-based abuse
-- Burst and distributed attack patterns
+- Brute-force attack protection
+- Credential stuffing detection
+- IP reputation & abuse control
+- Distributed attack throttling
+- Audit-grade event tracking (Phase 4)
 
-It integrates seamlessly with:
+The engine integrates seamlessly with:
 
 - Native PHP
 - Slim Framework
 - Laravel
 - Custom API Gateways
+- Microservices
 
-All storage is handled through:
+All storage is abstracted via:
 
-- ✅ **maatify/data-adapters (Real)**
-- ✅ **maatify/data-fakes (Testing / Simulation)**
+- **maatify/data-adapters** → Real MySQL / Redis / MongoDB
+- **maatify/data-fakes** → Deterministic testing engine
+
+The library guarantees:
+
+✔ Zero vendor lock  
+✔ Zero direct database clients  
+✔ Perfect testability  
+✔ Real–fake execution symmetry
 
 ---
 
-📘 Looking for the complete technical documentation?  
-➡️ **[Read the Full Documentation](docs/README.full.md)**
+📘 **Full technical documentation:**  
+➡️ [`docs/README.full.md`](docs/README.full.md)
 
 ---
 
-## ✅ Planned Supported Storage Backends (Phase 3)
+# 🆕 What’s New (Phase 3 & 4 Completed)
 
-| Backend | Layer Type  | Use Case                              |
-|---------|-------------|---------------------------------------|
-| Redis   | Real Driver | High-speed IP blocking & counters     |
-| MongoDB | Real Driver | Security audit & time-series analysis |
-| MySQL   | Real Driver | Persistent compliance & forensic logs |
+### **🔥 Phase 3 — Drivers Layer Completed**
+All storage backends are implemented:
 
-⚠️ All drivers listed above are planned for Phase 3 and are not yet available in the current release.
+- **MySQLSecurityGuardDriver**
+- **RedisSecurityGuardDriver**
+- **MongoSecurityGuardDriver**
 
-> ❗ Direct usage of PDO, Redis clients, or MongoDB clients is **forbidden** inside this library.
+Each driver operates strictly through the unified AdapterInterface.
+
+---
+
+### **🔥 Phase 4 — Unified Event System Completed**
+Introduced:
+
+- `SecurityEventDTO`
+- `SecurityEventFactory`
+- `SecurityAction` (extensible)
+- `SecurityPlatform` (extensible)
+- Built-in dispatchers:
+    - `NullDispatcher`
+    - `SyncDispatcher`
+    - `PsrLoggerDispatcher`
+- Automatic event emission inside `SecurityGuardService`
+
 ---
 
 # 📦 Installation
 
 ```bash
 composer require maatify/security-guard
-```
+````
 
 ---
 
 # ⚡ Quick Usage
 
-⚠️ Usage examples will be available starting from **Phase 4** after the
-`SecurityGuardService` and resolver layer are finalized.
+## 1️⃣ Initialize the Service
 
-📘 **Full usage examples (Native, API, Middleware, Rate Limiter Bridge):**
-➡️ **[examples/Examples.md](examples/Examples.md)**
+```php
+$svc = new SecurityGuardService($adapter, $identifier);
+```
+
+---
+
+## 2️⃣ Record a failed login attempt
+
+```php
+$dto = LoginAttemptDTO::now(
+    ip: '192.168.1.10',
+    subject: 'user@example.com',
+    userAgent: $_SERVER['HTTP_USER_AGENT'] ?? null,
+);
+
+$count = $svc->recordFailure($dto);
+```
+
+---
+
+## 3️⃣ Attach an Event Dispatcher (Logging / Real-time Alerts)
+
+```php
+$svc->setEventDispatcher(
+    new SyncDispatcher([
+        fn(SecurityEventDTO $e) => error_log("SECURITY EVENT: " . json_encode($e)),
+    ])
+);
+```
+
+---
+
+## 4️⃣ Create a manual block
+
+```php
+$svc->block(
+    new SecurityBlockDTO(
+        ip: '192.168.1.10',
+        subject: 'user@example.com',
+        type: BlockTypeEnum::MANUAL,
+        expiresAt: time() + 3600,
+        createdAt: time()
+    )
+);
+```
+
+---
+
+## 5️⃣ Emit a custom security event
+
+```php
+$event = SecurityEventFactory::custom(
+    action: SecurityAction::custom('password_reset'),
+    platform: SecurityPlatform::custom('api'),
+    ip: '192.168.1.10',
+    subject: 'user@example.com',
+    context: ['method' => 'email']
+);
+
+$svc->setEventDispatcher(new NullDispatcher());
+```
 
 ---
 
 # 🧩 Key Features
 
-* Adaptive brute-force protection
-* Distributed IP-based blocking
-* (Planned) Multi-driver resolver (Redis / MongoDB / MySQL)
-* Unified attempt / block / reset API
-* DTO-based security events
-* (Planned) PSR-3 logging support
-* (Planned) Telegram & Webhook alerts (optional)
-* (Planned) Rate Limiter bridge support
-* PHPStan Level Max ready
-* 100% adapter-driven storage
+### ✔ Core Security Engine
+
+* Adaptive brute-force handling
+* Distributed blocking system
+* Manual & automatic block control
+
+### ✔ Unified DTO Layer
+
+* LoginAttemptDTO
+* SecurityBlockDTO
+* SecurityEventDTO
+
+### ✔ Unified Drivers (Phase 3)
+
+* MySQL
+* Redis
+* MongoDB
+
+### ✔ Event Pipeline (Phase 4)
+
+* Factory-based event normalization
+* Pluggable dispatchers
+* Extensible actions & platforms
+
+### ✔ Testing-Ready
+
+* Fake drivers through `maatify/data-fakes`
+* 100% deterministic behavior
 
 ---
 
 # 🧱 Architecture
 
-| Layer          | Library                 |
-|----------------|-------------------------|
-| Storage (Real) | `maatify/data-adapters` |
-| Storage (Fake) | `maatify/data-fakes`    |
-| Contracts      | `maatify/common`        |
-| Rate Limiting  | `maatify/rate-limiter`  |
+```
+Application
+   ↓
+SecurityGuardService
+   ↓
+SecurityEventFactory → Dispatchers (optional)
+   ↓
+SecurityGuard Drivers
+   ↓
+AdapterInterface
+   ↓
+maatify/data-adapters | maatify/data-fakes
+```
 
 ---
 
 # 📄 Documentation
 
-* 📘 **[Full Documentation](docs/README.full.md)** — Complete architecture, adapters, audits, and advanced usage
-* 📚 **[Usage Examples](examples/Examples.md)** — Native, API, Middleware & Integration examples
-* 🧾 **[Changelog](CHANGELOG.md)** — Full version history
-* 🔐 **[Security Policy](SECURITY.md)** — Vulnerability reporting & security rules
-
+* 📘 **Full Documentation:** `docs/README.full.md`
+* 🔬 **Examples:** `examples/Examples.md`
+* 🧾 **Changelog:** `CHANGELOG.md`
+* 🔐 **Security Policy:** `SECURITY.md`
 
 <details>
 <summary><strong>📚 Development Roadmap & Phase Plan</strong></summary>
 
-✅ Phase 1 – Environment Setup (Completed)  
-✅ Phase 2 – Core Architecture & DTOs (Completed)
+### ✅ Completed Phases
+- **Phase 1 – Environment Setup**
+- **Phase 2 – Core Architecture & DTOs**
+- **Phase 3 – Driver Implementations (MySQL / Redis / MongoDB)**
+- **Phase 4 – Unified Event System + Dispatchers**
 
-⚠️ All subsequent phases are planned and not yet released.
+### ⏳ Upcoming
+- **Phase 5 – Integration Patterns (Listeners, Pipeline Hooks)**
+- **Phase 6 – Audit System (AuditEventDTO, History Store, TTL Cleanup)**
+- **Phase 7–14 – Monitoring, Webhooks, SIEM, Rate Limiter Bridge**
+
+📌 The roadmap expands automatically as the Maatify ecosystem evolves.
 
 </details>
+
+---
+
+# 📅 Roadmap (Updated)
+
+| Phase | Description                | Status      |
+|-------|----------------------------|-------------|
+| 1     | Environment Setup          | ✅ Completed |
+| 2     | Core Architecture & DTOs   | ✅ Completed |
+| 3     | Driver Implementations     | ✅ Completed |
+| 4     | Event System & Dispatchers | ✅ Completed |
+| 5     | Integration Patterns       | ⏳ Pending   |
+| 6     | Audit System               | ⏳ Pending   |
+| 7–14  | Monitoring, Webhooks, SIEM | ⏳ Pending   |
 
 ---
 
@@ -141,38 +267,28 @@ composer test
 
 Runs:
 
-* DTO validation tests
-* Contract interface tests
-* JSON serialization tests
+* DTO tests
+* Driver symmetry tests
+* Factory + dispatchers tests
 * Coverage reporting
 
 ---
 
-## 🪪 License
+# 🪪 License
 
 **[MIT License](LICENSE)**
 © [Maatify.dev](https://www.maatify.dev) — Free to use, modify, and distribute with attribution.
 
 ---
 
-## 👤 Author
+# 👤 Author
 
-Engineered by **Mohamed Abdulalim** ([@megyptm](https://github.com/megyptm))  
-Backend Lead & Technical Architect — [https://www.maatify.dev](https://www.maatify.dev)
-
----
-
-## 🤝 Contributors
-
-Special thanks to the Maatify.dev engineering team and all open-source contributors.
-
-Before submitting a Pull Request, please read:
-
-* [Contributing Guide](CONTRIBUTING.md)
-* [Code of Conduct](CODE_OF_CONDUCT.md)
+Developed by **Mohamed Abdulalim**
+Backend Lead & Technical Architect
+[https://www.maatify.dev](https://www.maatify.dev)
 
 ---
 
 <p align="center">
-  <sub>Built with ❤️ by <a href="https://www.maatify.dev">Maatify.dev</a> — Unified Ecosystem for Modern PHP Libraries</sub>
+  <sub>Built with ❤️ by <a href="https://www.maatify.dev">Maatify.dev</a></sub>
 </p>

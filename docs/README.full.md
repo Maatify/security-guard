@@ -14,7 +14,7 @@
   "php_version": ">=8.4",
   "documentation_type": "full",
   "managed_by": "executor",
-  "last_sync": null
+  "last_sync": "2025-12-10"
 }
 <!-- EXECUTOR_META_END -->
 
@@ -24,16 +24,23 @@
 > This is the extended full documentation for the Maatify Security Guard engine.  
 > For the short version, see the main [`README.md`](../README.md).
 
-**Adaptive multi-driver security engine protecting systems against brute-force, abuse, and suspicious behavior.**
+**Maatify Security Guard** is an adaptive, multi-driver security engine designed to protect applications from:
 
-Security Guard is part of the **Maatify Ecosystem**, providing:
+- brute-force attacks  
+- account abuse  
+- suspicious authentication behavior  
+- automated misuse  
 
-- Unified brute-force protection
-- Distributed blocking logic
-- Real and Fake driver symmetry
-- Full audit & monitoring pipeline (Planned)
+It provides a unified, deterministic, fake-testable security workflow that integrates cleanly with any PHP application.
 
-Perfect for **production security** and **deterministic security testing**.
+Security Guard is part of the **Maatify Ecosystem**, offering:
+
+- Immutable security DTOs  
+- Unified storage drivers (MySQL / Redis / MongoDB)  
+- Real vs. Fake execution symmetry  
+- Full event pipeline (Phase 4)  
+- Optional dispatchers (sync/logging/custom)  
+- Ready for future monitoring, auditing, and alerting systems  
 <!-- EXECUTOR_OVERVIEW_END -->
 
 ---
@@ -48,7 +55,7 @@ Perfect for **production security** and **deterministic security testing**.
 - [Monitoring](#-monitoring)
 - [Testing](#-testing)
 - [Architecture](#-architecture-overview)
-- [Roadmap & Status](#-roadmap--phase-status)
+- [Roadmap & Phase Status](#-roadmap--phase-status)
 - [Phase Documentation](#-development-phases--documentation-links)
 - [License](#-license)
 - [Author](#-author)
@@ -57,30 +64,53 @@ Perfect for **production security** and **deterministic security testing**.
 
 ## 🚀 Features
 <!-- EXECUTOR_FEATURES_START -->
-* Immutable security DTOs (LoginAttemptDTO, SecurityBlockDTO)
-* Permanent & temporary block model
+* Immutable security DTOs (LoginAttemptDTO, SecurityBlockDTO, SecurityEventDTO)
+* Extensible action and platform system (SecurityAction, SecurityPlatform)
+* Centralized SecurityEventFactory for unified event normalization
 * Unified driver contract (SecurityGuardDriverInterface)
-* Real vs Fake execution symmetry at contract level
 * Deterministic adapter-driven architecture
-* Fake-ready security modeling via maatify/data-fakes
-* Production + CI-safe contract behavior
-* (Planned — Phase 3) MySQL / Redis / MongoDB drivers
-* (Planned — Phase 6) Full audit event pipeline
-* (Planned — Phase 10–14) Logger, Monitoring, Webhooks & Alerts
+* Real/Fake execution symmetry for drivers
+* Full driver layer implemented (Phase 3):
+  - MySQL
+  - Redis
+  - MongoDB
+* Complete event system (Phase 4):
+  - NullDispatcher
+  - SyncDispatcher
+  - PsrLoggerDispatcher
+  - Custom dispatching pipeline support
+* Production + CI-safe behavior
+* (Planned — Phase 6) Audit event pipeline
+* (Planned — Phase 10–14) Monitoring, webhooks, alerting
 <!-- EXECUTOR_FEATURES_END -->
 
 ---
 
 ## 🧩 Core Concepts
 <!-- EXECUTOR_CORE_START -->
-- **Attempt Handling** → all logins and requests go through one engine  
-- **Drivers** → security state is stored via adapters only  
-- **Resolvers** → switch between real and fake drivers  
-- **Blocks** → temporary or permanent blocking  
-- **DTO Immutability** → all security data structures are immutable  
-- **Permanent Blocks** → manual blocks may have no expiration  
-- **Audits** → every security event will be tracked starting Phase 6
-- **Symmetry Guarantee** → fake and real drivers behave identically  
+- **Immutable DTOs**  
+  All security structures (`LoginAttemptDTO`, `SecurityBlockDTO`, `SecurityEventDTO`) are fully immutable.
+
+- **Driver-based storage**  
+  All security state is stored using **maatify/data-adapters**, ensuring real/fake symmetry and deterministic testing.
+
+- **Unified event system (Phase 4)**  
+  Every security action (failures, blocks, cleanup, custom) emits a normalized event through `SecurityEventFactory`.
+
+- **Flexible dispatchers**  
+  Applications may attach any dispatcher to forward events (sync, async, logs, queue, custom pipelines).
+
+- **Custom Action & Platform**  
+  Projects may define their own semantic actions/platforms on top of built-in enums.
+
+- **Permanent & Temporary Blocking**  
+  Manual blocks may be indefinite; automatic blocks expire.
+
+- **Symmetry Guarantee**  
+  All drivers — real and fake — must behave identically according to the contract.
+
+- **Future-ready audit & monitoring pipeline**  
+  Designed for SIEM integrations and advanced alerting.
 <!-- EXECUTOR_CORE_END -->
 
 ---
@@ -89,7 +119,7 @@ Perfect for **production security** and **deterministic security testing**.
 <!-- EXECUTOR_INSTALL_START -->
 ```bash
 composer require maatify/security-guard
-```
+````
 
 <!-- EXECUTOR_INSTALL_END -->
 
@@ -97,11 +127,75 @@ composer require maatify/security-guard
 
 ## 🛠 Usage
 
-<!-- EXECUTOR_USAGE_START -->
+Below is a minimal example of using Security Guard **after Phase 4**.
 
-⚠️ Usage examples will be injected automatically after Phase 4 when `SecurityGuardService` is finalized.
+### Record a failed login attempt
 
-<!-- EXECUTOR_USAGE_END -->
+```php
+$svc = new SecurityGuardService($adapter, $identifier);
+
+$dto = LoginAttemptDTO::now(
+    ip: '192.168.1.5',
+    subject: 'user@example.com',
+    userAgent: $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+);
+
+$count = $svc->recordFailure($dto);
+```
+
+---
+
+### Attach a dispatcher
+
+```php
+$svc->setEventDispatcher(
+    new SyncDispatcher([
+        fn(SecurityEventDTO $event) =>
+            error_log("SECURITY EVENT: " . json_encode($event))
+    ])
+);
+```
+
+---
+
+### Manual block
+
+```php
+$svc->block(
+    new SecurityBlockDTO(
+        ip: '192.168.1.5',
+        subject: 'user@example.com',
+        type: BlockTypeEnum::MANUAL,
+        createdAt: time(),
+        expiresAt: time() + 3600
+    )
+);
+```
+
+---
+
+### Remove block
+
+```php
+$svc->unblock('192.168.1.5', 'user@example.com');
+```
+
+---
+
+### Emit a custom event manually
+
+```php
+$custom = SecurityEventFactory::custom(
+    action: SecurityAction::custom('password_reset'),
+    platform: SecurityPlatform::custom('api'),
+    ip: '192.168.1.5',
+    subject: 'user@example.com',
+    context: ['method' => 'email']
+);
+
+$svc->setEventDispatcher(new NullDispatcher());
+$svc->setEventDispatcher(new SyncDispatcher([fn($e) => var_dump($e)]));
+```
 
 ---
 
@@ -109,14 +203,14 @@ composer require maatify/security-guard
 
 <!-- EXECUTOR_DRIVERS_START -->
 
-(Planned — Phase 3)
+Drivers were fully implemented in **Phase 3** and include:
 
-* MySQL Driver
-* Redis Driver
-* MongoDB Driver
+* **MySQLSecurityGuardDriver**
+* **RedisSecurityGuardDriver**
+* **MongoSecurityGuardDriver**
 
-All drivers will operate **ONLY** through `maatify/data-adapters`.  
-Direct PDO / Doctrine DBAL / Redis Extension / Predis / MongoDB clients are forbidden.
+All drivers operate exclusively through `maatify/data-adapters`.
+Direct usage of PDO, Redis, Predis, or MongoDB clients is forbidden.
 
 <!-- EXECUTOR_DRIVERS_END -->
 
@@ -128,12 +222,13 @@ Direct PDO / Doctrine DBAL / Redis Extension / Predis / MongoDB clients are forb
 
 (Planned — Phase 6)
 
-Audit system will introduce:
+The audit system will include:
 
 * Unified `AuditEventDTO`
-* Mongo audit forwarding
-* TTL-based cleanup
-* Paginated audit history
+* Structured audit persistence layer
+* TTL cleanup policies
+* Paginated audit history API
+* Integration with event dispatchers
 
 <!-- EXECUTOR_AUDIT_END -->
 
@@ -145,11 +240,13 @@ Audit system will introduce:
 
 (Planned — Phase 14)
 
-Monitoring APIs will include:
+The monitoring layer will provide:
 
-* Health endpoint
-* Statistics endpoint
-* Manual unblock
+* Engine health checks
+* Driver statistics
+* Manual unblock actions
+* Observability endpoints
+* Webhook bridges
 
 <!-- EXECUTOR_MONITORING_END -->
 
@@ -159,11 +256,13 @@ Monitoring APIs will include:
 
 <!-- EXECUTOR_TESTING_START -->
 
-All tests are executed using:
+Security Guard is tested using:
 
-* `maatify/data-fakes` for deterministic fake testing
-* `maatify/data-adapters` for real driver integration tests
-* Full behavior parity is mandatory
+* **maatify/data-fakes** — deterministic, isolated, in-memory driver simulation
+* **maatify/data-adapters** — real integration tests
+* Unified behavior tests across MySQL, Redis, MongoDB drivers
+* 100% DTO + Contract coverage (Phase 2)
+* Driver tests in continuous expansion
 
 <!-- EXECUTOR_TESTING_END -->
 
@@ -173,13 +272,19 @@ All tests are executed using:
 
 <!-- EXECUTOR_ARCH_START -->
 
-Layered Architecture:
-
-Application  
-→ SecurityGuardService (Planned — Phase 4)  
-→ SecurityGuard Drivers (Planned — Phase 3)  
-→ AdapterInterface  
-→ maatify/data-adapters (Real) | maatify/data-fakes (Fake)
+```
+Application
+    ↓
+SecurityGuardService
+    ↓
+SecurityEventFactory → EventDispatcher (optional)
+    ↓
+SecurityGuard Drivers (MySQL / Redis / MongoDB)
+    ↓
+AdapterInterface
+    ↓
+maatify/data-adapters  |  maatify/data-fakes
+```
 
 <!-- EXECUTOR_ARCH_END -->
 
@@ -189,10 +294,18 @@ Application
 
 <!-- EXECUTOR_PHASE_TABLE_START -->
 
-(Executor auto-loads from roadmap.json)
+| Phase    | Title                                     | Status      | Date       |
+|----------|-------------------------------------------|-------------|------------|
+| **1**    | Environment Setup                         | ✅ Completed | 2025-12-08 |
+| **2**    | Core Architecture & DTOs                  | ✅ Completed | 2025-12-08 |
+| **3**    | Driver Implementations                    | ✅ Completed | 2025-12-09 |
+| **4**    | Unified Event System & Dispatchers        | ✅ Completed | 2025-12-10 |
+| **5**    | Integration Patterns                      | ⏳ Pending   | —          |
+| **6**    | Audit System                              | ⏳ Pending   | —          |
+| **7–14** | Monitoring, Webhooks, Rate-Limiter Bridge | ⏳ Pending   | —          |
 
-✅ Current stable phase: **Phase 2 (Core Architecture & DTOs)**  
-▶️ Next active phase: **Phase 3 (Driver Implementations)**
+**Current Stable Phase:** Phase 4
+**Next Active Phase:** Phase 5
 
 <!-- EXECUTOR_PHASE_TABLE_END -->
 
@@ -202,31 +315,37 @@ Application
 
 <!-- EXECUTOR_PHASE_INDEX_START -->
 
-### ✅ Phase 1 — Environment Setup (Completed)
-- 📄 Documentation: [`docs/phases/README.phase1.md`](phases/README.phase1.md)
-- ✅ Status: Completed
-- 🗓 Date: 2025-12-08
-- 🧱 Delivered:
-    - Project bootstrap and repository initialization
-    - Composer configuration (`composer.json`)
-    - Environment template (`.env.example`)
-    - PHPUnit setup (`phpunit.xml.dist`)
-    - Test bootstrap (`tests/bootstrap.php`)
-    - CI preparation
-    - PSR-4 namespace autoloading
+### ✅ Phase 1 — Environment Setup
 
-### ✅ Phase 2 — Core Architecture & DTOs (Completed)
-- 📄 Documentation: [`docs/phases/README.phase2.md`](phases/README.phase2.md)
-- ✅ Status: Completed
-- 🗓 Date: 2025-12-08
-- 🧱 Delivered:
-    - Immutable DTOs:
-        - `LoginAttemptDTO`
-        - `SecurityBlockDTO`
-        - `BlockTypeEnum`
-    - Unified Driver Contract:
-        - `SecurityGuardDriverInterface`
-    - 100% test coverage for all DTOs & contracts
+📄 `docs/phases/README.phase1.md`
+Completed: Project bootstrap, Composer setup, CI preparation.
+
+---
+
+### ✅ Phase 2 — Core Architecture & DTOs
+
+📄 `docs/phases/README.phase2.md`
+Completed: Immutable DTOs + unified driver contract.
+
+---
+
+### ✅ Phase 3 — Driver Implementations
+
+📄 `docs/phases/README.phase3.md`
+Completed: MySQL, Redis, MongoDB drivers.
+
+---
+
+### ✅ Phase 4 — Unified Event System & Dispatchers
+
+📄 `docs/phases/README.phase4.md`
+Delivered:
+
+* SecurityEventDTO
+* SecurityEventFactory
+* SecurityAction, SecurityPlatform
+* NullDispatcher, SyncDispatcher, PsrLoggerDispatcher
+* Full integration with SecurityGuardService
 
 <!-- EXECUTOR_PHASE_INDEX_END -->
 

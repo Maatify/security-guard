@@ -3,11 +3,20 @@
 [![Maatify Security Guard](https://img.shields.io/badge/Maatify-Security--Guard-blue?style=for-the-badge)](https://github.com/Maatify/security-guard)
 [![Maatify Ecosystem](https://img.shields.io/badge/Maatify-Ecosystem-9C27B0?style=for-the-badge)](https://github.com/Maatify)
 
-This document provides **real-world usage examples** for  
+---
+
+### 📂 **Looking for full detailed examples?**
+
+➡️ See the complete Phase 4 examples directory:
+**[`examples/phase4/README.md`](phase4/README.md)**
+
+---
+
+This document provides **real-world usage examples** for
 `maatify/security-guard` using both:
 
-- ✅ Real Adapters (`maatify/data-adapters`)
-- ✅ Fake Adapters (`maatify/data-fakes`)
+* ✅ Real Adapters (`maatify/data-adapters`)
+* ✅ Fake Adapters (`maatify/data-fakes`)
 
 ---
 
@@ -33,7 +42,7 @@ if ($status->isBlocked) {
 } else {
     echo "✅ Allowed. Remaining attempts: {$status->remaining}";
 }
-````
+```
 
 ---
 
@@ -152,7 +161,7 @@ SECURITY_NOTIFY_TELEGRAM=true
 
 ---
 
-## 9️⃣ Real vs Fake Summary
+## 9️⃣ Real vs. Fake Summary
 
 | Mode | Uses                    | Library                 |
 |------|-------------------------|-------------------------|
@@ -167,6 +176,7 @@ SECURITY_NOTIFY_TELEGRAM=true
 * Security Policy → `SECURITY.md`
 * Changelog → `CHANGELOG.md`
 * Contributing → `CONTRIBUTING.md`
+* **Phase 4 Examples → [`examples/phase4/README.md`](phase4/README.md)**
 
 ---
 

@@ -1,216 +1,221 @@
-# ✅ **Changelog — `maatify/security-guard` (Revised & Final)**
+# ✅ Changelog — `maatify/security-guard`
 
 All notable changes to this project will be documented in this file.
 
 This project follows:
 
-* **Semantic Versioning (SemVer)**: `MAJOR.MINOR.PATCH`
-* **Keep a Changelog** format: [https://keepachangelog.com](https://keepachangelog.com)
-* **Strict architectural rules** of the Maatify ecosystem
+* **Semantic Versioning (SemVer)** — `MAJOR.MINOR.PATCH`
+* **Keep a Changelog** — https://keepachangelog.com
+* **Strict Maatify Ecosystem Architecture**
+
+---
+
+## 🌐 GitHub Releases
+
+| Version        | Release Notes          | Compare                                                                                |
+|----------------|------------------------|----------------------------------------------------------------------------------------|
+| **Unreleased** | —                      | [`v1.0.0...HEAD`](https://github.com/Maatify/security-guard/compare/v1.0.0...HEAD)     |
+| **1.0.0**      | Initial stable release | [`v0.0.0...v1.0.0`](https://github.com/Maatify/security-guard/compare/v0.0.0...v1.0.0) |
+
+> 📝 GitHub automatically attaches source code archives (`Source Code (zip)` / `Source Code (tar.gz)`) to each release.  
+> You only attach **PHAR** if we later build one (optional).
 
 ---
 
 ## [Unreleased]
+(*No tag yet*)
 
 ### Planned
 
-* Finalize audit history APIs
-* Complete monitoring & admin control APIs
-* Telegram alerts & webhook dispatcher
-* Stress testing & coverage hardening
-* First stable public Packagist release
+* Finalize audit history APIs  
+* Monitoring & admin control APIs  
+* Telegram alerts & webhook dispatcher  
+* Stress testing and coverage increase  
+* First public Packagist release pipeline  
 
 ---
 
-## [1.0.0] — 2025-12-XX
-
-🎉 **First public stable release of `maatify/security-guard`**
-
-This release introduces a fully decoupled, multi-driver security protection engine designed to defend PHP systems against brute force, abuse, and suspicious activity with real-time blocking, monitoring readiness, and full audit forwarding support.
-
----
-
-## ✅ Added
-
-### 🧱 Core Architecture
-
-* Security Guard core architecture (service-oriented design)
-* Unified driver contract based on `AdapterInterface`
-* Strict resolver for **real vs fake execution**
-* Environment-based threshold configuration
-* Full separation between:
-
-    * Core logic
-    * Storage drivers
-    * Fake simulation layer
+# [1.0.0] — 2025-12-XX  
+### 🎉 First Public Stable Release  
+**Tag:** `v1.0.0`  
+**Compare:** https://github.com/Maatify/security-guard/compare/v0.0.0...v1.0.0  
+**Milestone:** https://github.com/Maatify/security-guard/milestone/1  
 
 ---
 
-### 📦 DTOs & Enums
+## 🚀 Release Highlights (GitHub Optimized)
 
-* `LoginAttemptDTO`
+- Complete multi-driver security engine  
+- Fully immutable DTO architecture  
+- Real-time security event factory  
+- Three real drivers (MySQL, Redis, MongoDB)  
+- Unified dispatcher pipeline  
+- Full adapter-driven architecture  
+- Zero direct DB/Redis/Mongo usage  
+- PHPStan Max + full CI 
 
-    * Immutable
-    * Built-in defensive validation
-    * Static factory `now()`
-    * Context payload support
-* `SecurityBlockDTO`
+---
 
-    * Immutable
-    * Permanent & temporary block support (`expiresAt = null`)
-    * Helpers:
+## 📦 Assets Included (Auto by GitHub)
 
-        * `getRemainingSeconds()`
-        * `isExpired()`
+GitHub generates downloadable source archives:
+
+- **Source Code (zip)**  
+- **Source Code (tar.gz)**  
+
+No custom binary assets are available in this version.
+
+---
+
+## ⚙️ Upgrade Notes (for developers)
+
+This is the **first major stable version**.  
+No breaking changes from previous tags because no previous tags existed.
+
+Developers implementing this release should:
+
+- Use adapters only (`maatify/data-adapters`)  
+- Ignore legacy direct DB calls (not allowed)  
+- Register event dispatcher via `$service->setEventDispatcher()`  
+- Use strict DTO constructors  
+
+---
+
+## 🧱 Added
+
+### Core Architecture (Phase 2)
+
+* Immutable DTO set
+  - `LoginAttemptDTO`
+  - `SecurityBlockDTO`
+  - `SecurityEventDTO`
+* Defensive validation
+* Shared identifier strategy
+* Storage-agnostic behavior
+
+---
+
+### Enums (Phase 2 + Phase 4)
+
 * `BlockTypeEnum`
+* `SecurityActionEnum`
+* `SecurityPlatformEnum`
 
-    * `AUTO`
-    * `MANUAL`
-    * `SYSTEM`
+**Extensible:**
 
----
-
-### 🔌 Driver Contract
-
-* `SecurityGuardDriverInterface` finalized with:
-
-    * `recordFailure(): int`
-    * `resetAttempts()`
-    * `getActiveBlock()`
-    * `isBlocked()`
-    * `getRemainingBlockSeconds(): ?int`
-    * `block()`
-    * `unblock()`
-    * `cleanup()`
-    * `getStats(): array`
-
-✅ Contract guarantees:
-
-* No direct DB client access
-* Unified behavior across all drivers
-* Fully fake-testable
+* `SecurityAction`
+* `SecurityPlatform`
 
 ---
 
-### 🔌 Storage Drivers (via `maatify/data-adapters`)
+### Driver Contract (Phase 2)
 
-* MySQL Security Guard Driver
-* Redis Security Guard Driver
-* MongoDB Security Guard Driver
+Defines:
 
-✅ All drivers:
+* `recordFailure()`
+* `resetAttempts()`
+* `block()`
+* `unblock()`
+* `cleanup()`
+* `getStats()`
 
-* Use TTL-based expiration
-* Are fully adapter-driven
-* Are forbidden from direct:
+Guaranteed:
 
-    * PDO
-    * Doctrine DBAL
-    * Redis Extension
-    * Predis Client
-    * MongoDB Client
+* No direct PDO/Redis/Mongo  
+* Only adapters allowed  
 
 ---
 
-### 🔁 Rate Limiter Integration (Phase 5)
+### Storage Drivers (Phase 3)
 
-* Optional bridge to `maatify/rate-limiter`
-* Event-driven forwarding without introducing DB coupling
-* Flood testing & integration hooks
+Adapter-implemented:
 
----
+* MySQLSecurityGuardDriver  
+* RedisSecurityGuardDriver  
+* MongoSecurityGuardDriver  
 
-### 🧪 Testing & Quality
+All support:
 
-- ✅ **100% DTO & Contract Coverage**
-- Deterministic **Fake Adapter tests** via `maatify/data-fakes`
-- Real **Integration tests** via `maatify/data-adapters`
-- PHPStan **Level 6+**
-- PHPUnit full test suite
-- Enforced CI with:
-
-    * Tests
-    * Static analysis
-    * Coverage enforcement
+* TTL expiration  
+* Atomic operations  
+* Deterministic behavior  
 
 ---
 
-### 🔒 Security
+### Event System (Phase 4)
 
-* Deterministic, bounded blocking logic
-* Distributed-safe IP blocking
-* Automatic TTL expiration for all critical records
-* Immutable security DTOs
-* Permanent & temporary block support
-* Framework-agnostic architecture
-* Monitoring & statistics readiness
-* Full audit-forwarding pipeline (MongoDB-ready)
+* `SecurityEventDTO`  
+* `SecurityEventFactory`  
+* Auto-event emission for all security actions  
 
 ---
 
-### 📚 Documentation
+### Event Dispatchers (Phase 4)
 
-* `README.md`
-* `CONTRIBUTING.md`
-* `SECURITY.md`
-* `CODE_OF_CONDUCT.md`
-* Phase-based documentation system
-* Canonical API Map
-* Phase outputs (`phase-output.json`)
+* `NullDispatcher`  
+* `SyncDispatcher`  
+* `PsrLoggerDispatcher`  
 
 ---
 
-### 🧠 Architectural Guarantees
+### Testing & Quality
 
-* ✅ No direct PDO, DBAL, Redis, Predis, or MongoDB client usage
-* ✅ All real execution goes through `maatify/data-adapters`
-* ✅ All fake execution & adapter behavior tests go through `maatify/data-fakes`
-* ✅ Fully decoupled, testable, and framework-agnostic
-* ✅ Production-ready core security kernel
-
----
-
-### ⚠️ Breaking Changes
-
-- None (initial release)
+* Full DTO & contract coverage  
+* Fake adapter coverage  
+* Real integration adapter coverage  
+* PHPStan Level Max  
+* CI for tests + analysis + coverage  
 
 ---
 
-### 🐛 Fixed
-- N/A (initial release)
+### Documentation
+
+* README.md  
+* docs/README.full.md  
+* CONTRIBUTING.md  
+* SECURITY.md  
+* CODE_OF_CONDUCT.md  
+* API Map  
+* phase-output.json  
+
 ---
 
-### 🤝 Contributors
+## ⚠️ Breaking Changes
+None — initial stable version.
 
-- Maatify.dev Engineering Team
+---
+
+## 🐛 Fixed
+N/A — new release.
+
+---
+
+## 🤝 Contributors
+Maatify.dev Engineering Team
 
 ---
 
 ## 🔜 Upcoming Versions
 
 ### [1.1.0] — Planned
-
-- Full audit history API
-- Advanced audit filtering & indexing
-- PSR Logger integration
-- Telegram alert service
-- Webhook dispatcher & retry engine
+* Audit history API  
+* Structured PSR-3 logging  
+* Telegram alerts  
+* Webhook dispatcher with retries  
 
 ---
 
 ### [1.2.0] — Planned
-
-- Attack simulations framework
-- High-load Redis & MongoDB stress tests
-- Adaptive multi-vector blocking strategies
+* Attack simulation framework  
+* High-load Redis/Mongo benchmark suite  
+* Adaptive multi-vector blocking  
 
 ---
 
 ### [2.0.0] — Future
-
-- Pluggable AI-based abuse detection
-- Reputation-based IP scoring
-- Geo-distributed enforcement coordination
+* AI-based abuse detection  
+* Reputation scoring  
+* Geo-distributed enforcement coordinator  
 
 ---
 

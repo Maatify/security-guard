@@ -7,7 +7,7 @@
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2025-12-09 03:10
  * @see         https://www.maatify.dev Maatify.dev
- * @link        https://github.com/Maatify/security-guard view project on GitHub
+ * @link        https://github.com/Maatify/security-guard view Library on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
  */
 
@@ -19,6 +19,11 @@ use Maatify\Common\Contracts\Adapter\AdapterInterface;
 use Maatify\SecurityGuard\Contracts\SecurityGuardDriverInterface;
 use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
 use Maatify\SecurityGuard\DTO\SecurityBlockDTO;
+use Maatify\SecurityGuard\DTO\SecurityEventDTO;
+use Maatify\SecurityGuard\Enums\SecurityPlatformEnum;
+use Maatify\SecurityGuard\Event\Contracts\EventDispatcherInterface;
+use Maatify\SecurityGuard\Event\SecurityEventFactory;
+use Maatify\SecurityGuard\Event\SecurityPlatform;
 use Maatify\SecurityGuard\Resolver\SecurityGuardResolver;
 use Maatify\SecurityGuard\Identifier\Contracts\IdentifierStrategyInterface;
 
@@ -35,6 +40,7 @@ use Maatify\SecurityGuard\Identifier\Contracts\IdentifierStrategyInterface;
 final class SecurityGuardService
 {
     private SecurityGuardDriverInterface $driver;
+    private ?EventDispatcherInterface $dispatcher = null;
 
     public function __construct(
         AdapterInterface $adapter,
@@ -49,7 +55,16 @@ final class SecurityGuardService
 
     public function recordFailure(LoginAttemptDTO $dto): int
     {
-        return $this->driver->recordFailure($dto);
+        $count = $this->driver->recordFailure($dto);
+
+        $event = SecurityEventFactory::fromLoginAttempt(
+            dto: $dto,
+            platform: SecurityPlatform::fromEnum(SecurityPlatformEnum::WEB) // consumer may override
+        );
+
+        $this->dispatchEvent($event);
+
+        return $count;
     }
 
     public function resetAttempts(string $ip, string $subject): void
@@ -75,17 +90,41 @@ final class SecurityGuardService
     public function block(SecurityBlockDTO $dto): void
     {
         $this->driver->block($dto);
+
+        $event = SecurityEventFactory::blockCreated(
+            block: $dto,
+            platform: SecurityPlatform::fromEnum(SecurityPlatformEnum::ADMIN)
+        );
+
+        $this->dispatchEvent($event);
     }
+
 
     public function unblock(string $ip, string $subject): void
     {
         $this->driver->unblock($ip, $subject);
+
+        $event = SecurityEventFactory::blockRemoved(
+            ip: $ip,
+            subject: $subject,
+            platform: SecurityPlatform::fromEnum(SecurityPlatformEnum::ADMIN)
+        );
+
+        $this->dispatchEvent($event);
     }
+
 
     public function cleanup(): void
     {
         $this->driver->cleanup();
+
+        $event = SecurityEventFactory::cleanup(
+            platform: SecurityPlatform::custom('system')
+        );
+
+        $this->dispatchEvent($event);
     }
+
 
     /**
      * @return array<string,mixed>
@@ -93,5 +132,15 @@ final class SecurityGuardService
     public function getStats(): array
     {
         return $this->driver->getStats();
+    }
+
+    public function setEventDispatcher(EventDispatcherInterface $dispatcher): void
+    {
+        $this->dispatcher = $dispatcher;
+    }
+
+    private function dispatchEvent(SecurityEventDTO $event): void
+    {
+        $this->dispatcher?->dispatch($event);
     }
 }

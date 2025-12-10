@@ -7,7 +7,7 @@
  * @author      Mohamed Abdulalim (megyptm) <mohamed@maatify.dev>
  * @since       2025-12-08 14:50:00
  * @see         https://www.maatify.dev Maatify.dev
- * @link        https://github.com/Maatify/security-guard view project on GitHub
+ * @link        https://github.com/Maatify/security-guard view Library on GitHub
  * @note        Distributed in the hope that it will be useful - WITHOUT WARRANTY.
  */
 
@@ -17,6 +17,8 @@ namespace Maatify\SecurityGuard\DTO;
 
 use JsonSerializable;
 use Maatify\SecurityGuard\Enums\BlockTypeEnum;
+use Maatify\SecurityGuard\Event\SecurityEventFactory;
+use Maatify\SecurityGuard\Event\SecurityPlatform;
 
 
 /**
@@ -91,4 +93,38 @@ readonly class SecurityBlockDTO implements JsonSerializable
             'is_expired'        => $this->isExpired(),
         ];
     }
+
+    /**
+     * Convert this block record into a "block created" event.
+     */
+    public function toCreatedEvent(
+        SecurityPlatform $platform,
+        ?int $userId = null,
+        ?string $userType = null
+    ): SecurityEventDTO {
+        return SecurityEventFactory::blockCreated(
+            block: $this,
+            platform: $platform,
+            userId: $userId,
+            userType: $userType
+        );
+    }
+
+    /**
+     * Convert this block record into a "block removed" event.
+     */
+    public function toRemovedEvent(
+        SecurityPlatform $platform,
+        ?int $userId = null,
+        ?string $userType = null
+    ): SecurityEventDTO {
+        return SecurityEventFactory::blockRemoved(
+            ip: $this->ip,
+            subject: $this->subject,
+            platform: $platform,
+            userId: $userId,
+            userType: $userType
+        );
+    }
+
 }
