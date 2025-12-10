@@ -1,0 +1,147 @@
+{
+  "phase": 4,
+  "structure": {
+    "unit": {
+      "DTO": [
+        "SecurityEventDTO",
+        "LoginAttemptDTO (extension only: toEvent)",
+        "SecurityBlockDTO (extension only: toCreatedEvent, toRemovedEvent)"
+      ],
+      "Enums": [
+        "SecurityActionEnum",
+        "SecurityPlatformEnum",
+        "SecurityEventTypeEnum"
+      ],
+      "Factory": [
+        "SecurityEventFactory"
+      ],
+      "Event": [
+        "SecurityAction",
+        "SecurityPlatform"
+      ],
+      "Dispatcher": [
+        "NullDispatcher",
+        "SyncDispatcher",
+        "PsrLoggerDispatcher"
+      ],
+      "Service": [
+        "SecurityGuardService (events only logic)"
+      ]
+    },
+
+    "integration": {
+      "Service": [
+        "recordFailure emits event",
+        "block emits event",
+        "unblock emits event",
+        "cleanup emits event",
+        "event dispatcher receives all types"
+      ]
+    },
+
+    "behaviour": {
+      "flows": [
+        "full_security_flow",
+        "login_failed_flow",
+        "manual_block_and_unblock_flow",
+        "cleanup_flow",
+        "event_dispatching_flow"
+      ]
+    },
+
+    "coverage": {
+      "edge_cases": [
+        "SecurityEventDTO empty context",
+        "Factory custom() with userType & userId",
+        "Dispatcher closure throwing exception (should not break)",
+        "Dispatcher listener throwing exception (should not break)",
+        "NullDispatcher NO-OP guaranteed"
+      ]
+    }
+  },
+
+  "unit_tests": {
+    "SecurityEventDTO": {
+      "tests": [
+        "constructor_initializes_all_fields",
+        "jsonSerialize_outputs_expected_structure"
+      ]
+    },
+
+    "SecurityEventFactory": {
+      "tests": [
+        "fromLoginAttempt_generates_valid_event",
+        "blockCreated_generates_valid_event",
+        "blockRemoved_generates_valid_event",
+        "cleanup_generates_system_event",
+        "custom_generates_custom_event"
+      ]
+    },
+
+    "SecurityAction": {
+      "tests": [
+        "fromEnum_produces_correct_value",
+        "custom_creates_custom_action"
+      ]
+    },
+
+    "SecurityPlatform": {
+      "tests": [
+        "fromEnum_creates_platform",
+        "custom_creates_custom_platform"
+      ]
+    },
+
+    "Dispatchers": {
+      "NullDispatcher": [
+        "dispatch_does_not_throw"
+      ],
+      "SyncDispatcher": [
+        "closure_listener_receives_event",
+        "object_listener_receives_event",
+        "exception_in_closure_is_swallowed",
+        "exception_in_object_listener_is_swallowed"
+      ],
+      "PsrLoggerDispatcher": [
+        "logs_event_with_psr_logger"
+      ]
+    },
+
+    "ServiceEvents": {
+      "SecurityGuardService": [
+        "recordFailure_dispatches_event",
+        "block_dispatches_event",
+        "unblock_dispatches_event",
+        "cleanup_dispatches_event"
+      ]
+    }
+  },
+
+  "integration_tests": {
+    "Service_event_integration": [
+      "events_fired_in_correct_order",
+      "dispatcher_receives_action_and_platform",
+      "custom_event_flow_supported"
+    ]
+  },
+
+  "behaviour_tests": {
+    "full_security_flow": "replicate examples/phase4/native/full_security_flow.php with assertions",
+    "login_failed_flow": "recordFailure + isBlocked assertions",
+    "manual_block_flow": "SecurityBlockDTO + block + remainingSeconds",
+    "cleanup_flow": "reset + cleanup event fired",
+    "event_dispatching_flow": "sync dispatcher prints/listens to events"
+  },
+
+  "coverage_rules": {
+    "minimum": "100%",
+    "requirements": [
+      "Every public method has at least one test",
+      "Every new class introduced in phase4 is covered",
+      "All event types are emitted & asserted",
+      "All dispatchers are exercised",
+      "Factory methods all tested",
+      "DTOs & enums tested"
+    ]
+  }
+}
