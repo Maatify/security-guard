@@ -15,158 +15,151 @@ declare(strict_types=1);
 
 namespace Maatify\SecurityGuard\Tests\Config;
 
-use InvalidArgumentException;
+use Maatify\SecurityGuard\Config\Enum\IdentifierModeEnum;
 use Maatify\SecurityGuard\Config\SecurityConfig;
 use Maatify\SecurityGuard\Config\SecurityConfigDTO;
-use Maatify\SecurityGuard\Config\Enum\IdentifierModeEnum;
+use Maatify\SecurityGuard\Config\SecurityConfigLoader;
 use PHPUnit\Framework\TestCase;
 
 class SecurityConfigTest extends TestCase
 {
-    /**
-     * @param array<string, mixed> $override
-     */
-    private function makeDTO(array $override = []): SecurityConfigDTO
+    public function testSecurityConfigInitialization(): void
     {
-        $base = [
-            'windowSeconds' => 60,
-            'blockSeconds' => 120,
-            'maxFailures' => 5,
-            'identifierMode' => IdentifierModeEnum::IDENTIFIER_ONLY,
-            'keyPrefix' => 'sg:',
-            'backoffEnabled' => true,
-            'initialBackoffSeconds' => 10,
-            'backoffMultiplier' => 2.0,
-            'maxBackoffSeconds' => 300,
-        ];
-
-        /** @var array{
-         *   windowSeconds:int,
-         *   blockSeconds:int,
-         *   maxFailures:int,
-         *   identifierMode:IdentifierModeEnum,
-         *   keyPrefix:string,
-         *   backoffEnabled:bool,
-         *   initialBackoffSeconds:int,
-         *   backoffMultiplier:float,
-         *   maxBackoffSeconds:int
-         * } $merged
-         */
-        $merged = array_merge($base, $override);
-
-        return new SecurityConfigDTO(
-            windowSeconds: $merged['windowSeconds'],
-            blockSeconds: $merged['blockSeconds'],
-            maxFailures: $merged['maxFailures'],
-            identifierMode: $merged['identifierMode'],
-            keyPrefix: $merged['keyPrefix'],
-            backoffEnabled: $merged['backoffEnabled'],
-            initialBackoffSeconds: $merged['initialBackoffSeconds'],
-            backoffMultiplier: $merged['backoffMultiplier'],
-            maxBackoffSeconds: $merged['maxBackoffSeconds'],
+        $dto = new SecurityConfigDTO(
+            windowSeconds: 100,
+            blockSeconds: 200,
+            maxFailures: 3,
+            identifierMode: IdentifierModeEnum::IP_ONLY,
+            keyPrefix: 'prefix',
+            backoffEnabled: true,
+            initialBackoffSeconds: 10,
+            backoffMultiplier: 2.0,
+            maxBackoffSeconds: 100
         );
-    }
 
-
-    public function testConstructorNormalizesValues(): void
-    {
-        $dto = $this->makeDTO(['keyPrefix' => 'myprefix']);
         $config = new SecurityConfig($dto);
 
-        $this->assertSame(60, $config->windowSeconds());
-        $this->assertSame(120, $config->blockSeconds());
-        $this->assertSame(5, $config->maxFailures());
-        $this->assertSame(IdentifierModeEnum::IDENTIFIER_ONLY, $config->identifierMode());
-        $this->assertSame('myprefix:', $config->keyPrefix());
+        $this->assertSame(100, $config->windowSeconds());
+        $this->assertSame(200, $config->blockSeconds());
+        $this->assertSame(3, $config->maxFailures());
+        $this->assertSame(IdentifierModeEnum::IP_ONLY, $config->identifierMode());
+        $this->assertSame('prefix:', $config->keyPrefix()); // Colon appended
         $this->assertTrue($config->backoffEnabled());
     }
 
-    public function testValidationFailsForInvalidWindowSeconds(): void
+    public function testValidationExceptionsWindowSeconds(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        new SecurityConfig($this->makeDTO(['windowSeconds' => 0]));
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('windowSeconds must be >= 1');
+
+        new SecurityConfig(new SecurityConfigDTO(0, 10, 1, IdentifierModeEnum::IP_ONLY, 'p', false, 0, 1.0, 0));
     }
 
-    public function testValidationFailsForInvalidBlockSeconds(): void
+    public function testValidationExceptionsBlockSeconds(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        new SecurityConfig($this->makeDTO(['blockSeconds' => 0]));
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('blockSeconds must be >= 1');
+
+        new SecurityConfig(new SecurityConfigDTO(10, 0, 1, IdentifierModeEnum::IP_ONLY, 'p', false, 0, 1.0, 0));
     }
 
-    public function testValidationFailsForInvalidMaxFailures(): void
+    public function testValidationExceptionsMaxFailures(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        new SecurityConfig($this->makeDTO(['maxFailures' => 0]));
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('maxFailures must be >= 1');
+
+        new SecurityConfig(new SecurityConfigDTO(10, 10, 0, IdentifierModeEnum::IP_ONLY, 'p', false, 0, 1.0, 0));
     }
 
-    public function testValidationFailsForInvalidInitialBackoff(): void
+    public function testValidationExceptionsInitialBackoff(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        new SecurityConfig($this->makeDTO(['initialBackoffSeconds' => 0]));
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('initialBackoffSeconds must be >= 1');
+
+        new SecurityConfig(new SecurityConfigDTO(10, 10, 1, IdentifierModeEnum::IP_ONLY, 'p', true, 0, 1.0, 10));
     }
 
-    public function testValidationFailsForInvalidBackoffMultiplier(): void
+    public function testValidationExceptionsBackoffMultiplier(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        new SecurityConfig($this->makeDTO(['backoffMultiplier' => 0.5]));
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('backoffMultiplier must be >= 1.0');
+
+        new SecurityConfig(new SecurityConfigDTO(10, 10, 1, IdentifierModeEnum::IP_ONLY, 'p', true, 10, 0.9, 10));
     }
 
-    public function testValidationFailsForInvalidMaxBackoffSeconds(): void
+    public function testValidationExceptionsMaxBackoff(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        new SecurityConfig($this->makeDTO([
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('maxBackoffSeconds must be >= initialBackoffSeconds');
+
+        new SecurityConfig(new SecurityConfigDTO(10, 10, 1, IdentifierModeEnum::IP_ONLY, 'p', true, 10, 2.0, 5));
+    }
+
+    public function testComputeBackoffSeconds(): void
+    {
+        // Disabled backoff
+        $dto = new SecurityConfigDTO(10, 300, 3, IdentifierModeEnum::IP_ONLY, 'p', false, 10, 2.0, 100);
+        $config = new SecurityConfig($dto);
+        $this->assertSame(300, $config->computeBackoffSeconds(5));
+
+        // Enabled backoff
+        // maxFailures = 3.
+        // failureCount = 3 -> (3-3)=0 exponent. 10 * 1 = 10.
+        // failureCount = 4 -> (4-3)=1 exponent. 10 * 2^1 = 20.
+        // failureCount = 5 -> (5-3)=2 exponent. 10 * 2^2 = 40.
+        $dto2 = new SecurityConfigDTO(10, 300, 3, IdentifierModeEnum::IP_ONLY, 'p', true, 10, 2.0, 100);
+        $config2 = new SecurityConfig($dto2);
+
+        $this->assertSame(300, $config2->computeBackoffSeconds(2)); // < maxFailures
+        $this->assertSame(10, $config2->computeBackoffSeconds(3));
+        $this->assertSame(20, $config2->computeBackoffSeconds(4));
+        $this->assertSame(40, $config2->computeBackoffSeconds(5));
+
+        // Max cap
+        // failureCount = 10 -> large number -> capped at 100
+        $this->assertSame(100, $config2->computeBackoffSeconds(10));
+    }
+
+    public function testLoaderDefaults(): void
+    {
+        $config = SecurityConfigLoader::defaults();
+        $this->assertSame(900, $config->windowSeconds());
+        $this->assertSame(1800, $config->blockSeconds());
+        $this->assertSame('sg:', $config->keyPrefix());
+    }
+
+    public function testLoaderFromArray(): void
+    {
+        $arr = [
+            'windowSeconds' => '60',
+            'blockSeconds' => 60,
+            'maxFailures' => 10,
+            'identifierMode' => IdentifierModeEnum::IDENTIFIER_AND_IP->value, // string
+            'keyPrefix' => 'test',
+            'backoffEnabled' => 'false',
             'initialBackoffSeconds' => 20,
-            'maxBackoffSeconds'     => 10
-        ]));
+            'backoffMultiplier' => '1.5',
+            'maxBackoffSeconds' => 100
+        ];
+
+        $config = SecurityConfigLoader::fromArray($arr);
+        $this->assertSame(60, $config->windowSeconds());
+        $this->assertSame(IdentifierModeEnum::IDENTIFIER_AND_IP, $config->identifierMode());
+        $this->assertSame('test:', $config->keyPrefix());
+        $this->assertFalse($config->backoffEnabled());
     }
 
-    public function testBackoffDisabledReturnsBlockSeconds(): void
+    public function testLoaderFromEnv(): void
     {
-        $dto = $this->makeDTO(['backoffEnabled' => false]);
-        $config = new SecurityConfig($dto);
+        // Mock ENV
+        $_ENV['SG_WINDOW_SECONDS'] = '120';
+        $_ENV['SG_IDENTIFIER_MODE'] = 'ip_only'; // Fixed: using lowercase value
 
-        $this->assertSame(120, $config->computeBackoffSeconds(10));
-    }
+        $config = SecurityConfigLoader::fromEnv();
+        $this->assertSame(120, $config->windowSeconds());
+        $this->assertSame(IdentifierModeEnum::IP_ONLY, $config->identifierMode());
 
-    public function testBackoffBeforeThresholdReturnsBlockSeconds(): void
-    {
-        $config = new SecurityConfig($this->makeDTO());
-        $this->assertSame(120, $config->computeBackoffSeconds(3)); // < maxFailures
-    }
-
-    public function testBackoffCalculation(): void
-    {
-        $dto = $this->makeDTO([
-            'initialBackoffSeconds' => 10,
-            'backoffMultiplier'     => 2.0, // exponential
-            'maxBackoffSeconds'     => 300,
-            'maxFailures'           => 3
-        ]);
-
-        $config = new SecurityConfig($dto);
-
-        // failureCount = 3 → base
-        $this->assertSame(10, $config->computeBackoffSeconds(3));
-
-        // failureCount = 4 → 10 * 2 = 20
-        $this->assertSame(20, $config->computeBackoffSeconds(4));
-
-        // failureCount = 5 → 10 * 2^2 = 40
-        $this->assertSame(40, $config->computeBackoffSeconds(5));
-    }
-
-    public function testBackoffClampedAtMax(): void
-    {
-        $dto = $this->makeDTO([
-            'initialBackoffSeconds' => 50,
-            'backoffMultiplier'     => 10,
-            'maxBackoffSeconds'     => 100,
-            'maxFailures'           => 2,
-        ]);
-
-        $config = new SecurityConfig($dto);
-
-        // failureCount = 4 → 50 * 10^(2) = 5000 → clamped to 100
-        $this->assertSame(100, $config->computeBackoffSeconds(4));
+        // Cleanup
+        unset($_ENV['SG_WINDOW_SECONDS'], $_ENV['SG_IDENTIFIER_MODE']);
     }
 }

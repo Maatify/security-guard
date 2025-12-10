@@ -119,7 +119,7 @@ Security Guard is part of the **Maatify Ecosystem**, offering:
 <!-- EXECUTOR_INSTALL_START -->
 ```bash
 composer require maatify/security-guard
-````
+```
 
 <!-- EXECUTOR_INSTALL_END -->
 
