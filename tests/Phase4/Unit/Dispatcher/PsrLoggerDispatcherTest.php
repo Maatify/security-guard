@@ -43,9 +43,12 @@ class PsrLoggerDispatcherTest extends TestCase
             ->with(
                 'security_event',
                 $this->callback(function (array $context) {
+                    /** @var array<string, mixed> $innerContext */
+                    $innerContext = $context['context'] ?? [];
+
                     return $context['action'] === 'log_me'
                         && $context['ip'] === '127.0.0.1'
-                        && $context['context']['foo'] === 'bar';
+                        && ($innerContext['foo'] ?? null) === 'bar';
                 })
             );
 

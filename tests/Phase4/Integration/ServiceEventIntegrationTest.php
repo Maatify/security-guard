@@ -20,6 +20,8 @@ class ServiceEventIntegrationTest extends TestCase
 {
     private SecurityGuardService $service;
     private SyncDispatcher $dispatcher;
+
+    /** @var SecurityEventDTO[] */
     private array $events = [];
 
     protected function setUp(): void

@@ -17,6 +17,8 @@ use PHPUnit\Framework\TestCase;
 class FullSecurityFlowTest extends TestCase
 {
     private SecurityGuardService $service;
+
+    /** @var string[] */
     private array $eventLog = [];
 
     protected function setUp(): void
