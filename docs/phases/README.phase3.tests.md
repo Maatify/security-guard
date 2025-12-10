@@ -1,5 +1,8 @@
 # Phase 3 – Test Group 4: Real TTL Expiration Validation
 
+[![Maatify Security Guard](https://img.shields.io/badge/Maatify-Security--Guard-blue?style=for-the-badge)](../README.md)
+[![Maatify Ecosystem](https://img.shields.io/badge/Maatify-Ecosystem-9C27B0?style=for-the-badge)](https://github.com/Maatify)
+
 ## Status: Completed ✅
 
 ### Description

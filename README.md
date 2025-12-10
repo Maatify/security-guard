@@ -68,9 +68,9 @@ The library guarantees:
 ### **🔥 Phase 3 — Drivers Layer Completed**
 All storage backends are implemented:
 
-- **MySQLSecurityGuardDriver**
-- **RedisSecurityGuardDriver**
-- **MongoSecurityGuardDriver**
+- **MySQLSecurityGuard**
+- **RedisSecurityGuard**
+- **MongoSecurityGuard**
 
 Each driver operates strictly through the unified AdapterInterface.
 

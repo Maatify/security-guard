@@ -130,9 +130,9 @@ Guaranteed:
 
 Adapter-implemented:
 
-* MySQLSecurityGuardDriver  
-* RedisSecurityGuardDriver  
-* MongoSecurityGuardDriver  
+* MySQLSecurityGuard  
+* RedisSecurityGuard  
+* MongoSecurityGuard  
 
 All support:
 

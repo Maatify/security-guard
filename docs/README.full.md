@@ -3,67 +3,74 @@
 [![Maatify Security Guard](https://img.shields.io/badge/Maatify-Security--Guard-blue?style=for-the-badge)](../README.md)
 [![Maatify Ecosystem](https://img.shields.io/badge/Maatify-Ecosystem-9C27B0?style=for-the-badge)](https://github.com/Maatify)
 
-> ⚠️ This file is managed by the Maatify Executor Engine.  
+> ⚠️ This file is managed by the Maatify Executor Engine.
 > Only sections wrapped with `EXECUTOR_*` markers may be auto-modified.
 
 ---
 
 <!-- EXECUTOR_META_START -->
+
 {
-  "project": "maatify/security-guard",
-  "php_version": ">=8.4",
-  "documentation_type": "full",
-  "managed_by": "executor",
-  "last_sync": "2025-12-10"
+"project": "maatify/security-guard",
+"php_version": ">=8.4",
+"documentation_type": "full",
+"managed_by": "executor",
+"last_sync": "2025-12-10"
 }
+
 <!-- EXECUTOR_META_END -->
 
 ---
 
 <!-- EXECUTOR_OVERVIEW_START -->
-> This is the extended full documentation for the Maatify Security Guard engine.  
+
+> This is the extended full documentation for the Maatify Security Guard engine.
 > For the short version, see the main [`README.md`](../README.md).
 
 **Maatify Security Guard** is an adaptive, multi-driver security engine designed to protect applications from:
 
-- brute-force attacks  
-- account abuse  
-- suspicious authentication behavior  
-- automated misuse  
+* brute-force attacks
+* account abuse
+* suspicious authentication behavior
+* automated misuse
 
 It provides a unified, deterministic, fake-testable security workflow that integrates cleanly with any PHP application.
 
 Security Guard is part of the **Maatify Ecosystem**, offering:
 
-- Immutable security DTOs  
-- Unified storage drivers (MySQL / Redis / MongoDB)  
-- Real vs. Fake execution symmetry  
-- Full event pipeline (Phase 4)  
-- Optional dispatchers (sync/logging/custom)  
-- Ready for future monitoring, auditing, and alerting systems  
+* Immutable security DTOs
+* Unified storage drivers (MySQL / Redis / MongoDB)
+* Real vs. Fake execution symmetry
+* Full event pipeline (Phase 4)
+* Optional dispatchers (sync/logging/custom)
+* Ready for future monitoring, auditing, and alerting systems
+
 <!-- EXECUTOR_OVERVIEW_END -->
 
 ---
 
 ## 📘 Table of Contents
-- [Features](#-features)
-- [Core Concepts](#-core-concepts)
-- [Installation](#-installation)
-- [Usage](#-usage)
-- [Drivers](#-drivers)
-- [Audit System](#-audit-system)
-- [Monitoring](#-monitoring)
-- [Testing](#-testing)
-- [Architecture](#-architecture-overview)
-- [Roadmap & Phase Status](#-roadmap--phase-status)
-- [Phase Documentation](#-development-phases--documentation-links)
-- [License](#-license)
-- [Author](#-author)
+
+* [Features](#-features)
+* [Core Concepts](#-core-concepts)
+* [Installation](#-installation)
+* [Usage](#-usage)
+* [Drivers](#-drivers)
+* [Audit System](#-audit-system)
+* [Monitoring](#-monitoring)
+* [Testing](#-testing)
+* [Architecture](#-architecture-overview)
+* [Roadmap & Phase Status](#-roadmap--phase-status)
+* [Phase Documentation](#-development-phases--documentation-links)
+* [License](#-license)
+* [Author](#-author)
 
 ---
 
 ## 🚀 Features
+
 <!-- EXECUTOR_FEATURES_START -->
+
 * Immutable security DTOs (LoginAttemptDTO, SecurityBlockDTO, SecurityEventDTO)
 * Extensible action and platform system (SecurityAction, SecurityPlatform)
 * Centralized SecurityEventFactory for unified event normalization
@@ -71,52 +78,60 @@ Security Guard is part of the **Maatify Ecosystem**, offering:
 * Deterministic adapter-driven architecture
 * Real/Fake execution symmetry for drivers
 * Full driver layer implemented (Phase 3):
-  - MySQL
-  - Redis
-  - MongoDB
+
+  * MySQL
+  * Redis
+  * MongoDB
 * Complete event system (Phase 4):
-  - NullDispatcher
-  - SyncDispatcher
-  - PsrLoggerDispatcher
-  - Custom dispatching pipeline support
+
+  * NullDispatcher
+  * SyncDispatcher
+  * PsrLoggerDispatcher
+  * Custom dispatching pipeline support
 * Production + CI-safe behavior
 * (Planned — Phase 6) Audit event pipeline
 * (Planned — Phase 10–14) Monitoring, webhooks, alerting
+
 <!-- EXECUTOR_FEATURES_END -->
 
 ---
 
 ## 🧩 Core Concepts
+
 <!-- EXECUTOR_CORE_START -->
-- **Immutable DTOs**  
+
+* **Immutable DTOs**
   All security structures (`LoginAttemptDTO`, `SecurityBlockDTO`, `SecurityEventDTO`) are fully immutable.
 
-- **Driver-based storage**  
+* **Driver-based storage**
   All security state is stored using **maatify/data-adapters**, ensuring real/fake symmetry and deterministic testing.
 
-- **Unified event system (Phase 4)**  
+* **Unified event system (Phase 4)**
   Every security action (failures, blocks, cleanup, custom) emits a normalized event through `SecurityEventFactory`.
 
-- **Flexible dispatchers**  
+* **Flexible dispatchers**
   Applications may attach any dispatcher to forward events (sync, async, logs, queue, custom pipelines).
 
-- **Custom Action & Platform**  
+* **Custom Action & Platform**
   Projects may define their own semantic actions/platforms on top of built-in enums.
 
-- **Permanent & Temporary Blocking**  
+* **Permanent & Temporary Blocking**
   Manual blocks may be indefinite; automatic blocks expire.
 
-- **Symmetry Guarantee**  
+* **Symmetry Guarantee**
   All drivers — real and fake — must behave identically according to the contract.
 
-- **Future-ready audit & monitoring pipeline**  
+* **Future-ready audit & monitoring pipeline**
   Designed for SIEM integrations and advanced alerting.
+
 <!-- EXECUTOR_CORE_END -->
 
 ---
 
 ## 📦 Installation
+
 <!-- EXECUTOR_INSTALL_START -->
+
 ```bash
 composer require maatify/security-guard
 ```
@@ -137,9 +152,9 @@ $svc = new SecurityGuardService($adapter, $identifier);
 $dto = LoginAttemptDTO::now(
     ip: '192.168.1.5',
     subject: 'user@example.com',
+    resetAfter: 900,
     userAgent: $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
 );
-
 $count = $svc->recordFailure($dto);
 ```
 
@@ -166,8 +181,8 @@ $svc->block(
         ip: '192.168.1.5',
         subject: 'user@example.com',
         type: BlockTypeEnum::MANUAL,
+        expiresAt: time() + 3600,
         createdAt: time(),
-        expiresAt: time() + 3600
     )
 );
 ```
@@ -205,9 +220,9 @@ $svc->setEventDispatcher(new SyncDispatcher([fn($e) => var_dump($e)]));
 
 Drivers were fully implemented in **Phase 3** and include:
 
-* **MySQLSecurityGuardDriver**
-* **RedisSecurityGuardDriver**
-* **MongoSecurityGuardDriver**
+* **MySQLSecurityGuard** (PDO / Doctrine DBAL via `MySQLSecurityGuard`)
+* **RedisSecurityGuard**
+* **MongoSecurityGuard**
 
 All drivers operate exclusively through `maatify/data-adapters`.
 Direct usage of PDO, Redis, Predis, or MongoDB clients is forbidden.
