@@ -27,7 +27,8 @@
 
     "engine_version": {
       "type": "string",
-      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "default": "1.0.1"
     },
 
     "tests_policy": {
@@ -67,6 +68,37 @@
       "additionalProperties": true
     },
 
+    "api_map_policy": {
+      "type": "object",
+      "description": "Defines how the executor handles api-map.json, now the single source of truth for full reflection.",
+      "required": ["file", "reflection_source"],
+      "properties": {
+        "file": { "type": "string", "default": "api-map.json" },
+        "required": { "type": "boolean", "default": true },
+        "update_each_phase": { "type": "boolean", "default": true },
+
+        "reflection_source": {
+          "type": "string",
+          "enum": ["api-map.json"],
+          "default": "api-map.json"
+        },
+
+        "contents": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [
+            "classes",
+            "methods",
+            "arguments",
+            "return types",
+            "visibility",
+            "docblocks"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+
     "phase_output_policy": {
       "type": "object",
       "required": ["required", "file", "contains"],
@@ -80,7 +112,10 @@
           "items": { "type": "string" }
         },
 
-        "include_reflection": { "type": "boolean" },
+        "include_reflection": {
+          "type": "boolean",
+          "description": "Reflection here is minimal (class index only). Full reflection lives in api-map.json."
+        },
 
         "reflection_details": {
           "type": "object",

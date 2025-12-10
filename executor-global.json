@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "engine_version": "1.0.0",
+  "engine_version": "1.0.1",
 
   "tests_policy": {
     "unit": "Deterministic fake tests",
@@ -14,6 +14,25 @@
     "coverage": ">= 85%",
     "coding_standard": "PSR-12",
     "static_analysis": "phpstan level 6"
+  },
+
+  "api_map_policy": {
+    "required": true,
+    "file": "api-map.json",
+
+    "description": "api-map.json is the single source of truth for full reflection of the library. All class, method, argument, return-type, and structural details must be read from api-map.json. Phase-output.json must not contain full reflection details.",
+
+    "reflection_source": "api-map.json",
+    "update_each_phase": true,
+
+    "contents": [
+      "all classes",
+      "all methods",
+      "arguments",
+      "return types",
+      "visibility",
+      "docblocks"
+    ]
   },
 
   "documentation_policy": {
@@ -33,6 +52,7 @@
       "phase metadata",
       "summary",
       "changes (added/updated/removed)",
+      "reflection index (class names only)",
       "tests result (fake + real)",
       "coverage",
       "documentation files created",
@@ -42,14 +62,11 @@
 
     "signature_schema_version": "2.0",
 
-    "include_reflection": true,
+    "include_reflection": "class-names-only",
+
     "reflection_details": {
-      "only_modified_classes": true,
-      "include_methods": true,
-      "method_arguments": true,
-      "method_return_types": true,
-      "method_visibility": true,
-      "method_exceptions": true
+      "mode": "class-index",
+      "description": "Only list class names affected in this phase. Full reflection comes from api-map.json."
     },
 
     "generate_git_patch": true,
