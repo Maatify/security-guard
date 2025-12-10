@@ -118,8 +118,7 @@ class Phase3G12RealRedisTest extends TestCase
     public function testRedisIntegrationCleanup(): void
     {
         $driver = $this->driver;
-        $this->assertNotNull($driver);
-
+        /** @var RedisSecurityGuard $driver */
         $this->expectNotToPerformAssertions();
         $driver->cleanup();
     }
