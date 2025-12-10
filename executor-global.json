@@ -27,11 +27,17 @@
 
     "contents": [
       "all classes",
+      "all interfaces",
+      "all traits",
+      "all enums",
       "all methods",
-      "arguments",
+      "method visibility",
+      "static / non-static",
+      "arguments with types",
       "return types",
-      "visibility",
-      "docblocks"
+      "enum cases",
+      "extends / implements",
+      "phpdoc param/return types (if exist)"
     ]
   },
 
@@ -67,6 +73,21 @@
     "reflection_details": {
       "mode": "class-index",
       "description": "Only list class names affected in this phase. Full reflection comes from api-map.json."
+    },
+
+    "changes_schema": {
+      "added": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "updated": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "removed": {
+        "type": "array",
+        "items": { "type": "string" }
+      }
     },
 
     "generate_git_patch": true,
