@@ -16,10 +16,13 @@ declare(strict_types=1);
 namespace Maatify\SecurityGuard\Service;
 
 use Maatify\Common\Contracts\Adapter\AdapterInterface;
+use Maatify\SecurityGuard\Config\SecurityConfig;
+use Maatify\SecurityGuard\Config\SecurityConfigLoader;
 use Maatify\SecurityGuard\Contracts\SecurityGuardDriverInterface;
 use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
 use Maatify\SecurityGuard\DTO\SecurityBlockDTO;
 use Maatify\SecurityGuard\DTO\SecurityEventDTO;
+use Maatify\SecurityGuard\Enums\BlockTypeEnum;
 use Maatify\SecurityGuard\Enums\SecurityPlatformEnum;
 use Maatify\SecurityGuard\Event\Contracts\EventDispatcherInterface;
 use Maatify\SecurityGuard\Event\SecurityEventFactory;
@@ -40,18 +43,108 @@ use Maatify\SecurityGuard\Identifier\Contracts\IdentifierStrategyInterface;
 final class SecurityGuardService
 {
     private SecurityGuardDriverInterface $driver;
+
+    /** @var EventDispatcherInterface|null */
     private ?EventDispatcherInterface $dispatcher = null;
+
+    /** @var SecurityConfig */
+    private SecurityConfig $config;
 
     public function __construct(
         AdapterInterface $adapter,
         IdentifierStrategyInterface $strategy
     ) {
         $this->driver = (new SecurityGuardResolver())->resolve($adapter, $strategy);
+
+        // Default production config — can be overridden
+        $this->config = SecurityConfigLoader::defaults();
     }
 
-    // -------------------------------------------------------------------------
-    //  Public API
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    //  PHASE 5 — HIGH LEVEL LOGIC (NEW)
+    // =========================================================================
+
+    /**
+     * Allows overriding the default config dynamically.
+     */
+    public function setConfig(SecurityConfig $config): void
+    {
+        $this->config = $config;
+    }
+
+    /**
+     * Handle success/failure login attempts:
+     *
+     *  - Success → reset attempts
+     *  - failure → increment counter, block if a threshold reached
+     *  - if already blocked → return the remaining block
+     *
+     * @return int|null Failure count, or null on success.
+     */
+    public function handleAttempt(LoginAttemptDTO $dto, bool $success): ?int
+    {
+        $ip = $dto->ip;
+        $subject = $dto->subject;
+
+        // 1) Already blocked?
+        if ($this->driver->isBlocked($ip, $subject)) {
+            return $this->driver->getRemainingBlockSeconds($ip, $subject);
+        }
+
+        // 2) Success case → reset counters
+        if ($success) {
+            $this->driver->resetAttempts($ip, $subject);
+            return null;
+        }
+
+        // 3) Failure → increment
+        $count = $this->driver->recordFailure($dto);
+
+        // Emit failure event
+        $this->dispatchEvent(
+            SecurityEventFactory::fromLoginAttempt(
+                dto: $dto,
+                platform: SecurityPlatform::fromEnum(SecurityPlatformEnum::WEB)
+            )
+        );
+
+        // 4) Threshold reached → block
+        if ($count >= $this->config->maxFailures()) {
+            $expiresAt = time() + $this->config->blockSeconds();
+
+            $block = new SecurityBlockDTO(
+                ip: $ip,
+                subject: $subject,
+                type: BlockTypeEnum::AUTO,
+                expiresAt: $expiresAt,
+                createdAt: time()
+            );
+
+            $this->driver->block($block);
+
+            $this->dispatchEvent(
+                SecurityEventFactory::blockCreated(
+                    block: $block,
+                    platform: SecurityPlatform::fromEnum(SecurityPlatformEnum::SYSTEM)
+                )
+            );
+        }
+
+        return $count;
+    }
+
+    /**
+     * Accepts a SecurityEventDTO and dispatches it.
+     * (Phase 5 does not implement routing logic — comes in later phases)
+     */
+    public function handleEvent(SecurityEventDTO $event): void
+    {
+        $this->dispatchEvent($event);
+    }
+
+    // =========================================================================
+    //  ORIGINAL METHODS (UNCHANGED)
+    // =========================================================================
 
     public function recordFailure(LoginAttemptDTO $dto): int
     {
