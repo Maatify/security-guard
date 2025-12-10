@@ -41,7 +41,7 @@ class PsrLoggerDispatcherTest extends TestCase
         $this->logger->expects($this->once())
             ->method('info')
             ->with(
-                'Security Event Dispatched',
+                'security_event',
                 $this->callback(function (array $context) {
                     return $context['action'] === 'log_me'
                         && $context['ip'] === '127.0.0.1'

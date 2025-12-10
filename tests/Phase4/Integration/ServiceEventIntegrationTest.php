@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\SecurityGuard\Tests\Phase4\Integration;
 
-use Maatify\DataAdapters\Contracts\AdapterInterface;
+use Maatify\Common\Contracts\Adapter\AdapterInterface;
 use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
 use Maatify\SecurityGuard\DTO\SecurityBlockDTO;
 use Maatify\SecurityGuard\DTO\SecurityEventDTO;
@@ -40,7 +40,7 @@ class ServiceEventIntegrationTest extends TestCase
     public function testEventsFiredInCorrectOrder(): void
     {
         // 1. Record Failure
-        $this->service->recordFailure(new LoginAttemptDTO('1.1.1.1', 'user', time(), []));
+        $this->service->recordFailure(new LoginAttemptDTO('1.1.1.1', 'user', time(), 60, null, []));
         $this->assertCount(1, $this->events);
         $this->assertSame('login_attempt', (string)$this->events[0]->action);
 
@@ -68,7 +68,7 @@ class ServiceEventIntegrationTest extends TestCase
 
     public function testDispatcherReceivesActionAndPlatform(): void
     {
-        $this->service->recordFailure(new LoginAttemptDTO('1.1.1.1', 'user', time(), []));
+        $this->service->recordFailure(new LoginAttemptDTO('1.1.1.1', 'user', time(), 60, null, []));
 
         $event = $this->events[0];
         $this->assertSame('web', (string)$event->platform);

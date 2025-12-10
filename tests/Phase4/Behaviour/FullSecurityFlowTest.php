@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\SecurityGuard\Tests\Phase4\Behaviour;
 
-use Maatify\DataAdapters\Contracts\AdapterInterface;
+use Maatify\Common\Contracts\Adapter\AdapterInterface;
 use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
 use Maatify\SecurityGuard\DTO\SecurityEventDTO;
 use Maatify\SecurityGuard\Event\Dispatcher\SyncDispatcher;
@@ -22,9 +22,6 @@ class FullSecurityFlowTest extends TestCase
         $adapter = $this->createMock(AdapterInterface::class);
         $adapter->method('incr')->willReturnOnConsecutiveCalls(1, 2, 3);
         $adapter->method('ttl')->willReturn(60);
-        // Simulate blocked state for subsequent calls if needed by mocking driver logic
-        // But the Service unit/integration tests cover that.
-        // Here we focus on the flow of method calls and event emission.
 
         $this->service = new SecurityGuardService($adapter, new DefaultIdentifierStrategy());
 
@@ -39,7 +36,7 @@ class FullSecurityFlowTest extends TestCase
     public function testFullSecurityFlow(): void
     {
         // 1. Record 3 failures
-        $dto = new LoginAttemptDTO('127.0.0.1', 'user', time(), []);
+        $dto = new LoginAttemptDTO('127.0.0.1', 'user', time(), 60, null, []);
         $this->service->recordFailure($dto);
         $this->service->recordFailure($dto);
         $this->service->recordFailure($dto);
@@ -49,7 +46,6 @@ class FullSecurityFlowTest extends TestCase
 
         // 2. Reset
         $this->service->resetAttempts('127.0.0.1', 'user');
-        // Reset doesn't emit an event in default impl
 
         // 3. Cleanup
         $this->service->cleanup();

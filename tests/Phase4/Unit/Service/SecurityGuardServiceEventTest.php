@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Maatify\SecurityGuard\Tests\Phase4\Unit\Service;
 
-use Maatify\DataAdapters\Contracts\AdapterInterface;
+use Maatify\Common\Contracts\Adapter\AdapterInterface;
 use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
 use Maatify\SecurityGuard\DTO\SecurityBlockDTO;
 use Maatify\SecurityGuard\DTO\SecurityEventDTO;
@@ -35,7 +35,7 @@ class SecurityGuardServiceEventTest extends TestCase
 
     public function testRecordFailureDispatchesEvent(): void
     {
-        $dto = new LoginAttemptDTO('127.0.0.1', 'user', time(), []);
+        $dto = new LoginAttemptDTO('127.0.0.1', 'user', time(), 60, null, []);
 
         // The adapter call is mocked to avoid side effects
         $this->adapter->method('incr')->willReturn(1);

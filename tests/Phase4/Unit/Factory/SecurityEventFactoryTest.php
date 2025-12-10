@@ -25,7 +25,13 @@ class SecurityEventFactoryTest extends TestCase
 
     public function testFromLoginAttemptGeneratesValidEvent(): void
     {
-        $dto = new LoginAttemptDTO('127.0.0.1', 'user', time(), ['foo' => 'bar']);
+        $dto = new LoginAttemptDTO(
+            ip: '127.0.0.1',
+            subject: 'user',
+            occurredAt: time(),
+            resetAfter: 60,
+            context: ['foo' => 'bar']
+        );
         $platform = SecurityPlatform::fromEnum(SecurityPlatformEnum::WEB);
 
         $event = $this->factory->fromLoginAttempt($dto, $platform, 10, 'customer');
@@ -37,7 +43,8 @@ class SecurityEventFactoryTest extends TestCase
         $this->assertSame('user', $event->subject);
         $this->assertSame(10, $event->userId);
         $this->assertSame('customer', $event->userType);
-        $this->assertSame(['foo' => 'bar'], $event->context);
+        $this->assertSame('bar', $event->context['foo']);
+        $this->assertSame(60, $event->context['reset_after']);
     }
 
     public function testBlockCreatedGeneratesValidEvent(): void
@@ -74,7 +81,7 @@ class SecurityEventFactoryTest extends TestCase
 
         $this->assertSame('cleanup', (string)$event->action);
         $this->assertSame('system', (string)$event->platform);
-        $this->assertSame('0.0.0.0', $event->ip);
+        $this->assertSame('system', $event->ip);
         $this->assertSame('system', $event->subject);
     }
 

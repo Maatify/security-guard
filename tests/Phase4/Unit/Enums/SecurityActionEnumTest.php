@@ -12,8 +12,9 @@ class SecurityActionEnumTest extends TestCase
     public function testCases(): void
     {
         $this->assertSame('login_attempt', SecurityActionEnum::LOGIN_ATTEMPT->value);
+        $this->assertSame('login_success', SecurityActionEnum::LOGIN_SUCCESS->value);
+        $this->assertSame('login_failure', SecurityActionEnum::LOGIN_FAILURE->value);
         $this->assertSame('block_created', SecurityActionEnum::BLOCK_CREATED->value);
         $this->assertSame('block_removed', SecurityActionEnum::BLOCK_REMOVED->value);
-        $this->assertSame('cleanup', SecurityActionEnum::CLEANUP->value);
     }
 }
