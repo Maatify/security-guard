@@ -5,9 +5,26 @@
 
 ---
 
+> 📌 **Note**  
+> This document demonstrates **high-level usage** of the Security Guard engine  
+> (Phase 4+).  
+>
+> If you are looking for **Phase 3 driver-level examples**, see:
+>
+> - Beginner examples (Redis only):  
+>   **[`examples/phase3/phase3_simple_examples.md`](phase3/phase3_simple_examples.md)**
+>
+> - Full multi-driver usage (PHP + Slim + Laravel):  
+>   **[`examples/phase3/phase3_driver_usage.md`](phase3/phase3_driver_usage.md)**
+>
+> - Driver behavior specification (maintainer-level):  
+>   **[`examples/phase3/phase3_driver_behavior.md`](phase3/phase3_driver_behavior.md)**
+
+---
+
 ### 📂 **Looking for full detailed examples?**
 
-➡️ See the complete Phase 4 examples directory:
+➡️ See the complete Phase 4 examples directory:  
 **[`examples/phase4/README.md`](phase4/README.md)**
 
 ---
@@ -177,6 +194,7 @@ SECURITY_NOTIFY_TELEGRAM=true
 * Changelog → `CHANGELOG.md`
 * Contributing → `CONTRIBUTING.md`
 * **Phase 4 Examples → [`examples/phase4/README.md`](phase4/README.md)**
+* **Phase 3 Driver Examples → [`examples/phase3/phase3_simple_examples.md`](phase3/phase3_simple_examples.md)**
 
 ---
 
