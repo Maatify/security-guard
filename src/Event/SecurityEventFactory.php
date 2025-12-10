@@ -41,22 +41,18 @@ final class SecurityEventFactory
      */
     private static function uuidV7(): string
     {
-        // Simple PHP-only UUIDv7 (sufficient for library use)
-        $time = microtime(true);
-        $sec  = (int) $time;
-        $usec = (int) (($time - $sec) * 1_000_000);
+        // Unix timestamp in milliseconds as 48-bit integer
+        $ms = intdiv(hrtime(true), 1_000_000); // convert ns → ms safely
 
-        // 48-bit timestamp
-        $timestamp = ($sec << 12) | ($usec >> 8);
+        // Split into high + low
+        $timeHigh = ($ms >> 32) & 0xffff;
+        $timeLow  = $ms & 0xffffffff;
 
-        // Set version 7 (0111)
-        $timeHigh = ($timestamp & 0xffff000000000000) >> 48;
-        $timeLow  = $timestamp & 0x0000ffffffffffff;
-
+        // Set UUIDv7 version bits (0111)
         $timeHigh = ($timeHigh & 0x0fff) | 0x7000;
 
         return sprintf(
-            '%04x%012x-%04x-%04x-%012x',
+            '%04x%08x-%04x-%04x-%012x',
             $timeHigh,
             $timeLow,
             random_int(0, 0xffff),
