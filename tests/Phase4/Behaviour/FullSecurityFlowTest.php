@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Maatify\SecurityGuard\Tests\Phase4\Behaviour;
 
-use Maatify\Common\Contracts\Adapter\AdapterInterface;
+require_once __DIR__ . '/../../Fake/FakePredisClient.php';
+
 use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
 use Maatify\SecurityGuard\DTO\SecurityEventDTO;
 use Maatify\SecurityGuard\Event\Dispatcher\SyncDispatcher;
-use Maatify\SecurityGuard\Identifier\DefaultIdentifierStrategy;
 use Maatify\SecurityGuard\Service\SecurityGuardService;
+use Maatify\SecurityGuard\Tests\Fake\FakeAdapter;
+use Maatify\SecurityGuard\Tests\Fake\FakeIdentifierStrategy;
 use PHPUnit\Framework\TestCase;
 
 class FullSecurityFlowTest extends TestCase
@@ -19,11 +21,8 @@ class FullSecurityFlowTest extends TestCase
 
     protected function setUp(): void
     {
-        $adapter = $this->createMock(AdapterInterface::class);
-        $adapter->method('incr')->willReturnOnConsecutiveCalls(1, 2, 3);
-        $adapter->method('ttl')->willReturn(60);
-
-        $this->service = new SecurityGuardService($adapter, new DefaultIdentifierStrategy());
+        $adapter = new FakeAdapter();
+        $this->service = new SecurityGuardService($adapter, new FakeIdentifierStrategy());
 
         $dispatcher = new SyncDispatcher();
         $dispatcher->addClosure(function (SecurityEventDTO $event) {

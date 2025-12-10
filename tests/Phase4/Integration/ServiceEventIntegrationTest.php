@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace Maatify\SecurityGuard\Tests\Phase4\Integration;
 
-use Maatify\Common\Contracts\Adapter\AdapterInterface;
+require_once __DIR__ . '/../../Fake/FakePredisClient.php';
+
 use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
 use Maatify\SecurityGuard\DTO\SecurityBlockDTO;
 use Maatify\SecurityGuard\DTO\SecurityEventDTO;
 use Maatify\SecurityGuard\Enums\BlockTypeEnum;
 use Maatify\SecurityGuard\Event\Dispatcher\SyncDispatcher;
-use Maatify\SecurityGuard\Identifier\DefaultIdentifierStrategy;
 use Maatify\SecurityGuard\Service\SecurityGuardService;
+use Maatify\SecurityGuard\Tests\Fake\FakeAdapter;
+use Maatify\SecurityGuard\Tests\Fake\FakeIdentifierStrategy;
 use PHPUnit\Framework\TestCase;
 
 class ServiceEventIntegrationTest extends TestCase
@@ -22,12 +24,8 @@ class ServiceEventIntegrationTest extends TestCase
 
     protected function setUp(): void
     {
-        // Use a mock adapter but a real service + real dispatcher
-        $adapter = $this->createMock(AdapterInterface::class);
-        $adapter->method('incr')->willReturn(1);
-        $adapter->method('ttl')->willReturn(60);
-
-        $this->service = new SecurityGuardService($adapter, new DefaultIdentifierStrategy());
+        $adapter = new FakeAdapter();
+        $this->service = new SecurityGuardService($adapter, new FakeIdentifierStrategy());
         $this->dispatcher = new SyncDispatcher();
 
         $this->dispatcher->addClosure(function (SecurityEventDTO $event) {

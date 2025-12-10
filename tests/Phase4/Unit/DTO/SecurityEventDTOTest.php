@@ -80,7 +80,6 @@ class SecurityEventDTOTest extends TestCase
 
     public function testLoginAttemptDTOToEvent(): void
     {
-        // Fix: Added resetAfter=300 as 4th arg
         $loginAttempt = new LoginAttemptDTO(
             ip: '127.0.0.1',
             subject: 'test',
@@ -151,7 +150,6 @@ class SecurityEventDTOTest extends TestCase
         $this->assertSame('10.0.0.1', $event->ip);
         $this->assertSame('hacker', $event->subject);
 
-        // Fix: removed invalid assertion on context['block_type']
         $this->assertEmpty($event->context);
     }
 
