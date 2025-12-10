@@ -32,11 +32,11 @@ final class RealRedisAdapter implements AdapterInterface
     public function connect(): void
     {
         if (! $this->connected) {
-             try {
-                 $this->connected = @$this->redis->connect('127.0.0.1', 6379);
-             } catch (\Throwable) {
-                 $this->connected = false;
-             }
+            try {
+                $this->connected = @$this->redis->connect('127.0.0.1', 6379);
+            } catch (\Throwable) {
+                $this->connected = false;
+            }
         }
     }
 

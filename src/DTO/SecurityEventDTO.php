@@ -59,8 +59,7 @@ final readonly class SecurityEventDTO implements JsonSerializable
         public ?int $userId = null,
         public ?string $userType = null,
         public array $context = [],
-    )
-    {
+    ) {
     }
 
     /**

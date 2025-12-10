@@ -15,7 +15,6 @@ declare(strict_types=1);
 
 namespace Maatify\SecurityGuard\Tests\Config;
 
-use Maatify\SecurityGuard\Config\SecurityConfig;
 use Maatify\SecurityGuard\Config\SecurityConfigLoader;
 use Maatify\SecurityGuard\Config\Enum\IdentifierModeEnum;
 use PHPUnit\Framework\TestCase;

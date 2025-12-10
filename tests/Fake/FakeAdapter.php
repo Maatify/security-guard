@@ -31,10 +31,20 @@ final class FakeAdapter implements AdapterInterface, KeyValueAdapterInterface
     // AdapterInterface (dummy for constructor compatibility)
     // ------------------------------------------------------------------
 
-    public function connect(): void {}
-    public function disconnect(): void {}
-    public function isConnected(): bool { return true; }
-    public function healthCheck(): bool { return true; }
+    public function connect(): void
+    {
+    }
+    public function disconnect(): void
+    {
+    }
+    public function isConnected(): bool
+    {
+        return true;
+    }
+    public function healthCheck(): bool
+    {
+        return true;
+    }
     public function getDriver(): \Predis\Client
     {
         return new Client(); // Fake Predis for RedisSecurityGuard ONLY
@@ -85,7 +95,7 @@ final class FakeAdapter implements AdapterInterface, KeyValueAdapterInterface
         return array_values(
             array_filter(
                 array_keys($this->store),
-                static fn(string $key): bool => (bool) preg_match($regex, $key)
+                static fn (string $key): bool => (bool) preg_match($regex, $key)
             )
         );
     }

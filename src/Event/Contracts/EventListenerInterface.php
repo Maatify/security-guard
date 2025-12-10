@@ -13,7 +13,6 @@
 
 declare(strict_types=1);
 
-
 namespace Maatify\SecurityGuard\Event\Contracts;
 
 use Maatify\SecurityGuard\DTO\SecurityEventDTO;

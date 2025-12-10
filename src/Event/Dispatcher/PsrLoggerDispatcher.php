@@ -33,8 +33,7 @@ final readonly class PsrLoggerDispatcher implements EventDispatcherInterface
 {
     public function __construct(
         private LoggerInterface $logger,
-    )
-    {
+    ) {
     }
 
     public function dispatch(SecurityEventDTO $event): void

@@ -101,7 +101,6 @@ class FakeSecurityGuardDriver extends AbstractSecurityGuardDriver
         );
     }
 
-
     protected function doUnblock(string $ip, string $subject): void
     {
         $this->kv()->del($this->blockKey($ip, $subject));
@@ -129,5 +128,3 @@ class FakeSecurityGuardDriver extends AbstractSecurityGuardDriver
         return $this->adapter;
     }
 }
-
-

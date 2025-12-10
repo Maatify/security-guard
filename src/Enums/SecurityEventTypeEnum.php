@@ -36,6 +36,6 @@ enum SecurityEventTypeEnum: string
      */
     public static function isBuiltin(string $value): bool
     {
-        return array_any(self::cases(), fn($case) => $case->value === $value);
+        return array_any(self::cases(), fn ($case) => $case->value === $value);
     }
 }

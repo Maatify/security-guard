@@ -20,7 +20,6 @@ use Maatify\SecurityGuard\Enums\BlockTypeEnum;
 use Maatify\SecurityGuard\Event\SecurityEventFactory;
 use Maatify\SecurityGuard\Event\SecurityPlatform;
 
-
 /**
  * 🧩 SecurityBlockDTO
  *

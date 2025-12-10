@@ -57,7 +57,12 @@ class SecurityGuardStatsTest extends TestCase
 
         for ($i = 0; $i < 150; $i++) {
             $driver->recordFailure(new LoginAttemptDTO(
-                '1.1.1.1', 'user' . $i, time(), 60, null, []
+                '1.1.1.1',
+                'user' . $i,
+                time(),
+                60,
+                null,
+                []
             ));
         }
 

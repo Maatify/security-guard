@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright   ©2025 Maatify.dev
  * @Library     maatify/security-guard
@@ -34,7 +35,6 @@ final readonly class SecurityConfigDTO
         public int $initialBackoffSeconds,
         public float $backoffMultiplier,
         public int $maxBackoffSeconds,
-    )
-    {
+    ) {
     }
 }

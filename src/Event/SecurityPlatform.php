@@ -26,8 +26,7 @@ final class SecurityPlatform
 {
     public function __construct(
         public readonly string $value
-    )
-    {
+    ) {
     }
 
     public static function fromEnum(SecurityPlatformEnum $enum): self

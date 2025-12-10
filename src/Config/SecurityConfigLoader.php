@@ -81,10 +81,8 @@ final class SecurityConfigLoader
             windowSeconds: self::toInt($_ENV['SG_WINDOW_SECONDS'] ?? null, 900),
             blockSeconds: self::toInt($_ENV['SG_BLOCK_SECONDS'] ?? null, 1800),
             maxFailures: self::toInt($_ENV['SG_MAX_FAILURES'] ?? null, 5),
-
             identifierMode: self::toIdentifierMode($_ENV['SG_IDENTIFIER_MODE'] ?? null),
             keyPrefix: self::toString($_ENV['SG_KEY_PREFIX'] ?? null, 'sg'),
-
             backoffEnabled: self::toBool($_ENV['SG_BACKOFF_ENABLED'] ?? null, true),
             initialBackoffSeconds: self::toInt($_ENV['SG_BACKOFF_INITIAL'] ?? null, 60),
             backoffMultiplier: self::toFloat($_ENV['SG_BACKOFF_MULTIPLIER'] ?? null, 3.0),
@@ -105,10 +103,8 @@ final class SecurityConfigLoader
             windowSeconds: self::toInt($config['windowSeconds'] ?? null, 900),
             blockSeconds: self::toInt($config['blockSeconds'] ?? null, 1800),
             maxFailures: self::toInt($config['maxFailures'] ?? null, 5),
-
             identifierMode: self::toIdentifierMode($config['identifierMode'] ?? null),
             keyPrefix: self::toString($config['keyPrefix'] ?? null, 'sg'),
-
             backoffEnabled: self::toBool($config['backoffEnabled'] ?? null, true),
             initialBackoffSeconds: self::toInt($config['initialBackoffSeconds'] ?? null, 60),
             backoffMultiplier: self::toFloat($config['backoffMultiplier'] ?? null, 3.0),
@@ -126,4 +122,3 @@ final class SecurityConfigLoader
         return self::fromArray([]);
     }
 }
-

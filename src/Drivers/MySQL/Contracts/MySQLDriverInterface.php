@@ -82,4 +82,3 @@ interface MySQLDriverInterface
      */
     public function doGetStats(): array;
 }
-

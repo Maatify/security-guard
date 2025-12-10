@@ -54,8 +54,7 @@ abstract class AbstractSecurityGuardDriver implements SecurityGuardDriverInterfa
     public function __construct(
         AdapterInterface $adapter,
         IdentifierStrategyInterface $identifierStrategy
-    )
-    {
+    ) {
         $this->adapter = $adapter;
         $this->identifierStrategy = $identifierStrategy;
     }
@@ -164,7 +163,6 @@ abstract class AbstractSecurityGuardDriver implements SecurityGuardDriverInterfa
             createdAt: $row['created_at']
         );
     }
-
 
     // -------------------------------------------------------------------------
     //  ⚠️ Abstract Low-Level Methods (implemented by each driver)

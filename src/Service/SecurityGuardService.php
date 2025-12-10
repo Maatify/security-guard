@@ -99,7 +99,6 @@ final class SecurityGuardService
         $this->dispatchEvent($event);
     }
 
-
     public function unblock(string $ip, string $subject): void
     {
         $this->driver->unblock($ip, $subject);
@@ -113,7 +112,6 @@ final class SecurityGuardService
         $this->dispatchEvent($event);
     }
 
-
     public function cleanup(): void
     {
         $this->driver->cleanup();
@@ -124,7 +122,6 @@ final class SecurityGuardService
 
         $this->dispatchEvent($event);
     }
-
 
     /**
      * @return array<string,mixed>

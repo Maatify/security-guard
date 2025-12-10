@@ -50,7 +50,7 @@ class Phase3G4ExpiryTest extends TestCase
 
         $adapter = new RealRedisAdapter();
         if (!$adapter->isConnected()) {
-             $this->markTestSkipped('Redis not available');
+            $this->markTestSkipped('Redis not available');
         }
 
         // Flush DB to ensure clean state

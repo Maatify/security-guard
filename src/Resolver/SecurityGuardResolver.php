@@ -43,8 +43,7 @@ final class SecurityGuardResolver
     public function resolve(
         AdapterInterface $adapter,
         IdentifierStrategyInterface $strategy
-    ): SecurityGuardDriverInterface
-    {
+    ): SecurityGuardDriverInterface {
         /** @var mixed $driver */
         $driver = $adapter->getDriver();
 

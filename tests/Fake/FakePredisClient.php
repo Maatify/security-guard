@@ -16,7 +16,7 @@ declare(strict_types=1);
 namespace Predis;
 
 /**
- * Lightweight fully-typed fake Predis client for testing.
+ * Lightweight fully typed fake Predis client for testing.
  */
 class Client
 {
@@ -105,7 +105,6 @@ class Client
 
         $this->hashes[$key] = $normalized;
     }
-
 
     /**
      * @return array<string, string|int>

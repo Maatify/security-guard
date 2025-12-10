@@ -57,9 +57,13 @@ final class FakeKeyValueAdapter implements AdapterInterface, KeyValueAdapterInte
     // ✅ AdapterInterface (Stub for tests)
     // -------------------------------------------------------------------------
 
-    public function connect(): void {}
+    public function connect(): void
+    {
+    }
 
-    public function disconnect(): void {}
+    public function disconnect(): void
+    {
+    }
 
     public function isConnected(): bool
     {

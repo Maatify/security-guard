@@ -27,8 +27,7 @@ final readonly class SecurityAction
 {
     public function __construct(
         public string $value
-    )
-    {
+    ) {
     }
 
     public static function fromEnum(SecurityActionEnum $enum): self
