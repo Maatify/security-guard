@@ -73,6 +73,15 @@ final class SecurityGuardService
     }
 
     /**
+     * get current config
+     */
+    public function getConfig(): SecurityConfig
+    {
+        return $this->config;
+    }
+
+
+    /**
      * Handle success/failure login attempts:
      *
      *  - Success → reset attempts
