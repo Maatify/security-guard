@@ -12,8 +12,8 @@ class SecurityPlatformTest extends TestCase
 {
     public function testFromEnum(): void
     {
-        $platform = SecurityPlatform::fromEnum(SecurityPlatformEnum::IOS);
-        $this->assertSame('ios', (string)$platform);
+        $platform = SecurityPlatform::fromEnum(SecurityPlatformEnum::MOBILE);
+        $this->assertSame('mobile', (string)$platform);
     }
 
     public function testCustom(): void

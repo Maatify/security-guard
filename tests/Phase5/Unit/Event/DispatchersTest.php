@@ -36,7 +36,7 @@ class DispatchersTest extends TestCase
     {
         $dispatcher = new NullDispatcher();
         $dispatcher->dispatch($this->createEvent());
-        $this->assertTrue(true); // Should not throw
+        $this->expectNotToPerformAssertions();
     }
 
     public function testSyncDispatcher(): void
