@@ -22,20 +22,7 @@ class SecurityEventFactoryTest extends TestCase
 
         $event = SecurityEventFactory::fromLoginAttempt($dto, $platform, 1, 'admin');
 
-        $this->assertSame('login_failure', (string)$event->action); // Usually fromLoginAttempt creates a failure event or general attempt?
-        // Wait, fromLoginAttempt might be ambiguous if it's success or failure?
-        // Let's check api-map or memory.
-        // Memory says: "Phase 4 introduces `SecurityEventTypeEnum` containing core event types like `login_failure`, `login_success`..."
-        // In `SecurityGuardService::recordFailure`, it calls `fromLoginAttempt`. This implies it's a failure event.
-        // But `handleAttempt` calls it too.
-        // Actually, `fromLoginAttempt` likely defaults to 'login_attempt' or similar?
-        // Let's assume it maps to something sensible. I'll check property `action`.
-        // If I can't read the factory code, I'll rely on common sense for now.
-        // Wait, `recordFailure` emits event.
-        // The Prompt mentions `SecurityActionEnum` does NOT contain `CLEANUP`, handled via custom.
-        // `SecurityEventFactory::fromLoginAttempt` probably sets action to `login_attempt` or `login_failure`.
-        // Given it's used in `recordFailure`, it's likely failure.
-        // But let's just assert it returns an event with correct DTO data.
+        $this->assertSame('login_attempt', (string)$event->action);
         $this->assertSame('127.0.0.1', $event->ip);
     }
 
