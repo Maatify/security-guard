@@ -1,0 +1,148 @@
+{
+  "objectives": [
+    "Validate the orchestration engine behaviour for all success and failure flows",
+    "Ensure deterministic blocking & backoff across multiple flows",
+    "Guarantee correctness under concurrency, drift and storage-layer fault conditions",
+    "Verify event ordering and analytics integrity",
+    "Validate strict isolation between identity flows"
+  ],
+  "test_groups": [
+    {
+      "name": "Login Attempt Flow",
+      "target_classes": ["SecurityGuardService"],
+      "scenarios": [
+        {
+          "title": "Fail then success resets counter",
+          "inputs": "fail, fail, success, fail",
+          "expected": "counter resets to 1"
+        },
+        {
+          "title": "Threshold triggers auto-block",
+          "inputs": "fail × maxFailures",
+          "expected": "auto-block active"
+        }
+      ]
+    },
+    {
+      "name": "Policy Switching",
+      "target_classes": ["SecurityGuardService"],
+      "scenarios": [
+        {
+          "title": "Switch admin to customer policy",
+          "inputs": "setConfig(admin), setConfig(customer)",
+          "expected": "use customer thresholds immediately"
+        }
+      ]
+    },
+    {
+      "name": "Multi-Flow Handling",
+      "target_classes": ["SecurityGuardService"],
+      "scenarios": [
+        {
+          "title": "Independent counters",
+          "inputs": "A fails, B fails",
+          "expected": "A and B count isolated"
+        }
+      ]
+    },
+    {
+      "name": "Manual Blocking",
+      "target_classes": ["SecurityGuardService"],
+      "scenarios": [
+        {
+          "title": "Manual block overrides counters",
+          "inputs": "block, attempt",
+          "expected": "always blocked"
+        }
+      ]
+    },
+    {
+      "name": "Event Dispatching",
+      "target_classes": ["SecurityGuardService"],
+      "scenarios": [
+        {
+          "title": "Attempt then block then cleanup",
+          "inputs": "fail×threshold, cleanup",
+          "expected": "events ordered correctly"
+        }
+      ]
+    },
+    {
+      "name": "Backoff",
+      "target_classes": ["SecurityConfig", "SecurityGuardService"],
+      "scenarios": [
+        {
+          "title": "Backoff escalates",
+          "inputs": "fail beyond threshold",
+          "expected": "blockSeconds increases"
+        }
+      ]
+    },
+    {
+      "name": "Race Conditions",
+      "target_classes": ["SecurityGuardService"],
+      "scenarios": [
+        {
+          "title": "Parallel attempts",
+          "inputs": "two handleAttempt() at same timestamp",
+          "expected": "stable increments and no collisions"
+        }
+      ]
+    },
+    {
+      "name": "Fault Injection",
+      "target_classes": ["SecurityGuardService"],
+      "scenarios": [
+        {
+          "title": "Storage returns null",
+          "inputs": "force null counter",
+          "expected": "engine remains deterministic"
+        }
+      ]
+    },
+    {
+      "name": "Distributed Attacks",
+      "target_classes": ["SecurityGuardService"],
+      "scenarios": [
+        {
+          "title": "50 IPs same subject",
+          "inputs": "distributed failure storm",
+          "expected": "subject-level block"
+        }
+      ]
+    },
+    {
+      "name": "Identity Mutation",
+      "target_classes": ["DefaultIdentifierStrategy"],
+      "scenarios": [
+        {
+          "title": "Username mutation",
+          "inputs": "\"john\" → \"john1\" → \"john_\"",
+          "expected": "different hashed IDs"
+        }
+      ]
+    },
+    {
+      "name": "Event Ordering Deep",
+      "target_classes": ["SecurityGuardService"],
+      "scenarios": [
+        {
+          "title": "Long sequence ordering",
+          "inputs": "10k events",
+          "expected": "ordering preserved"
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "target_classes": ["SecurityGuardService"],
+      "scenarios": [
+        {
+          "title": "High-volume stats validation",
+          "inputs": "10k attempts across many subjects",
+          "expected": "correct aggregated stats"
+        }
+      ]
+    }
+  ]
+}
