@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Maatify\SecurityGuard\Tests\Phase5\Service;
 
 use Maatify\SecurityGuard\Config\SecurityConfig;
+use Maatify\SecurityGuard\Config\SecurityConfigDTO;
+use Maatify\SecurityGuard\Config\Enum\IdentifierModeEnum;
 use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
 use Maatify\SecurityGuard\Service\SecurityGuardService;
 use Maatify\SecurityGuard\Tests\Fake\FakeAdapter;
@@ -21,13 +23,24 @@ class MultiFlowTest extends TestCase
             new FakeAdapter(),
             new FakeIdentifierStrategy()
         );
-        $this->service->setConfig(new SecurityConfig(3, 60));
+        $dto = new SecurityConfigDTO(
+            windowSeconds: 60,
+            blockSeconds: 60,
+            maxFailures: 3,
+            identifierMode: IdentifierModeEnum::IP_AND_SUBJECT,
+            keyPrefix: 'test',
+            backoffEnabled: false,
+            initialBackoffSeconds: 0,
+            backoffMultiplier: 1.0,
+            maxBackoffSeconds: 0
+        );
+        $this->service->setConfig(new SecurityConfig($dto));
     }
 
     public function testIndependentCounters(): void
     {
-        $dtoA = new LoginAttemptDTO('1.1.1.1', 'userA', time(), []);
-        $dtoB = new LoginAttemptDTO('2.2.2.2', 'userB', time(), []);
+        $dtoA = new LoginAttemptDTO('1.1.1.1', 'userA', time(), 60, null, []);
+        $dtoB = new LoginAttemptDTO('2.2.2.2', 'userB', time(), 60, null, []);
 
         // Fail A (1/3)
         $this->service->handleAttempt($dtoA, false);
@@ -39,8 +52,7 @@ class MultiFlowTest extends TestCase
         $countA = $this->service->handleAttempt($dtoA, false);
         $this->assertSame(2, $countA);
 
-        // B should still be at 1 (but we can't query count directly easily without handleAttempt or inspecting internal storage)
-        // But let's fail B again
+        // B should still be at 1
         $countB = $this->service->handleAttempt($dtoB, false);
         $this->assertSame(2, $countB);
 
@@ -55,8 +67,8 @@ class MultiFlowTest extends TestCase
     public function testSameIpDifferentSubjects(): void
     {
         $ip = '10.0.0.1';
-        $dtoA = new LoginAttemptDTO($ip, 'user1', time(), []);
-        $dtoB = new LoginAttemptDTO($ip, 'user2', time(), []);
+        $dtoA = new LoginAttemptDTO($ip, 'user1', time(), 60, null, []);
+        $dtoB = new LoginAttemptDTO($ip, 'user2', time(), 60, null, []);
 
         // Fail user1 3 times -> block
         $this->service->handleAttempt($dtoA, false);
@@ -65,15 +77,15 @@ class MultiFlowTest extends TestCase
 
         $this->assertTrue($this->service->isBlocked($ip, 'user1'));
 
-        // user2 should be fine (IdentifierStrategy uses ip:subject by default)
+        // user2 should be fine
         $this->assertFalse($this->service->isBlocked($ip, 'user2'));
     }
 
     public function testSameSubjectDifferentIps(): void
     {
         $sub = 'target';
-        $dtoA = new LoginAttemptDTO('1.1.1.1', $sub, time(), []);
-        $dtoB = new LoginAttemptDTO('2.2.2.2', $sub, time(), []);
+        $dtoA = new LoginAttemptDTO('1.1.1.1', $sub, time(), 60, null, []);
+        $dtoB = new LoginAttemptDTO('2.2.2.2', $sub, time(), 60, null, []);
 
         // Fail IP 1 3 times
         $this->service->handleAttempt($dtoA, false);

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Maatify\SecurityGuard\Tests\Phase5\Service;
 
+use Maatify\SecurityGuard\Config\SecurityConfig;
+use Maatify\SecurityGuard\Config\SecurityConfigDTO;
+use Maatify\SecurityGuard\Config\Enum\IdentifierModeEnum;
 use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
 use Maatify\SecurityGuard\DTO\SecurityEventDTO;
 use Maatify\SecurityGuard\Event\Dispatcher\SyncDispatcher;
@@ -25,6 +28,19 @@ class EventDispatchingTest extends TestCase
         );
         $this->dispatcher = new SyncDispatcher();
         $this->service->setEventDispatcher($this->dispatcher);
+
+        $dto = new SecurityConfigDTO(
+            windowSeconds: 60,
+            blockSeconds: 60,
+            maxFailures: 3,
+            identifierMode: IdentifierModeEnum::IP_AND_SUBJECT,
+            keyPrefix: 'event_test',
+            backoffEnabled: false,
+            initialBackoffSeconds: 0,
+            backoffMultiplier: 1.0,
+            maxBackoffSeconds: 0
+        );
+        $this->service->setConfig(new SecurityConfig($dto));
     }
 
     public function testAttemptThenBlockThenCleanup(): void
@@ -34,22 +50,16 @@ class EventDispatchingTest extends TestCase
             $events[] = (string)$e->action;
         });
 
-        $dto = new LoginAttemptDTO('127.0.0.1', 'evt', time(), []);
+        $dto = new LoginAttemptDTO('127.0.0.1', 'evt', time(), 300, null, []);
 
         // 1. Fail (emits login_failure/attempt)
-        $this->service->handleAttempt($dto, false); // Default config: 5 fails to block
+        $this->service->handleAttempt($dto, false);
 
         // 2. Cleanup (emits cleanup)
         $this->service->cleanup();
 
         $this->assertCount(2, $events);
-        // Assuming factory emits 'login_failure' or similar for attempt
-        // We check existence
         $this->assertContains('cleanup', $events);
-
-        // We can check order: attempt first, cleanup second
-        // But since 'login_failure' name is not 100% confirmed from source (I assumed it),
-        // I will trust 'cleanup' is last.
         $this->assertSame('cleanup', end($events));
     }
 }

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Maatify\SecurityGuard\Tests\Phase5\Service;
 
 use Maatify\SecurityGuard\Config\SecurityConfig;
+use Maatify\SecurityGuard\Config\SecurityConfigDTO;
+use Maatify\SecurityGuard\Config\Enum\IdentifierModeEnum;
 use Maatify\SecurityGuard\DTO\SecurityBlockDTO;
 use Maatify\SecurityGuard\Enums\BlockTypeEnum;
 use Maatify\SecurityGuard\Service\SecurityGuardService;
@@ -22,6 +24,18 @@ class BlockingBehaviourTest extends TestCase
             new FakeAdapter(),
             new FakeIdentifierStrategy()
         );
+        $dto = new SecurityConfigDTO(
+            windowSeconds: 60,
+            blockSeconds: 60,
+            maxFailures: 3,
+            identifierMode: IdentifierModeEnum::IP_AND_SUBJECT,
+            keyPrefix: 'block_test',
+            backoffEnabled: false,
+            initialBackoffSeconds: 0,
+            backoffMultiplier: 1.0,
+            maxBackoffSeconds: 0
+        );
+        $this->service->setConfig(new SecurityConfig($dto));
     }
 
     public function testManualBlockingOverridesCounters(): void
@@ -40,20 +54,10 @@ class BlockingBehaviourTest extends TestCase
 
         $this->assertTrue($this->service->isBlocked($ip, $sub));
 
-        // Even if we record success, it should remain blocked?
-        // Note: handleAttempt checks isBlocked first.
-        // If blocked, it returns remaining seconds.
-        // It does NOT process success/failure if blocked.
-        // (See SecurityGuardService::handleAttempt logic in my thought trace or implementation:
-        //  1) Already blocked? return remaining.
-        //  2) Success? reset.
-        // )
-        // So manual block prevents login.
-
-        $dto = new \Maatify\SecurityGuard\DTO\LoginAttemptDTO($ip, $sub, time(), []);
+        $dto = new \Maatify\SecurityGuard\DTO\LoginAttemptDTO($ip, $sub, time(), 300, null, []);
 
         // Attempt (should be blocked)
-        $result = $this->service->handleAttempt($dto, true); // Even if "success" passed, logic blocks it first
+        $result = $this->service->handleAttempt($dto, true);
         $this->assertNotNull($result); // Returns remaining seconds
         $this->assertGreaterThan(0, $result);
     }
@@ -80,10 +84,21 @@ class BlockingBehaviourTest extends TestCase
 
     public function testPolicySwitching(): void
     {
-        $dto = new \Maatify\SecurityGuard\DTO\LoginAttemptDTO('1.1.1.1', 'policy', time(), []);
+        $dto = new \Maatify\SecurityGuard\DTO\LoginAttemptDTO('1.1.1.1', 'policy', time(), 100, null, []);
 
         // 1. Strict Policy (1 failure = block)
-        $this->service->setConfig(new SecurityConfig(1, 100));
+        $strict = new SecurityConfigDTO(
+            windowSeconds: 60,
+            blockSeconds: 100,
+            maxFailures: 1,
+            identifierMode: IdentifierModeEnum::IP_AND_SUBJECT,
+            keyPrefix: 'strict',
+            backoffEnabled: false,
+            initialBackoffSeconds: 0,
+            backoffMultiplier: 1.0,
+            maxBackoffSeconds: 0
+        );
+        $this->service->setConfig(new SecurityConfig($strict));
 
         $this->service->handleAttempt($dto, false);
         $this->assertTrue($this->service->isBlocked('1.1.1.1', 'policy'));
@@ -92,7 +107,18 @@ class BlockingBehaviourTest extends TestCase
         $this->service->resetAttempts('1.1.1.1', 'policy');
 
         // 2. Loose Policy (5 failures = block)
-        $this->service->setConfig(new SecurityConfig(5, 100));
+        $loose = new SecurityConfigDTO(
+            windowSeconds: 60,
+            blockSeconds: 100,
+            maxFailures: 5,
+            identifierMode: IdentifierModeEnum::IP_AND_SUBJECT,
+            keyPrefix: 'loose',
+            backoffEnabled: false,
+            initialBackoffSeconds: 0,
+            backoffMultiplier: 1.0,
+            maxBackoffSeconds: 0
+        );
+        $this->service->setConfig(new SecurityConfig($loose));
 
         $this->service->handleAttempt($dto, false);
         $this->assertFalse($this->service->isBlocked('1.1.1.1', 'policy')); // 1/5

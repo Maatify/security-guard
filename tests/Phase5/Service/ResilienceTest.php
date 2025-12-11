@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Maatify\SecurityGuard\Tests\Phase5\Service;
 
+use Maatify\SecurityGuard\Config\SecurityConfig;
+use Maatify\SecurityGuard\Config\SecurityConfigDTO;
+use Maatify\SecurityGuard\Config\Enum\IdentifierModeEnum;
 use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
 use Maatify\SecurityGuard\Service\SecurityGuardService;
 use Maatify\SecurityGuard\Tests\Fake\FakeAdapter;
@@ -20,17 +23,23 @@ class ResilienceTest extends TestCase
             new FakeAdapter(),
             new FakeIdentifierStrategy()
         );
+        $dto = new SecurityConfigDTO(
+            windowSeconds: 60,
+            blockSeconds: 60,
+            maxFailures: 3,
+            identifierMode: IdentifierModeEnum::IP_AND_SUBJECT,
+            keyPrefix: 'resilience_test',
+            backoffEnabled: false,
+            initialBackoffSeconds: 0,
+            backoffMultiplier: 1.0,
+            maxBackoffSeconds: 0
+        );
+        $this->service->setConfig(new SecurityConfig($dto));
     }
 
     public function testSimulatedRaceConditionHandlesIncrementsCorrectly(): void
     {
-        // Since we can't easily spawn threads in PHPUnit without extensions,
-        // we simulate "interleaved" calls by calling handleAttempt in sequence
-        // but verify consistency.
-
-        // This is a "logical" check that if multiple attempts happen, state is preserved.
-
-        $dto = new LoginAttemptDTO('1.2.3.4', 'race', time(), []);
+        $dto = new LoginAttemptDTO('1.2.3.4', 'race', time(), 60, null, []);
 
         $c1 = $this->service->handleAttempt($dto, false);
         $c2 = $this->service->handleAttempt($dto, false);

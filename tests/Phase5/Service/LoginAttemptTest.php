@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Maatify\SecurityGuard\Tests\Phase5\Service;
 
 use Maatify\SecurityGuard\Config\SecurityConfig;
+use Maatify\SecurityGuard\Config\SecurityConfigDTO;
+use Maatify\SecurityGuard\Config\Enum\IdentifierModeEnum;
 use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
 use Maatify\SecurityGuard\Service\SecurityGuardService;
 use Maatify\SecurityGuard\Tests\Fake\FakeAdapter;
@@ -25,12 +27,23 @@ class LoginAttemptTest extends TestCase
         );
 
         // Config: 3 failures allowed, block for 60s
-        $this->service->setConfig(new SecurityConfig(3, 60));
+        $dto = new SecurityConfigDTO(
+            windowSeconds: 60,
+            blockSeconds: 60,
+            maxFailures: 3,
+            identifierMode: IdentifierModeEnum::IP_AND_SUBJECT,
+            keyPrefix: 'test',
+            backoffEnabled: false,
+            initialBackoffSeconds: 0,
+            backoffMultiplier: 1.0,
+            maxBackoffSeconds: 0
+        );
+        $this->service->setConfig(new SecurityConfig($dto));
     }
 
     public function testFailThenSuccessResetsCounter(): void
     {
-        $dto = new LoginAttemptDTO('1.1.1.1', 'userA', time(), []);
+        $dto = new LoginAttemptDTO('1.1.1.1', 'userA', time(), 60, null, []);
 
         // 1. Fail (Count: 1)
         $count = $this->service->handleAttempt($dto, false);
@@ -51,7 +64,7 @@ class LoginAttemptTest extends TestCase
 
     public function testThresholdTriggersAutoBlock(): void
     {
-        $dto = new LoginAttemptDTO('1.1.1.1', 'userB', time(), []);
+        $dto = new LoginAttemptDTO('1.1.1.1', 'userB', time(), 60, null, []);
 
         // Config max failures is 3
 

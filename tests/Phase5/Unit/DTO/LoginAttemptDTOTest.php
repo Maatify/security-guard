@@ -17,6 +17,8 @@ class LoginAttemptDTOTest extends TestCase
             ip: '192.168.1.1',
             subject: 'user123',
             occurredAt: 1234567890,
+            resetAfter: 300,
+            userAgent: 'test-agent',
             context: ['browser' => 'chrome']
         );
 
@@ -24,7 +26,9 @@ class LoginAttemptDTOTest extends TestCase
 
         $this->assertSame('192.168.1.1', $json['ip']);
         $this->assertSame('user123', $json['subject']);
-        $this->assertSame(1234567890, $json['occurredAt']);
+        $this->assertSame(1234567890, $json['occurred_at']);
+        $this->assertSame(300, $json['reset_after']);
+        $this->assertSame('test-agent', $json['user_agent']);
         $this->assertSame(['browser' => 'chrome'], $json['context']);
     }
 
@@ -33,17 +37,19 @@ class LoginAttemptDTOTest extends TestCase
         $dto = LoginAttemptDTO::now(
             ip: '10.0.0.1',
             subject: 'admin',
+            resetAfter: 60,
             context: ['foo' => 'bar']
         );
 
         $this->assertGreaterThanOrEqual(time() - 1, $dto->occurredAt);
         $this->assertLessThanOrEqual(time() + 1, $dto->occurredAt);
         $this->assertSame('10.0.0.1', $dto->ip);
+        $this->assertSame(60, $dto->resetAfter);
     }
 
     public function testToEvent(): void
     {
-        $dto = new LoginAttemptDTO('127.0.0.1', 'test', time(), []);
+        $dto = new LoginAttemptDTO('127.0.0.1', 'test', time(), 300, null, []);
         $platform = SecurityPlatform::fromEnum(SecurityPlatformEnum::WEB);
 
         $event = $dto->toEvent($platform, 100, 'admin');
