@@ -1,200 +1,224 @@
-# 📘 Maatify Security Guard – Usage Examples
+# 📘 **Maatify Security Guard – Usage Examples (High-Level Overview)**
 
 [![Maatify Security Guard](https://img.shields.io/badge/Maatify-Security--Guard-blue?style=for-the-badge)](https://github.com/Maatify/security-guard)
 [![Maatify Ecosystem](https://img.shields.io/badge/Maatify-Ecosystem-9C27B0?style=for-the-badge)](https://github.com/Maatify)
 
 ---
 
-> 📌 **Note**  
-> This document demonstrates **high-level usage** of the Security Guard engine  
-> (Phase 4+).  
+> 📌 **Note (Important)**
+> This file provides **high-level usage examples** of the Security Guard engine
+> and is intended as an *overview* for developers.
 >
-> If you are looking for **Phase 3 driver-level examples**, see:
+> * For **detailed Phase 5 examples (Native + Slim + Laravel)** see:
+    >   **[`examples/phase5/README.md`](phase5/README.md)**
 >
-> - Beginner examples (Redis only):  
->   **[`examples/phase3/phase3_simple_examples.md`](phase3/phase3_simple_examples.md)**
->
-> - Full multi-driver usage (PHP + Slim + Laravel):  
->   **[`examples/phase3/phase3_driver_usage.md`](phase3/phase3_driver_usage.md)**
->
-> - Driver behavior specification (maintainer-level):  
->   **[`examples/phase3/phase3_driver_behavior.md`](phase3/phase3_driver_behavior.md)**
+> * For **Phase 3 driver-level examples**, see:
+    >
+    >   * [`examples/phase3/phase3_simple_examples.md`](phase3/phase3_simple_examples.md)
+>   * [`examples/phase3/phase3_driver_usage.md`](phase3/phase3_driver_usage.md)
+>   * [`examples/phase3/phase3_driver_behavior.md`](phase3/phase3_driver_behavior.md)
 
 ---
 
-### 📂 **Looking for full detailed examples?**
+# 🎯 **What This File Covers**
 
-➡️ See the complete Phase 4 examples directory:  
-**[`examples/phase4/README.md`](phase4/README.md)**
+This overview demonstrates:
+
+* How to instantiate the Security Guard engine
+* Real vs Fake adapters
+* Basic attempt handling
+* Resetting counters
+* Automatic blocking
+* Light-weight simulation patterns
+* Environment-based configuration
+
+It does **NOT** include orchestration rules or advanced Phase 5 examples
+(those belong in the Phase 5 example suite).
 
 ---
 
-This document provides **real-world usage examples** for
-`maatify/security-guard` using both:
-
-* ✅ Real Adapters (`maatify/data-adapters`)
-* ✅ Fake Adapters (`maatify/data-fakes`)
-
----
-
-## 1️⃣ Native PHP – Real Security Guard (Redis)
+# 1️⃣ **Native PHP – Real Security Guard (Redis)**
 
 ```php
-use Maatify\SecurityGuard\Resolver\SecurityGuardResolver;
-use Maatify\SecurityGuard\Enums\SecurityActionEnum;
+use Maatify\DataAdapters\Core\EnvironmentConfig;
+use Maatify\DataAdapters\Core\DatabaseResolver;
 
-$config = [
-    'driver' => 'redis'
-];
+use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
+use Maatify\SecurityGuard\Service\SecurityGuardService;
 
-$resolver = new SecurityGuardResolver($config);
-$guard = $resolver->resolve(); // Real adapter
+require __DIR__ . '/../vendor/autoload.php';
 
-$ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+// Load adapters (from maatify/data-adapters)
+$config   = new EnvironmentConfig(__DIR__ . '/../');
+$resolver = new DatabaseResolver($config);
 
-$status = $guard->handleAttempt($ip, SecurityActionEnum::LOGIN);
+// Resolve redis.security profile
+$adapter = $resolver->resolve('redis.security', autoConnect: true);
 
-if ($status->isBlocked) {
-    echo "⛔ Blocked until: {$status->blockedUntil}";
-} else {
-    echo "✅ Allowed. Remaining attempts: {$status->remaining}";
-}
+// Build the guard (Phase 5)
+$strategy = new \Maatify\SecurityGuard\Identifier\DefaultIdentifierStrategy(
+    new \Maatify\SecurityGuard\Config\SecurityConfig(
+        new \Maatify\SecurityGuard\Config\SecurityConfigDTO(
+            windowSeconds        : 60,
+            blockSeconds         : 300,
+            maxFailures          : 5,
+            identifierMode       : \Maatify\SecurityGuard\Config\Enum\IdentifierModeEnum::IDENTIFIER_AND_IP,
+            keyPrefix            : 'sg:',
+            backoffEnabled       : true,
+            initialBackoffSeconds: 300,
+            backoffMultiplier    : 2.0,
+            maxBackoffSeconds    : 3600,
+        )
+    )
+);
+
+$guard = new SecurityGuardService($adapter, $strategy);
+
+// Example usage
+$dto = LoginAttemptDTO::now(
+    ip        : '127.0.0.1',
+    subject   : 'login',
+    resetAfter: 60
+);
+
+$result = $guard->handleAttempt($dto, false);
+
+echo "Failure count: {$result}\n";
 ```
 
 ---
 
-## 2️⃣ Native PHP – Fake Security Guard (Testing / CI)
+# 2️⃣ **Native PHP – Fake Adapter (Testing / CI)**
 
 ```php
-use Maatify\SecurityGuard\Resolver\SecurityGuardResolver;
+use Maatify\DataFakes\Resolver\FakeAdapterResolver;
+use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
+use Maatify\SecurityGuard\Service\SecurityGuardService;
 
-$config = [
-    'driver' => 'fake'
-];
+$fakeAdapter = (new FakeAdapterResolver())->resolve('redis');
 
-$resolver = new SecurityGuardResolver($config);
-$guard = $resolver->resolve(); // Fake adapter via data-fakes
+$strategy = /* build same as real example */;
+$guard    = new SecurityGuardService($fakeAdapter, $strategy);
 
-$status = $guard->handleAttempt('ip-test-1', 'login');
+$dto = LoginAttemptDTO::now(
+    ip        : 'ip-test-1',
+    subject   : 'login',
+    resetAfter: 60
+);
 
-assert($status->remaining === 4);
+$count = $guard->handleAttempt($dto, false);
+
+assert($count === 1);
 ```
 
-✅ Used in:
+### ✔ Recommended for:
 
-* Unit Testing
-* Simulation
-* CI
+* Unit tests
+* CI pipelines
+* Simulation environments
 
 ---
 
-## 3️⃣ Auto Block After Threshold
+# 3️⃣ **Auto Block Example (High-Level)**
 
 ```php
+$dto = LoginAttemptDTO::now(
+    ip        : '192.168.1.50',
+    subject   : 'login',
+    resetAfter: 60
+);
+
 for ($i = 1; $i <= 6; $i++) {
-    $status = $guard->handleAttempt('192.168.0.1', 'login');
-    echo "Attempt $i → Remaining: {$status->remaining}\n";
-}
-```
+    $result = $guard->handleAttempt($dto, false);
 
-✅ After threshold:
+    if ($guard->isBlocked($dto->ip, $dto->subject)) {
+        $remaining = $guard->getRemainingBlockSeconds($dto->ip, $dto->subject);
+        echo "⛔ Auto-blocked → {$remaining} seconds remaining\n";
+        break;
+    }
 
-```
-Attempt 5 → Remaining: 0
-Attempt 6 → BLOCKED
-```
-
----
-
-## 4️⃣ Reset on Success
-
-```php
-$guard->reset('192.168.0.1', 'login');
-```
-
-✅ Clears:
-
-* Fail counter
-* Block status
-* TTL entries
-
----
-
-## 5️⃣ Rate Limiter Bridge Integration
-
-```php
-use Maatify\SecurityGuard\Bridge\RateLimiterBridge;
-use Maatify\RateLimiter\Resolver\RateLimiterResolver;
-
-$limiter = (new RateLimiterResolver(['driver' => 'redis']))->resolve();
-
-$bridge = new RateLimiterBridge($limiter);
-$bridge->onSecurityBlock($ip, 'login');
-```
-
-✅ No DB coupling
-✅ Event-based only
-
----
-
-## 6️⃣ Audit Logging (Mongo via Adapter)
-
-```php
-use Maatify\SecurityGuard\Audit\AuditHistoryService;
-
-$audit = new AuditHistoryService();
-$events = $audit->getByIp('192.168.0.1');
-
-foreach ($events as $event) {
-    echo $event->action . " @ " . $event->createdAt;
+    echo "Failed attempt {$i} → failure count: {$result}\n";
 }
 ```
 
 ---
 
-## 7️⃣ Fake Attack Simulation
+# 4️⃣ **Reset on Success**
 
 ```php
-for ($i = 1; $i <= 20; $i++) {
-    $guard->handleAttempt('bot-ip', 'login');
+$dto = LoginAttemptDTO::now(
+    ip        : '192.168.1.10',
+    subject   : 'login',
+    resetAfter: 60
+);
+
+$guard->handleAttempt($dto, false); // 1
+$guard->handleAttempt($dto, false); // 2
+
+// success → reset
+$guard->handleAttempt($dto, true);
+
+$guard->handleAttempt($dto, false); // failure count goes back to 1
+```
+
+---
+
+# 5️⃣ **Simple Attack Simulation (Conceptual)**
+
+```php
+for ($i = 1; $i <= 10; $i++) {
+    $dto = LoginAttemptDTO::now(ip: 'bot-ip', subject: 'login', resetAfter: 60);
+    $guard->handleAttempt($dto, false);
 }
 ```
 
-✅ Used in:
+Used for:
 
-* Phase 16 (Attack Simulation)
-* Phase 17 (Stress)
+* diagnosing thresholds
+* validating adaptive block durations
+* basic brute-force testing
 
 ---
 
-## 8️⃣ Environment Configuration
+# 6️⃣ **Environment Configuration (Phase 5 Compatible)**
 
-```env
-SECURITY_MAX_ATTEMPTS=5
-SECURITY_BLOCK_TTL=300
-SECURITY_AUDIT_DRIVER=mongo
-SECURITY_NOTIFY_TELEGRAM=true
+```
+SG_WINDOW_SECONDS=60
+SG_BLOCK_SECONDS=300
+SG_MAX_FAILURES=5
+SG_IDENTIFIER_MODE=identifier_and_ip
+SG_KEY_PREFIX=sg
+SG_BACKOFF_ENABLED=true
+SG_BACKOFF_INITIAL=300
+SG_BACKOFF_MULTIPLIER=2.0
+SG_BACKOFF_MAX=3600
+```
+
+Load with:
+
+```php
+$config = \Maatify\SecurityGuard\Config\SecurityConfigLoader::fromEnv();
+$guard->setConfig($config);
 ```
 
 ---
 
-## 9️⃣ Real vs. Fake Summary
+# 7️⃣ **Real vs Fake – Quick Summary**
 
-| Mode | Uses                    | Library                 |
-|------|-------------------------|-------------------------|
-| Real | Production              | `maatify/data-adapters` |
-| Fake | Tests / CI / Simulation | `maatify/data-fakes`    |
+| Mode     | Purpose                 | Library                 |
+|----------|-------------------------|-------------------------|
+| **Real** | Production              | `maatify/data-adapters` |
+| **Fake** | Tests / CI / Simulation | `maatify/data-fakes`    |
 
 ---
 
-## ✅ Related Documentation
+# 📚 **Related Documentation**
 
-* Main README → `README.md`
-* Security Policy → `SECURITY.md`
-* Changelog → `CHANGELOG.md`
-* Contributing → `CONTRIBUTING.md`
-* **Phase 4 Examples → [`examples/phase4/README.md`](phase4/README.md)**
-* **Phase 3 Driver Examples → [`examples/phase3/phase3_simple_examples.md`](phase3/phase3_simple_examples.md)**
+* Main README → [`README.md`](../README.md)
+* Phase 5 Examples → [`phase5/README.md`](phase5/README.md)
+* Phase 3 Driver Examples → [`phase3/phase3_simple_examples.md`](phase3/phase3_simple_examples.md)
+* Changelog → [`CHANGELOG.md`](../CHANGELOG.md)
+* Security Policy → [`SECURITY.md`](../SECURITY.md)
 
 ---
 
