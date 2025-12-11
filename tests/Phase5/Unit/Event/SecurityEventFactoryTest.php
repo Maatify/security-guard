@@ -17,7 +17,7 @@ class SecurityEventFactoryTest extends TestCase
 {
     public function testFromLoginAttempt(): void
     {
-        $dto = new LoginAttemptDTO('127.0.0.1', 'user', time(), []);
+        $dto = new LoginAttemptDTO('127.0.0.1', 'user', time(), 60, null, []);
         $platform = SecurityPlatform::fromEnum(SecurityPlatformEnum::WEB);
 
         $event = SecurityEventFactory::fromLoginAttempt($dto, $platform, 1, 'admin');

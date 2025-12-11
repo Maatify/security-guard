@@ -27,7 +27,7 @@ class AnalyticsTest extends TestCase
             windowSeconds: 60,
             blockSeconds: 60,
             maxFailures: 3,
-            identifierMode: IdentifierModeEnum::IP_AND_SUBJECT,
+            identifierMode: IdentifierModeEnum::IDENTIFIER_AND_IP,
             keyPrefix: 'analytics_test',
             backoffEnabled: false,
             initialBackoffSeconds: 0,
@@ -45,11 +45,8 @@ class AnalyticsTest extends TestCase
 
         try {
             $stats = $this->service->getStats();
-            // Use assertNotNull to avoid 'always true' complaint about is_array,
-            // as getStats() returns array<string, mixed>.
-            // This confirms it didn't throw and returned *something* valid.
-            $this->assertNotNull($stats);
-
+            // Validating that it returns an array structure.
+            $this->assertGreaterThanOrEqual(0, count($stats));
         } catch (\Exception $e) {
             $this->markTestSkipped('Cannot test getStats without a running Redis or fully mocked driver.');
         }

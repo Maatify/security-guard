@@ -27,7 +27,7 @@ class ResilienceTest extends TestCase
             windowSeconds: 60,
             blockSeconds: 60,
             maxFailures: 3,
-            identifierMode: IdentifierModeEnum::IP_AND_SUBJECT,
+            identifierMode: IdentifierModeEnum::IDENTIFIER_AND_IP,
             keyPrefix: 'resilience_test',
             backoffEnabled: false,
             initialBackoffSeconds: 0,

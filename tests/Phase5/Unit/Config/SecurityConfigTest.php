@@ -17,7 +17,7 @@ class SecurityConfigTest extends TestCase
             windowSeconds: 60,
             blockSeconds: 300,
             maxFailures: 5,
-            identifierMode: IdentifierModeEnum::IP_AND_SUBJECT,
+            identifierMode: IdentifierModeEnum::IDENTIFIER_AND_IP,
             keyPrefix: 'sec_guard',
             backoffEnabled: false,
             initialBackoffSeconds: 0,
