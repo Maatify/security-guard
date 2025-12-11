@@ -1,22 +1,22 @@
 # Maatify Security Guard
 
-**PSR-compliant adaptive security engine for brute-force protection, abuse detection, security event tracking, and real-time blocking — powered by unified multi-driver architecture (MySQL, Redis, MongoDB).**
+**PSR-compliant adaptive security engine for brute-force protection, abuse detection, security event tracking, high-level login-flow logic, and real-time blocking — powered by unified multi-driver architecture (MySQL, Redis, MongoDB).**
 
 ![Maatify.dev](https://www.maatify.dev/assets/img/img/maatify_logo_white.svg)
 
 ---
 
-[![Version](https://img.shields.io/packagist/v/maatify/security-guard?label=Version&color=4C1)](https://packagist.org/packages/maatify/security-guard)
-[![PHP](https://img.shields.io/packagist/php-v/maatify/security-guard?label=PHP&color=777BB3)](https://packagist.org/packages/maatify/security-guard)
+[![Version](https://img.shields.io/packagist/v/maatify/security-guard?label=Version\&color=4C1)](https://packagist.org/packages/maatify/security-guard)
+[![PHP](https://img.shields.io/packagist/php-v/maatify/security-guard?label=PHP\&color=777BB3)](https://packagist.org/packages/maatify/security-guard)
 ![PHP Version](https://img.shields.io/badge/php-%3E%3D8.4-blue)
 
-[![Build](https://github.com/Maatify/security-guard/actions/workflows/ci.yml/badge.svg?label=Build&color=brightgreen)](https://github.com/Maatify/security-guard/actions/workflows/ci.yml)
+[![Build](https://github.com/Maatify/security-guard/actions/workflows/ci.yml/badge.svg?label=Build\&color=brightgreen)](https://github.com/Maatify/security-guard/actions/workflows/ci.yml)
 
-![Monthly Downloads](https://img.shields.io/packagist/dm/maatify/security-guard?label=Monthly%20Downloads&color=00A8E8)
-![Total Downloads](https://img.shields.io/packagist/dt/maatify/security-guard?label=Total%20Downloads&color=2AA9E0)
+![Monthly Downloads](https://img.shields.io/packagist/dm/maatify/security-guard?label=Monthly%20Downloads\&color=00A8E8)
+![Total Downloads](https://img.shields.io/packagist/dt/maatify/security-guard?label=Total%20Downloads\&color=2AA9E0)
 
-![Stars](https://img.shields.io/github/stars/Maatify/security-guard?label=Stars&color=FFD43B)
-[![License](https://img.shields.io/github/license/Maatify/security-guard?label=License&color=blueviolet)](LICENSE)
+![Stars](https://img.shields.io/github/stars/Maatify/security-guard?label=Stars\&color=FFD43B)
+[![License](https://img.shields.io/github/license/Maatify/security-guard?label=License\&color=blueviolet)](LICENSE)
 ![Status](https://img.shields.io/badge/Status-Stable-success)
 ![PHPStan](https://img.shields.io/badge/PHPStan-Level%20Max-4E8CAE)
 ![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Maatify/security-guard/badges/coverage.json)
@@ -30,43 +30,43 @@
 
 **Maatify Security Guard** is a fully decoupled, high-performance, multi-driver security engine for:
 
-- Brute-force attack protection
-- Credential stuffing detection
-- IP reputation & abuse control
-- Distributed attack throttling
-- Audit-grade event tracking (Phase 4)
+* Brute-force attack protection
+* Credential stuffing detection
+* IP reputation & abuse control
+* Distributed attack throttling
+* Audit-grade event tracking (Phase 4)
+* **High-level login-flow decisions + auto-blocking (Phase 5)**
 
 The engine integrates seamlessly with:
 
-- Native PHP
-- Slim Framework
-- Laravel
-- Custom API Gateways
-- Microservices
+* Native PHP
+* Slim Framework
+* Laravel
+* Custom API Gateways
+* Microservices
 
 All storage is abstracted via:
 
-- **maatify/data-adapters** → Real MySQL / Redis / MongoDB
-- **maatify/data-fakes** → Deterministic testing engine
+* **maatify/data-adapters** → Real MySQL / Redis / MongoDB
+* **maatify/data-fakes** → Deterministic testing engine
 
 The library guarantees:
 
-✔ Zero vendor lock  
-✔ Zero direct database clients  
-✔ Perfect testability  
+✔ Zero vendor lock
+✔ Zero direct database clients
+✔ Perfect testability
 ✔ Real–fake execution symmetry
 
 ---
 
-📘 **Full technical documentation:**  
+📘 **Full technical documentation:**
 ➡️ [`docs/README.full.md`](docs/README.full.md)
 
 ---
 
-# 🆕 What’s New (Phase 3 & 4 Completed)
+# 🆕 What’s New (Phase 3, 4 & 5 Completed)
 
 ### **🔥 Phase 3 — Drivers Layer Completed**
-All storage backends are implemented:
 
 - **MySQLSecurityGuard**
 - **RedisSecurityGuard**
@@ -77,17 +77,26 @@ Each driver operates strictly through the unified AdapterInterface.
 ---
 
 ### **🔥 Phase 4 — Unified Event System Completed**
-Introduced:
 
-- `SecurityEventDTO`
-- `SecurityEventFactory`
-- `SecurityAction` (extensible)
-- `SecurityPlatform` (extensible)
-- Built-in dispatchers:
-    - `NullDispatcher`
-    - `SyncDispatcher`
-    - `PsrLoggerDispatcher`
-- Automatic event emission inside `SecurityGuardService`
+* SecurityEventDTO
+* EventFactory
+* Extensible Actions/Platforms
+* Null / Sync / PSR Logger Dispatchers
+* Automatic event emission from service
+
+---
+
+### **🔥 Phase 5 — High-Level Logic & Auto-Blocking Engine**
+
+Security Guard now includes built-in login-flow intelligence:
+
+* `handleAttempt()` API
+* Automatic blocking after threshold
+* Automatic reset on success
+* Remaining block time reporting
+* Runtime `SecurityConfig`
+* Dispatching event metadata for all decisions
+* Ready for future analytics layers
 
 ---
 
@@ -95,7 +104,7 @@ Introduced:
 
 ```bash
 composer require maatify/security-guard
-````
+```
 
 ---
 
@@ -109,21 +118,31 @@ $svc = new SecurityGuardService($adapter, $identifier);
 
 ---
 
-## 2️⃣ Record a failed login attempt
+## 2️⃣ High-Level Login Flow (Phase 5)
 
 ```php
-$dto = LoginAttemptDTO::now(
-    ip: '192.168.1.10',
-    subject: 'user@example.com',
-    userAgent: $_SERVER['HTTP_USER_AGENT'] ?? null,
-);
+$result = $svc->handleAttempt($dto, success: false);
 
+if ($result === null) {
+    echo "Login successful — attempts reset.";
+} elseif (is_int($result)) {
+    echo "Failure count = {$result}";
+} else {
+    echo "User blocked — remaining {$result} seconds.";
+}
+```
+
+---
+
+## 3️⃣ Manual failed login attempt (legacy Phase 4 style)
+
+```php
 $count = $svc->recordFailure($dto);
 ```
 
 ---
 
-## 3️⃣ Attach an Event Dispatcher (Logging / Real-time Alerts)
+## 4️⃣ Attach an Event Dispatcher
 
 ```php
 $svc->setEventDispatcher(
@@ -151,7 +170,7 @@ $svc->block(
 
 ---
 
-## 5️⃣ Emit a custom security event
+## 6️⃣ Emit a custom security event
 
 ```php
 $event = SecurityEventFactory::custom(
@@ -162,7 +181,7 @@ $event = SecurityEventFactory::custom(
     context: ['method' => 'email']
 );
 
-$svc->setEventDispatcher(new NullDispatcher());
+$svc->handleEvent($event);
 ```
 
 ---
@@ -193,6 +212,14 @@ $svc->setEventDispatcher(new NullDispatcher());
 * Pluggable dispatchers
 * Extensible actions & platforms
 
+### ✔ High-Level Logic (Phase 5)
+
+* Auto-blocking
+* Success reset
+* Remaining block time
+* Config-driven thresholds
+* Decision-level event emission
+
 ### ✔ Testing-Ready
 
 * Fake drivers through `maatify/data-fakes`
@@ -205,13 +232,11 @@ $svc->setEventDispatcher(new NullDispatcher());
 ```
 Application
    ↓
-SecurityGuardService
+SecurityGuardService (Phase 5 logic)
    ↓
-SecurityEventFactory → Dispatchers (optional)
+SecurityEventFactory → Dispatchers
    ↓
 SecurityGuard Drivers
-   ↓
-AdapterInterface
    ↓
 maatify/data-adapters | maatify/data-fakes
 ```
@@ -220,10 +245,12 @@ maatify/data-adapters | maatify/data-fakes
 
 # 📄 Documentation
 
-* 📘 **Full Documentation:** `docs/README.full.md`
-* 🔬 **Examples:** `examples/Examples.md`
-* 🧾 **Changelog:** `CHANGELOG.md`
-* 🔐 **Security Policy:** `SECURITY.md`
+* 📘 Full Documentation — `docs/README.full.md`
+* 🔬 Examples — `examples/Examples.md`
+* 🧾 Changelog — `CHANGELOG.md`
+* 🔐 Security Policy — `SECURITY.md`
+
+---
 
 <details>
 <summary><strong>📚 Development Roadmap & Phase Plan</strong></summary>
@@ -233,13 +260,12 @@ maatify/data-adapters | maatify/data-fakes
 - **Phase 2 – Core Architecture & DTOs**
 - **Phase 3 – Driver Implementations (MySQL / Redis / MongoDB)**
 - **Phase 4 – Unified Event System + Dispatchers**
+- **Phase 5 – High-Level Logic & Auto-Blocking Engine**
 
 ### ⏳ Upcoming
-- **Phase 5 – Integration Patterns (Listeners, Pipeline Hooks)**
-- **Phase 6 – Audit System (AuditEventDTO, History Store, TTL Cleanup)**
-- **Phase 7–14 – Monitoring, Webhooks, SIEM, Rate Limiter Bridge**
 
-📌 The roadmap expands automatically as the Maatify ecosystem evolves.
+* Phase 6 – Audit System
+* Phase 7–14 – Monitoring, Webhooks, SIEM
 
 </details>
 
@@ -247,15 +273,15 @@ maatify/data-adapters | maatify/data-fakes
 
 # 📅 Roadmap (Updated)
 
-| Phase | Description                | Status      |
-|-------|----------------------------|-------------|
-| 1     | Environment Setup          | ✅ Completed |
-| 2     | Core Architecture & DTOs   | ✅ Completed |
-| 3     | Driver Implementations     | ✅ Completed |
-| 4     | Event System & Dispatchers | ✅ Completed |
-| 5     | Integration Patterns       | ⏳ Pending   |
-| 6     | Audit System               | ⏳ Pending   |
-| 7–14  | Monitoring, Webhooks, SIEM | ⏳ Pending   |
+| Phase | Description                             | Status      |
+|-------|-----------------------------------------|-------------|
+| 1     | Environment Setup                       | ✅ Completed |
+| 2     | Core Architecture & DTOs                | ✅ Completed |
+| 3     | Driver Implementations                  | ✅ Completed |
+| 4     | Event System & Dispatchers              | ✅ Completed |
+| **5** | High-Level Logic & Auto-Blocking Engine | ✅ Completed |
+| 6     | Audit System                            | ⏳ Pending   |
+| 7–14  | Monitoring, Webhooks, SIEM              | ⏳ Pending   |
 
 ---
 
@@ -265,26 +291,18 @@ maatify/data-adapters | maatify/data-fakes
 composer test
 ```
 
-Runs:
-
-* DTO tests
-* Driver symmetry tests
-* Factory + dispatchers tests
-* Coverage reporting
-
 ---
 
 # 🪪 License
 
 **[MIT License](LICENSE)**
-© [Maatify.dev](https://www.maatify.dev) — Free to use, modify, and distribute with attribution.
+© Maatify.dev
 
 ---
 
 # 👤 Author
 
 Developed by **Mohamed Abdulalim**
-Backend Lead & Technical Architect
 [https://www.maatify.dev](https://www.maatify.dev)
 
 ---

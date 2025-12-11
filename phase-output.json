@@ -373,6 +373,70 @@
           }
         ]
       }
+    },
+    {
+      "phase_id": "phase5",
+      "title": "High-Level Logic & Auto-Blocking Engine",
+      "version": "1.0.4",
+      "status": "completed",
+      "date": "2025-12-12",
+      "summary": "Added the first high-level security logic layer including handleAttempt(), dynamic SecurityConfig usage, getConfig(), AUTO blocking, success-reset logic, remaining-block reporting, and unified high-level event emission.",
+      "changes": {
+        "added": [
+          "src/Config/SecurityConfig.php",
+          "src/Config/SecurityConfigLoader.php",
+          "src/Enums/BlockTypeEnum.php (AUTO case)"
+        ],
+        "updated": [
+          "src/Service/SecurityGuardService.php",
+          "docs/README.full.md",
+          "docs/phases/README.phase5.md",
+          "README.md"
+        ],
+        "removed": []
+      },
+      "tests_result": {
+        "fake": "pending",
+        "real": "pending"
+      },
+      "coverage": "pending",
+      "documentation_files": [
+        "docs/phases/README.phase5.md",
+        "docs/README.full.md",
+        "README.md"
+      ],
+      "commit_metadata": {
+        "type": "feat",
+        "scope": "high-level-logic",
+        "message": "feat: introduce high-level security engine logic with auto-blocking, unified login attempt handling, runtime SecurityConfig, and config accessors",
+        "breaking": false
+      },
+      "git_patch": {
+        "generated": true,
+        "filename": "phase5.patch",
+        "format": "unified"
+      },
+      "reflection": {
+        "mode": "class-index",
+        "affected_classes": [
+          {
+            "class": "Maatify\\SecurityGuard\\Service\\SecurityGuardService",
+            "methods_changed": [
+              "setConfig",
+              "getConfig",
+              "handleAttempt",
+              "handleEvent",
+              "dispatchEvent"
+            ]
+          },
+          {
+            "class": "Maatify\\SecurityGuard\\Enums\\BlockTypeEnum",
+            "methods_changed": [
+              "AUTO (new enum case)"
+            ]
+          }
+        ]
+      }
     }
   ]
 }

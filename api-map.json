@@ -788,7 +788,35 @@
               "type": "Maatify\\SecurityGuard\\DTO\\SecurityEventDTO"
             }
           ]
+        },
+        "setConfig": {
+          "visibility": "public",
+          "return_type": "void",
+          "arguments": [
+            { "name": "config", "type": "Maatify\\SecurityGuard\\Config\\SecurityConfig" }
+          ]
+        },
+        "getConfig": {
+          "visibility": "public",
+          "return_type": "Maatify\\SecurityGuard\\Config\\SecurityConfig",
+          "arguments": []
+        },
+        "handleAttempt": {
+          "visibility": "public",
+          "return_type": "int|null",
+          "arguments": [
+            { "name": "dto", "type": "Maatify\\SecurityGuard\\DTO\\LoginAttemptDTO" },
+            { "name": "success", "type": "bool" }
+          ]
+        },
+        "handleEvent": {
+          "visibility": "public",
+          "return_type": "void",
+          "arguments": [
+            { "name": "event", "type": "Maatify\\SecurityGuard\\DTO\\SecurityEventDTO" }
+          ]
         }
+
       }
     },
     "Maatify\\SecurityGuard\\DTO\\SecurityEventDTO": {
@@ -1144,6 +1172,39 @@
               "type": "Maatify\\SecurityGuard\\DTO\\SecurityEventDTO"
             }
           ]
+        }
+      }
+    },
+    "Maatify\\SecurityGuard\\Config\\SecurityConfig": {
+      "type": "class",
+      "methods": {
+        "__construct": {
+          "visibility": "public",
+          "arguments": [
+            { "name": "maxFailures", "type": "int" },
+            { "name": "blockSeconds", "type": "int" }
+          ]
+        },
+        "maxFailures": {
+          "visibility": "public",
+          "return_type": "int",
+          "arguments": []
+        },
+        "blockSeconds": {
+          "visibility": "public",
+          "return_type": "int",
+          "arguments": []
+        }
+      }
+    },
+    "Maatify\\SecurityGuard\\Config\\SecurityConfigLoader": {
+      "type": "class",
+      "methods": {
+        "defaults": {
+          "visibility": "public",
+          "static": true,
+          "return_type": "Maatify\\SecurityGuard\\Config\\SecurityConfig",
+          "arguments": []
         }
       }
     }
