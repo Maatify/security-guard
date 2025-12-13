@@ -19,24 +19,6 @@ use PHPUnit\Framework\TestCase;
 
 abstract class BaseIntegrationTestCase extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->assertValidEnvironment();
-    }
-
-    protected function assertValidEnvironment(): void
-    {
-        $env = $_ENV['APP_ENV'] ?? 'unknown';
-
-        if (! in_array($env, ['testing', 'ci'], true)) {
-            $this->markTestSkipped(
-                'Integration tests run only in testing or ci environments.'
-            );
-        }
-    }
-
     protected function requireExtension(string $extension): void
     {
         if (! extension_loaded($extension)) {
