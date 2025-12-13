@@ -8,6 +8,18 @@ use Maatify\Common\Contracts\Adapter\AdapterInterface;
 use Predis\Client;
 use Predis\Connection\ConnectionInterface;
 
+/**
+ * Interface to help PHPStan understand Predis Client methods that might be magic or missing in stubs.
+ * @mixin Client
+ */
+interface PredisClientProxyInterface
+{
+    public function connect(): void;
+    public function disconnect(): void;
+    public function getConnection(): ConnectionInterface;
+    public function isConnected(): bool;
+}
+
 class PredisIntegrationTest extends AbstractRedisTestCase
 {
     protected function setUp(): void
@@ -27,38 +39,44 @@ class PredisIntegrationTest extends AbstractRedisTestCase
 
             public function __construct()
             {
-                $host = $_ENV['REDIS_HOST'] ?? '127.0.0.1';
+                $hostEnv = $_ENV['REDIS_HOST'] ?? '127.0.0.1';
+                $host = is_string($hostEnv) ? $hostEnv : '127.0.0.1';
 
-                // PHPStan might see $_ENV values as mixed
                 $portEnv = $_ENV['REDIS_PORT'] ?? 6379;
                 $port = is_numeric($portEnv) ? (int)$portEnv : 6379;
 
                 $this->client = new Client([
                     'scheme' => 'tcp',
-                    'host'   => (string)$host,
+                    'host'   => $host,
                     'port'   => $port,
                 ]);
 
                 try {
                     // Predis connects lazily, so we force a check
-                    $this->client->connect();
-                    // Connection status via ConnectionInterface
-                    /** @var ConnectionInterface $connection */
-                    $connection = $this->client->getConnection();
-                    $this->connected = (bool)$connection->isConnected();
+                    $this->proxy()->connect();
+                    $this->connected = (bool)$this->proxy()->getConnection()->isConnected();
                 } catch (\Throwable) {
                     $this->connected = false;
                 }
+            }
+
+            /**
+             * Helper to make PHPStan happy about Predis methods
+             * @return PredisClientProxyInterface&Client
+             */
+            private function proxy(): object
+            {
+                /** @var PredisClientProxyInterface&Client $client */
+                $client = $this->client;
+                return $client;
             }
 
             public function connect(): void
             {
                 if (! $this->connected) {
                     try {
-                        $this->client->connect();
-                        /** @var ConnectionInterface $connection */
-                        $connection = $this->client->getConnection();
-                        $this->connected = (bool)$connection->isConnected();
+                        $this->proxy()->connect();
+                        $this->connected = (bool)$this->proxy()->getConnection()->isConnected();
                     } catch (\Throwable) {
                         $this->connected = false;
                     }
@@ -68,7 +86,7 @@ class PredisIntegrationTest extends AbstractRedisTestCase
             public function disconnect(): void
             {
                 if ($this->connected) {
-                    $this->client->disconnect();
+                    $this->proxy()->disconnect();
                     $this->connected = false;
                 }
             }
@@ -76,9 +94,7 @@ class PredisIntegrationTest extends AbstractRedisTestCase
             public function isConnected(): bool
             {
                 try {
-                    /** @var ConnectionInterface $connection */
-                    $connection = $this->client->getConnection();
-                    return $this->connected && (bool)$connection->isConnected();
+                    return $this->connected && (bool)$this->proxy()->getConnection()->isConnected();
                 } catch (\Throwable) {
                     return false;
                 }
