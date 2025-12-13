@@ -26,17 +26,13 @@ class PredisIntegrationTest extends AbstractRedisTestCase
 
             public function __construct()
             {
-                // We use defaults or ENV. Predis client handles ENV automatically if configured,
-                // but here we just pass simple parameters or let it default.
-                // However, BaseIntegrationTestCase has requireEnv('REDIS_HOST').
-                // We should use it.
                 $host = $_ENV['REDIS_HOST'] ?? '127.0.0.1';
-                $port = $_ENV['REDIS_PORT'] ?? 6379;
+                $port = (int)($_ENV['REDIS_PORT'] ?? 6379);
 
                 $this->client = new Client([
                     'scheme' => 'tcp',
                     'host'   => $host,
-                    'port'   => (int)$port,
+                    'port'   => $port,
                 ]);
 
                 try {

@@ -31,9 +31,8 @@ abstract class AbstractRedisTestCase extends BaseIntegrationTestCase
 
         $this->adapter = $this->createAdapter();
 
-        if (method_exists($this->adapter, 'connect')) {
-            $this->adapter->connect();
-        }
+        // AdapterInterface has connect()
+        $this->adapter->connect();
 
         if (! $this->adapter->isConnected()) {
             $this->markTestSkipped('Could not connect to Redis server.');
@@ -190,6 +189,6 @@ abstract class AbstractRedisTestCase extends BaseIntegrationTestCase
         $this->assertArrayHasKey('connected', $stats);
         $this->assertTrue($stats['connected']);
         $this->assertArrayHasKey('redis_info', $stats);
-        $this->assertIsArray($stats['redis_info']);
+        $this->assertNotEmpty($stats['redis_info']);
     }
 }
