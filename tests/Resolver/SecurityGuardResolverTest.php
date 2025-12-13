@@ -30,6 +30,18 @@ namespace MongoDB {
     if (!class_exists('Collection')) {
         class Collection {
             public function createIndex($keys, $options = []) {}
+
+            public function countDocuments($filter = [], array $options = []): int { return 0; }
+
+            public function insertOne($document, array $options = []) {}
+
+            public function findOne($filter = [], array $options = []) { return null; }
+
+            public function updateOne($filter, $update, array $options = []) {}
+
+            public function deleteOne($filter, array $options = []) {}
+
+            public function deleteMany($filter, array $options = []) {}
         }
     }
 }
@@ -136,12 +148,10 @@ namespace Maatify\SecurityGuard\Tests\Resolver {
 
             $mongoDb = $this->getMockBuilder(\MongoDB\Database::class)
                             ->disableOriginalConstructor()
-                            // No addMethods needed because real class has it, or polyfill above has it.
                             ->getMock();
 
             $collection = $this->getMockBuilder(\MongoDB\Collection::class)
                                ->disableOriginalConstructor()
-                               // No addMethods needed because real class has it, or polyfill above has it.
                                ->getMock();
 
             $mongoDb->method('selectCollection')->willReturn($collection);
