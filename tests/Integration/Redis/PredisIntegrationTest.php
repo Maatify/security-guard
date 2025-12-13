@@ -28,18 +28,24 @@ class PredisIntegrationTest extends AbstractRedisTestCase
             public function __construct()
             {
                 $host = $_ENV['REDIS_HOST'] ?? '127.0.0.1';
-                $port = (int)((string)($_ENV['REDIS_PORT'] ?? '6379'));
+
+                // PHPStan might see $_ENV values as mixed
+                $portEnv = $_ENV['REDIS_PORT'] ?? 6379;
+                $port = is_numeric($portEnv) ? (int)$portEnv : 6379;
 
                 $this->client = new Client([
                     'scheme' => 'tcp',
-                    'host'   => $host,
+                    'host'   => (string)$host,
                     'port'   => $port,
                 ]);
 
                 try {
                     // Predis connects lazily, so we force a check
                     $this->client->connect();
-                    $this->connected = $this->client->isConnected();
+                    // Connection status via ConnectionInterface
+                    /** @var ConnectionInterface $connection */
+                    $connection = $this->client->getConnection();
+                    $this->connected = (bool)$connection->isConnected();
                 } catch (\Throwable) {
                     $this->connected = false;
                 }
@@ -50,7 +56,9 @@ class PredisIntegrationTest extends AbstractRedisTestCase
                 if (! $this->connected) {
                     try {
                         $this->client->connect();
-                        $this->connected = $this->client->isConnected();
+                        /** @var ConnectionInterface $connection */
+                        $connection = $this->client->getConnection();
+                        $this->connected = (bool)$connection->isConnected();
                     } catch (\Throwable) {
                         $this->connected = false;
                     }
@@ -67,7 +75,13 @@ class PredisIntegrationTest extends AbstractRedisTestCase
 
             public function isConnected(): bool
             {
-                return $this->connected && $this->client->isConnected();
+                try {
+                    /** @var ConnectionInterface $connection */
+                    $connection = $this->client->getConnection();
+                    return $this->connected && (bool)$connection->isConnected();
+                } catch (\Throwable) {
+                    return false;
+                }
             }
 
             public function healthCheck(): bool

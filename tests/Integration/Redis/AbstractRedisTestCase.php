@@ -183,7 +183,7 @@ abstract class AbstractRedisTestCase extends BaseIntegrationTestCase
     {
         $stats = $this->driver->getStats();
 
-        $this->assertIsArray($stats);
+        // Removed redundant assertIsArray check to satisfy PHPStan
         $this->assertArrayHasKey('driver', $stats);
         $this->assertSame('redis', $stats['driver']);
         $this->assertArrayHasKey('connected', $stats);
