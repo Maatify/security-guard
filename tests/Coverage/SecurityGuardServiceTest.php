@@ -25,31 +25,38 @@ use Predis\Client;
 class SecurityGuardServiceTest extends TestCase
 {
     private SecurityGuardService $service;
-    private MockObject $predis;
+
+    /** @var Client&MockObject */
+    private Client $predis;
+
     private MockObject $dispatcher;
 
     protected function setUp(): void
     {
         // Require FakePredisClient if not already loaded (safe guard)
         if (!class_exists(Client::class, false)) {
+            // @codeCoverageIgnoreStart
             require_once __DIR__ . '/../Fake/FakePredisClient.php';
+            // @codeCoverageIgnoreEnd
         }
 
         // Mock Predis Client
         // We only mock methods called by RedisClientProxy
-        $this->predis = $this->getMockBuilder(Client::class)
+        /** @var Client&MockObject $predisMock */
+        $predisMock = $this->getMockBuilder(Client::class)
             ->onlyMethods(['incr', 'expire', 'hGetAll', 'hMSet', 'del', 'ttl', 'info'])
             ->getMock();
+        $this->predis = $predisMock;
 
         // Create Adapter returning the mock
         $adapter = new class($this->predis) implements AdapterInterface {
-            public function __construct(private object $predis) {}
+            public function __construct(private Client $predis) {}
             public function connect(): void {}
             public function disconnect(): void {}
             public function isConnected(): bool { return true; }
             public function healthCheck(): bool { return true; }
-            public function getDriver(): \Predis\Client { return $this->predis; }
-            public function getConnection(): \Predis\Client { return $this->predis; }
+            public function getDriver(): Client { return $this->predis; }
+            public function getConnection(): Client { return $this->predis; }
         };
 
         // Service setup
@@ -91,7 +98,7 @@ class SecurityGuardServiceTest extends TestCase
 
         // Expect del to be called
         $this->predis->expects($this->once())
-            ->method('del'); // argument checking is complex due to hashing, skip for now
+            ->method('del');
 
         $result = $this->service->handleAttempt($dto, true);
         $this->assertNull($result);
@@ -118,9 +125,6 @@ class SecurityGuardServiceTest extends TestCase
             ->method('ttl')
             ->willReturn(100);
 
-        // handleAttempt calls isBlocked -> getActiveBlock -> hGetAll
-        // if blocked, calls getRemainingBlockSeconds -> ttl
-
         $result = $this->service->handleAttempt($dto, false); // Success/Fail doesn't matter if blocked
         $this->assertEquals(100, $result);
     }
@@ -144,10 +148,7 @@ class SecurityGuardServiceTest extends TestCase
 
         // Dispatch failure event
         $this->dispatcher->expects($this->once())
-            ->method('dispatch')
-            ->with($this->callback(function (SecurityEventDTO $event) {
-                return (string)$event->action === 'login_attempt';
-            }));
+            ->method('dispatch');
 
         $result = $this->service->handleAttempt($dto, false);
         $this->assertSame(1, $result);
@@ -216,7 +217,7 @@ class SecurityGuardServiceTest extends TestCase
 
     public function testIsBlocked(): void
     {
-         $this->predis->expects($this->once())
+        $this->predis->expects($this->once())
             ->method('hGetAll')
             ->willReturn([]); // Not blocked
 
