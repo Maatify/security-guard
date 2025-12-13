@@ -49,6 +49,7 @@ class SecurityGuardServiceTest extends TestCase
             public function isConnected(): bool { return true; }
             public function healthCheck(): bool { return true; }
             public function getDriver(): object { return $this->predis; }
+            public function getConnection(): object { return $this->predis; }
         };
 
         // Service setup
