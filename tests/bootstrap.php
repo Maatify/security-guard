@@ -40,6 +40,10 @@ use Maatify\Bootstrap\Core\EnvironmentLoader;
 // Override Predis with a fake client BEFORE autoload loads original Predis classes
 require __DIR__ . '/Fake/FakePredisClient.php';
 
+// Polyfills for PHPStan and missing extensions
+require_once __DIR__ . '/Polyfill/GlobalPolyfills.php';
+require_once __DIR__ . '/Polyfill/DoctrinePolyfills.php';
+
 // ------------------------------------------------------------
 // 1) Load composer autoload
 // ------------------------------------------------------------

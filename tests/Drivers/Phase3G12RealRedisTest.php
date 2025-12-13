@@ -120,7 +120,7 @@ class Phase3G12RealRedisTest extends TestCase
         $driver = $this->driver;
         $this->assertNotNull($driver);
 
-        $this->expectNotToPerformAssertions();
         $driver->cleanup();
+        $this->assertTrue(true, 'Cleanup should execute without error');
     }
 }
