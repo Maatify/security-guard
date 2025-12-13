@@ -6,6 +6,7 @@ namespace Maatify\SecurityGuard\Tests\Integration\Redis;
 
 use Maatify\Common\Contracts\Adapter\AdapterInterface;
 use Predis\Client;
+use Predis\Connection\ConnectionInterface;
 
 class PredisIntegrationTest extends AbstractRedisTestCase
 {
@@ -27,7 +28,7 @@ class PredisIntegrationTest extends AbstractRedisTestCase
             public function __construct()
             {
                 $host = $_ENV['REDIS_HOST'] ?? '127.0.0.1';
-                $port = (int)($_ENV['REDIS_PORT'] ?? 6379);
+                $port = (int)((string)($_ENV['REDIS_PORT'] ?? '6379'));
 
                 $this->client = new Client([
                     'scheme' => 'tcp',
@@ -36,6 +37,7 @@ class PredisIntegrationTest extends AbstractRedisTestCase
                 ]);
 
                 try {
+                    // Predis connects lazily, so we force a check
                     $this->client->connect();
                     $this->connected = $this->client->isConnected();
                 } catch (\Throwable) {
