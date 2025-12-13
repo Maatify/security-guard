@@ -23,7 +23,13 @@ namespace {
         {
             public function incr(string $key): int|bool { return 1; }
             public function expire(string $key, int $seconds): bool { return true; }
+            /**
+             * @return array<string, string>|false
+             */
             public function hGetAll(string $key): array|false { return []; }
+            /**
+             * @param array<string, mixed> $data
+             */
             public function hMSet(string $key, array $data): bool { return true; }
             /**
              * @param string|string[] $key
@@ -32,6 +38,9 @@ namespace {
              */
             public function del(string|array $key, ...$other_keys): int { return 1; }
             public function ttl(string $key): int { return -1; }
+            /**
+             * @return array<string, mixed>|false
+             */
             public function info(?string $option = null): array|false { return []; }
         }
     }
@@ -141,8 +150,6 @@ namespace Maatify\SecurityGuard\Tests\Phase4Coverage {
             $proxy = new RedisClientProxy($predis);
             $this->assertSame($data, $proxy->hGetAll('key'));
         }
-
-        // testHGetAllWithPredisNull removed as Predis\Client::hgetall has strictly typed array return
 
         public function testHGetAllWithNormalization(): void
         {
