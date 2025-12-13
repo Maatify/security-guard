@@ -46,7 +46,5 @@ class PsrLoggerDispatcherTest extends TestCase
         $this->dispatcher->dispatch($event);
 
         // If we reach here without exception, the catch block works.
-        // We add this assertion to satisfy PHPUnit's risk check for tests that don't perform assertions.
-        $this->expectNotToPerformAssertions();
     }
 }
