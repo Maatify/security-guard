@@ -97,8 +97,8 @@ namespace Maatify\SecurityGuard\Tests\Phase4Coverage {
             $predis = $this->createMock(PredisClient::class);
             $predis->expects($this->once())
                 ->method('expire')
-                ->with('key', 3600)
-                ->willReturn(1);
+                ->with('key', 3600);
+            // Predis expire is void, do not expect return value
 
             $proxy = new RedisClientProxy($predis);
             $proxy->expire('key', 3600);
@@ -142,17 +142,7 @@ namespace Maatify\SecurityGuard\Tests\Phase4Coverage {
             $this->assertSame($data, $proxy->hGetAll('key'));
         }
 
-        public function testHGetAllWithPredisNull(): void
-        {
-            $predis = $this->createMock(PredisClient::class);
-            $predis->expects($this->once())
-                ->method('hgetall')
-                ->with('key')
-                ->willReturn(null);
-
-            $proxy = new RedisClientProxy($predis);
-            $this->assertSame([], $proxy->hGetAll('key'));
-        }
+        // testHGetAllWithPredisNull removed as Predis\Client::hgetall has strictly typed array return
 
         public function testHGetAllWithNormalization(): void
         {
@@ -189,8 +179,8 @@ namespace Maatify\SecurityGuard\Tests\Phase4Coverage {
             $predis = $this->createMock(PredisClient::class);
             $predis->expects($this->once())
                 ->method('hmset')
-                ->with('key', $data)
-                ->willReturn('OK'); // Predis usually returns status string
+                ->with('key', $data);
+            // Predis hmset is void, do not expect return value
 
             $proxy = new RedisClientProxy($predis);
             $proxy->hMSet('key', $data);
@@ -213,8 +203,8 @@ namespace Maatify\SecurityGuard\Tests\Phase4Coverage {
             $predis = $this->createMock(PredisClient::class);
             $predis->expects($this->once())
                 ->method('del')
-                ->with(['key']) // Predis expects array or variadic, proxy passes array
-                ->willReturn(1);
+                ->with(['key']); // Predis expects array or variadic, proxy passes array
+            // Predis del is void, do not expect return value
 
             $proxy = new RedisClientProxy($predis);
             $proxy->del('key');
@@ -275,7 +265,7 @@ namespace Maatify\SecurityGuard\Tests\Phase4Coverage {
                 ->method('info')
                 ->willReturn($info);
 
-            $proxy = new RedisClientProxy($redis);
+            $proxy = new RedisClientProxy($predis);
             $this->assertSame($info, $proxy->info());
         }
     }
