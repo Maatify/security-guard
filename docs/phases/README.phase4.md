@@ -4,7 +4,7 @@
 **Version:** 1.0.0  
 **Date:** 2025-12-10  
 
-[![Maatify Security Guard](https://img.shields.io/badge/Maatify-Security--Guard-blue?style=for-the-badge)](../README.md)
+[![Maatify Security Guard](https://img.shields.io/badge/Maatify-Security--Guard-blue?style=for-the-badge)](../../README.md)
 [![Maatify Ecosystem](https://img.shields.io/badge/Maatify-Ecosystem-9C27B0?style=for-the-badge)](https://github.com/Maatify)
 
 ---
@@ -309,6 +309,24 @@ At the end of Phase 4, the project now has:
 
 This phase elevates `maatify/security-guard` from a brute-force engine
 to a fully observable **security event engine**.
+
+---
+
+## ⚠️ Clarification: Action Definition vs Event Emission
+
+Defining an action in `SecurityActionEnum` does **not** imply that the action
+is automatically emitted as a `SecurityEventDTO` in all phases.
+
+For example:
+
+- `LOGIN_SUCCESS` is a **valid built-in action**
+- However, Phase 5 uses successful login attempts as an **internal state reset**
+  and does **not emit a success event**
+
+Event emission is **phase-driven and behavior-dependent**, not enum-driven.
+
+Future phases (analytics, monitoring, SIEM) may choose to emit
+`LOGIN_SUCCESS` events when they become behaviorally relevant.
 
 ---
 
