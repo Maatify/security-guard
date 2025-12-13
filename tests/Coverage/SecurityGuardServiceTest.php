@@ -48,8 +48,8 @@ class SecurityGuardServiceTest extends TestCase
             public function disconnect(): void {}
             public function isConnected(): bool { return true; }
             public function healthCheck(): bool { return true; }
-            public function getDriver(): object { return $this->predis; }
-            public function getConnection(): object { return $this->predis; }
+            public function getDriver(): \Predis\Client { return $this->predis; }
+            public function getConnection(): \Predis\Client { return $this->predis; }
         };
 
         // Service setup
@@ -254,7 +254,9 @@ class SecurityGuardServiceTest extends TestCase
 
         $stats = $this->service->getStats();
         $this->assertArrayHasKey('redis_info', $stats);
-        $this->assertTrue($stats['redis_info']['fake']);
+        /** @var array<string, bool> $redisInfo */
+        $redisInfo = $stats['redis_info'];
+        $this->assertTrue($redisInfo['fake']);
     }
 
     public function testHandleEvent(): void
