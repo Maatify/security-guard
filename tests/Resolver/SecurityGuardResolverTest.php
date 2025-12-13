@@ -24,24 +24,74 @@ namespace Doctrine\DBAL {
 namespace MongoDB {
     if (!class_exists('Database')) {
         class Database {
-            public function selectCollection($name, array $options = []) {}
+            /**
+             * @param string               $name
+             * @param array<string, mixed> $options
+             */
+            public function selectCollection(string $name, array $options = []): Collection {
+                return new Collection();
+            }
         }
     }
     if (!class_exists('Collection')) {
         class Collection {
-            public function createIndex($keys, $options = []) {}
+            /**
+             * @param mixed                $keys
+             * @param array<string, mixed> $options
+             */
+            public function createIndex(mixed $keys, array $options = []): mixed {
+                return '';
+            }
 
-            public function countDocuments($filter = [], array $options = []): int { return 0; }
+            /**
+             * @param mixed                $filter
+             * @param array<string, mixed> $options
+             */
+            public function countDocuments(mixed $filter = [], array $options = []): int {
+                return 0;
+            }
 
-            public function insertOne($document, array $options = []) {}
+            /**
+             * @param mixed                $document
+             * @param array<string, mixed> $options
+             */
+            public function insertOne(mixed $document, array $options = []): mixed {
+                return null;
+            }
 
-            public function findOne($filter = [], array $options = []) { return null; }
+            /**
+             * @param mixed                $filter
+             * @param array<string, mixed> $options
+             * @return array<string, mixed>|object|null
+             */
+            public function findOne(mixed $filter = [], array $options = []): mixed {
+                return null;
+            }
 
-            public function updateOne($filter, $update, array $options = []) {}
+            /**
+             * @param mixed                $filter
+             * @param mixed                $update
+             * @param array<string, mixed> $options
+             */
+            public function updateOne(mixed $filter, mixed $update, array $options = []): mixed {
+                return null;
+            }
 
-            public function deleteOne($filter, array $options = []) {}
+            /**
+             * @param mixed                $filter
+             * @param array<string, mixed> $options
+             */
+            public function deleteOne(mixed $filter, array $options = []): mixed {
+                return null;
+            }
 
-            public function deleteMany($filter, array $options = []) {}
+            /**
+             * @param mixed                $filter
+             * @param array<string, mixed> $options
+             */
+            public function deleteMany(mixed $filter, array $options = []): mixed {
+                return null;
+            }
         }
     }
 }
