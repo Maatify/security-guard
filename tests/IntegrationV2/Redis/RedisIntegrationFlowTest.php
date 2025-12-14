@@ -16,7 +16,8 @@ declare(strict_types=1);
 namespace Maatify\SecurityGuard\Tests\IntegrationV2\Redis;
 
 use Maatify\Common\Contracts\Adapter\AdapterInterface;
-use Maatify\DataAdapters\Resolver\AdapterResolver;
+use Maatify\DataAdapters\Core\DatabaseResolver;
+use Maatify\DataAdapters\Core\EnvironmentConfig;
 use Maatify\SecurityGuard\Drivers\RedisSecurityGuard;
 use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
 use Maatify\SecurityGuard\DTO\SecurityBlockDTO;
@@ -27,7 +28,7 @@ use Maatify\SecurityGuard\Tests\IntegrationV2\BaseIntegrationV2TestCase;
  * RedisIntegrationFlowTest
  *
  * Verifies the full authenticated login failure and blocking flow using a real Redis adapter
- * resolved via the system's AdapterResolver.
+ * resolved via the system's DatabaseResolver.
  *
  * Flow:
  * Authenticated subject -> Record Failures -> Max Failures Reached -> Block Applied -> Unblock -> Verify Unblock
@@ -38,18 +39,20 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
 
     protected function validateEnvironment(): void
     {
-        // STRICT: Environment validation is delegated to AdapterResolver / EnvironmentLoader.
+        // STRICT: Environment validation is delegated to DatabaseResolver / EnvironmentLoader.
         // We do not check env vars manually here.
     }
 
     protected function createAdapter(): AdapterInterface
     {
-        // STRICT: Use AdapterResolver to fetch the configured Redis adapter.
+        // STRICT: Use DatabaseResolver to fetch the configured Redis adapter.
         // This mimics production behavior where connection details (DSN, Auth, etc.) are hidden.
-        $resolver = new AdapterResolver();
 
-        // We request 'redis.cache' as the standard profile for integration environments.
-        return $resolver->resolve('redis.cache');
+        $config = new EnvironmentConfig(); // Uses EnvironmentLoader-loaded DSN
+        $resolver = new DatabaseResolver($config);
+
+        // Resolve 'redis.cache' profile with auto-connect enabled
+        return $resolver->resolve('redis.cache', true);
     }
 
     protected function setUp(): void
@@ -58,7 +61,7 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
 
         // STRICT: Fail if not connected. No skipping allowed.
         if (!$this->adapter->isConnected()) {
-            $this->fail('Redis adapter (redis.cache) failed to connect. Ensure DSN configuration is valid.');
+            $this->fail('Redis adapter (redis.cache) failed to connect. Ensure DSN configuration is valid and Redis is running.');
         }
 
         $this->guard = new RedisSecurityGuard($this->adapter, $this->identifierStrategy);
