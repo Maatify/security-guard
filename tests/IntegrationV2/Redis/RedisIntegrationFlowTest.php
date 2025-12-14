@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\SecurityGuard\Tests\IntegrationV2\Redis;
 
+use Maatify\Bootstrap\Core\EnvironmentLoader;
 use Maatify\Common\Contracts\Adapter\AdapterInterface;
 use Maatify\DataAdapters\Core\DatabaseResolver;
 use Maatify\DataAdapters\Core\EnvironmentConfig;
@@ -48,8 +49,13 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
         // STRICT: Use DatabaseResolver to fetch the configured Redis adapter.
         // This mimics production behavior where connection details (DSN, Auth, etc.) are hidden.
 
+        $rootPath = dirname(__DIR__, 3);
+
+        // Explicitly load environment to ensure test isolation and strict mode compliance
+        (new EnvironmentLoader($rootPath))->load();
+
         // Use explicit base path to ensure deterministic DSN resolution across environments
-        $config = new EnvironmentConfig(__DIR__ . '/../../');
+        $config = new EnvironmentConfig($rootPath);
         $resolver = new DatabaseResolver($config);
 
         // Resolve 'redis.cache' profile with auto-connect enabled
