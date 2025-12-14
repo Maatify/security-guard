@@ -104,6 +104,7 @@ class RedisTTLExpiryTest extends BaseIntegrationV2TestCase
 
         $startTime = microtime(true);
         while ((microtime(true) - $startTime) < $maxWaitSeconds) {
+            // @phpstan-ignore-next-line
             if (!$guard->isBlocked($ip, $subject)) {
                 $expired = true;
                 break;
@@ -112,6 +113,7 @@ class RedisTTLExpiryTest extends BaseIntegrationV2TestCase
         }
 
         // 5. Assert Expired
+        // @phpstan-ignore-next-line
         $this->assertTrue($expired, 'Block did not expire within expected window.');
         $this->assertFalse($guard->isBlocked($ip, $subject), 'Subject should be unblocked after TTL expiry.');
         $this->assertNull($guard->getActiveBlock($ip, $subject), 'Active block should be null after expiry.');
