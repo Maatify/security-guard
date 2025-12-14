@@ -17,6 +17,7 @@ namespace Maatify\SecurityGuard\Tests\IntegrationV2\Redis;
 
 use Maatify\Common\Contracts\Adapter\AdapterInterface;
 use Maatify\DataAdapters\Adapters\RedisAdapter;
+use Maatify\DataAdapters\Core\EnvironmentConfig;
 use Maatify\SecurityGuard\Drivers\RedisSecurityGuard;
 use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
 use Maatify\SecurityGuard\DTO\SecurityBlockDTO;
@@ -49,7 +50,13 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
         $host = getenv('REDIS_HOST') ?: '127.0.0.1';
         $port = getenv('REDIS_PORT') ? (int)getenv('REDIS_PORT') : 6379;
 
-        return new RedisAdapter($host, $port);
+        // Fix: Use EnvironmentConfig object as required by RedisAdapter constructor
+        $config = new EnvironmentConfig(
+            host: $host,
+            port: $port
+        );
+
+        return new RedisAdapter($config);
     }
 
     protected function setUp(): void
