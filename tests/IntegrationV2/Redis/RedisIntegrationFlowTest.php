@@ -37,24 +37,17 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
 
     protected function validateEnvironment(): void
     {
-        // STRICT: Fail if environment is missing. No skipping.
-        $this->requireEnv('REDIS_HOST');
-        $this->requireEnv('REDIS_PORT');
+        // V2 Policy: No skipping.
+        // We do not enforce env vars existence here to allow defaults in createAdapter.
+        // Connection failure in setUp() will handle the "Fail explicitly" requirement.
     }
 
     protected function createAdapter(): AdapterInterface
     {
-        $host = $this->requireEnv('REDIS_HOST');
-        $port = (int)$this->requireEnv('REDIS_PORT');
-
-        // Use the strictly required vendor adapter
-        // Assuming the constructor signature is standard for this library: (host, port, password, db, timeout)
-        // Since I cannot see the file, I will assume standard usage.
-        // If it fails, I will need correction.
-
-        // Note: Maatify RedisAdapter usually takes an array config or individual params.
-        // Let's assume params based on common patterns in this ecosystem or previous adapter usage seen (RealRedisAdapter didn't take args).
-        // Since I can't check, I'll try standard params: host, port.
+        // Allow defaults to support standard local development without explicit env vars,
+        // matching the behavior of legacy RealRedisAdapter but using the strict Vendor Adapter.
+        $host = getenv('REDIS_HOST') ?: '127.0.0.1';
+        $port = getenv('REDIS_PORT') ? (int)getenv('REDIS_PORT') : 6379;
 
         return new RedisAdapter($host, $port);
     }
@@ -65,7 +58,9 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
 
         // STRICT: Fail if not connected.
         if (!$this->adapter->isConnected()) {
-            $this->fail('Redis adapter failed to connect to ' . getenv('REDIS_HOST') . ':' . getenv('REDIS_PORT'));
+            $host = getenv('REDIS_HOST') ?: '127.0.0.1';
+            $port = getenv('REDIS_PORT') ?: '6379';
+            $this->fail(sprintf('Redis adapter failed to connect to %s:%s', $host, $port));
         }
 
         $this->guard = new RedisSecurityGuard($this->adapter, $this->identifierStrategy);
