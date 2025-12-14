@@ -91,8 +91,14 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
             private bool $connected = false;
 
             public function __construct(private string $host, private int $port) {
+                // Ensure Redis class exists (polyfill check)
+                if (!class_exists('Redis')) {
+                    throw new \RuntimeException('Redis extension not loaded.');
+                }
+
                 $this->redis = new \Redis();
                 try {
+                     // @phpstan-ignore-next-line
                      $this->connected = $this->redis->connect($this->host, $this->port);
                 } catch (\Throwable) {
                     $this->connected = false;
@@ -102,6 +108,7 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
             public function connect(): void {
                 if (!$this->connected) {
                     try {
+                        // @phpstan-ignore-next-line
                         $this->connected = $this->redis->connect($this->host, $this->port);
                     } catch (\Throwable) {
                         $this->connected = false;
@@ -111,6 +118,7 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
 
             public function disconnect(): void {
                 if ($this->connected) {
+                    // @phpstan-ignore-next-line
                     $this->redis->close();
                     $this->connected = false;
                 }
@@ -118,6 +126,7 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
 
             public function isConnected(): bool {
                 try {
+                    // @phpstan-ignore-next-line
                     return $this->connected && $this->redis->ping();
                 } catch (\Throwable) {
                     return false;
@@ -151,14 +160,18 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
 
     public function testAuthenticatedSubjectBlockFlow(): void
     {
+        // Assert guard is initialized to satisfy PHPStan nullable check
+        $this->assertNotNull($this->guard, 'Guard should have been initialized in setUp');
+        $guard = $this->guard;
+
         // 1. Setup Identity
         $ip = '192.168.1.100';
         $subject = 'user_' . bin2hex(random_bytes(4)); // Authenticated subject (non-trivial)
 
         // Ensure we start clean for this subject (implicit prefix isolation handles this generally,
         // but explicit reset ensures local state is clear).
-        $this->guard->resetAttempts($ip, $subject);
-        $this->guard->unblock($ip, $subject);
+        $guard->resetAttempts($ip, $subject);
+        $guard->unblock($ip, $subject);
 
         // 2. Record Login Failures
         // Config: maxFailures = 5
@@ -171,11 +184,11 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
         );
 
         for ($i = 1; $i <= $maxFailures; $i++) {
-            $count = $this->guard->recordFailure($attempt);
+            $count = $guard->recordFailure($attempt);
             $this->assertSame($i, $count, "Failure count should increment to $i");
 
             if ($i < $maxFailures) {
-                $this->assertFalse($this->guard->isBlocked($ip, $subject), "Should not be blocked at attempt $i");
+                $this->assertFalse($guard->isBlocked($ip, $subject), "Should not be blocked at attempt $i");
             }
         }
 
@@ -183,7 +196,7 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
         // Since we are testing the Driver directly, we verify the driver accepts the block command
         // which would be triggered by the Service when count >= maxFailures.
 
-        $currentCount = $this->guard->checkAttempts($ip, $subject);
+        $currentCount = $guard->checkAttempts($ip, $subject);
         $this->assertSame($maxFailures, $currentCount);
 
         // Apply Block
@@ -194,19 +207,19 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
             expiresAt: time() + 300,
             createdAt: time()
         );
-        $this->guard->block($blockDTO);
+        $guard->block($blockDTO);
 
         // Verify Blocked
-        $this->assertTrue($this->guard->isBlocked($ip, $subject), 'Subject should be blocked after applying block');
-        $activeBlock = $this->guard->getActiveBlock($ip, $subject);
+        $this->assertTrue($guard->isBlocked($ip, $subject), 'Subject should be blocked after applying block');
+        $activeBlock = $guard->getActiveBlock($ip, $subject);
         $this->assertNotNull($activeBlock);
         $this->assertSame($subject, $activeBlock->subject);
 
         // 4. Unblock
-        $this->guard->unblock($ip, $subject);
+        $guard->unblock($ip, $subject);
 
         // 5. Verify Unblock Success
-        $this->assertFalse($this->guard->isBlocked($ip, $subject), 'Subject should be unblocked');
-        $this->assertNull($this->guard->getActiveBlock($ip, $subject));
+        $this->assertFalse($guard->isBlocked($ip, $subject), 'Subject should be unblocked');
+        $this->assertNull($guard->getActiveBlock($ip, $subject));
     }
 }
