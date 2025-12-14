@@ -147,6 +147,16 @@ class RedisSecurityGuard extends AbstractSecurityGuardDriver implements Security
             $normalized['created_at'] = (int) $normalized['created_at'];
         }
 
+        // Check if block is expired
+        if (isset($normalized['expires_at'])) {
+            $expiresAt = (int) $normalized['expires_at'];
+            if ($expiresAt > 0 && $expiresAt <= $this->now()) {
+                // Block has expired - delete it and return null
+                $this->redis->del($this->keyBlock($id));
+                return null;
+            }
+        }
+
         /** @var array<string,mixed> $normalized */
         return $this->decodeBlock($normalized);
     }
