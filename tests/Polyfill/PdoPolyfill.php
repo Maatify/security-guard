@@ -54,7 +54,7 @@ if (!class_exists('PDOStatement')) {
     /**
      * Polyfill for PDOStatement class for PHPStan analysis.
      */
-    class PDOStatement implements \IteratorAggregate
+    class PDOStatement
     {
         /**
          * @param array<mixed>|null $params
@@ -75,11 +75,6 @@ if (!class_exists('PDOStatement')) {
         public function fetchColumn(int $column = 0): string|int|float|bool|null
         {
             return 1;
-        }
-
-        public function getIterator(): \Traversable
-        {
-            return new \ArrayIterator([]);
         }
     }
 }
