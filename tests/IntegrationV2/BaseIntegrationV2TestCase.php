@@ -129,7 +129,7 @@ abstract class BaseIntegrationV2TestCase extends TestCase
         return sprintf(
             'test:%s:%s:%s:',
             str_replace('\\', '_', static::class),
-            $this->getName(false),
+            $this->name(),
             bin2hex(random_bytes(4))
         );
     }
