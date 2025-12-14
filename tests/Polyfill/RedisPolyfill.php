@@ -49,6 +49,11 @@ if (!class_exists('Redis')) {
             return true;
         }
 
+        public function ttl(string $key): int
+        {
+            return 1;
+        }
+
         /**
          * @param string|string[] $key
          * @return int

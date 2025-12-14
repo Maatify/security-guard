@@ -20,17 +20,27 @@ if (!class_exists('PDO')) {
     class PDO
     {
         public const FETCH_ASSOC = 2;
+        public const FETCH_DEFAULT = 0;
+        public const FETCH_ORI_NEXT = 0;
 
+        /**
+         * @param array<string, mixed>|null $options
+         */
         public function __construct(string $dsn, ?string $username = null, ?string $password = null, ?array $options = null)
         {
+            // Suppress unused parameter warnings by usage
+            $dsn; $username; $password; $options;
         }
 
-        public function prepare(string $query, array $options = []): PDOStatement|false
+        /**
+         * @param array<string, mixed> $options
+         */
+        public function prepare(string $query, array $options = []): PDOStatement
         {
             return new PDOStatement();
         }
 
-        public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): PDOStatement|false
+        public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): PDOStatement
         {
             return new PDOStatement();
         }
@@ -40,9 +50,13 @@ if (!class_exists('PDO')) {
 if (!class_exists('PDOStatement')) {
     /**
      * Polyfill for PDOStatement class for PHPStan analysis.
+     * @implements \IteratorAggregate<mixed, mixed>
      */
-    class PDOStatement
+    class PDOStatement implements \IteratorAggregate
     {
+        /**
+         * @param array<mixed>|null $params
+         */
         public function execute(?array $params = null): bool
         {
             return true;
@@ -56,6 +70,11 @@ if (!class_exists('PDOStatement')) {
         public function fetchColumn(int $column = 0): mixed
         {
             return 1;
+        }
+
+        public function getIterator(): \Traversable
+        {
+            return new \ArrayIterator([]);
         }
     }
 }
