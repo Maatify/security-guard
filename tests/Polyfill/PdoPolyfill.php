@@ -29,10 +29,7 @@ if (!class_exists('PDO')) {
         public function __construct(string $dsn, ?string $username = null, ?string $password = null, ?array $options = null)
         {
             // Suppress unused parameter warnings
-            (void)$dsn;
-            (void)$username;
-            (void)$password;
-            (void)$options;
+            unset($dsn, $username, $password, $options);
         }
 
         /**
