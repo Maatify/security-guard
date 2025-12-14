@@ -48,7 +48,8 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
         // STRICT: Use DatabaseResolver to fetch the configured Redis adapter.
         // This mimics production behavior where connection details (DSN, Auth, etc.) are hidden.
 
-        $config = new EnvironmentConfig(__DIR__ . '/../../'); // Uses EnvironmentLoader-loaded DSN
+        // Use explicit base path to ensure deterministic DSN resolution across environments
+        $config = new EnvironmentConfig(__DIR__ . '/../../');
         $resolver = new DatabaseResolver($config);
 
         // Resolve 'redis.cache' profile with auto-connect enabled
