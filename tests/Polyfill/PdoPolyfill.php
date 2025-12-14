@@ -28,8 +28,11 @@ if (!class_exists('PDO')) {
          */
         public function __construct(string $dsn, ?string $username = null, ?string $password = null, ?array $options = null)
         {
-            // Suppress unused parameter warnings by usage
-            $dsn; $username; $password; $options;
+            // Suppress unused parameter warnings
+            (void)$dsn;
+            (void)$username;
+            (void)$password;
+            (void)$options;
         }
 
         /**
@@ -40,7 +43,10 @@ if (!class_exists('PDO')) {
             return new PDOStatement();
         }
 
-        public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): PDOStatement
+        /**
+         * @return PDOStatement|false
+         */
+        public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): PDOStatement|false
         {
             return new PDOStatement();
         }
@@ -67,7 +73,10 @@ if (!class_exists('PDOStatement')) {
             return [];
         }
 
-        public function fetchColumn(int $column = 0): mixed
+        /**
+         * @return string|int|float|bool|null
+         */
+        public function fetchColumn(int $column = 0): string|int|float|bool|null
         {
             return 1;
         }
