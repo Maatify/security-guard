@@ -53,7 +53,6 @@ if (!class_exists('PDO')) {
 if (!class_exists('PDOStatement')) {
     /**
      * Polyfill for PDOStatement class for PHPStan analysis.
-     * @implements \IteratorAggregate<mixed, mixed>
      */
     class PDOStatement implements \IteratorAggregate
     {
