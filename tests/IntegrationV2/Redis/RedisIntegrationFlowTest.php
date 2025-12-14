@@ -48,7 +48,7 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
         // This mimics production behavior where connection details (DSN, Auth, etc.) are hidden.
         $resolver = new AdapterResolver();
 
-        // We request 'redis.cache' as a standard profile likely to exist in integration environments.
+        // We request 'redis.cache' as the standard profile for integration environments.
         return $resolver->resolve('redis.cache');
     }
 
