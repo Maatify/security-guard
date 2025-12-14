@@ -16,8 +16,7 @@ declare(strict_types=1);
 namespace Maatify\SecurityGuard\Tests\IntegrationV2\Redis;
 
 use Maatify\Common\Contracts\Adapter\AdapterInterface;
-use Maatify\DataAdapters\Adapters\RedisAdapter;
-use Maatify\DataAdapters\Core\EnvironmentConfig;
+use Maatify\DataAdapters\Resolver\AdapterResolver;
 use Maatify\SecurityGuard\Drivers\RedisSecurityGuard;
 use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
 use Maatify\SecurityGuard\DTO\SecurityBlockDTO;
@@ -27,7 +26,8 @@ use Maatify\SecurityGuard\Tests\IntegrationV2\BaseIntegrationV2TestCase;
 /**
  * RedisIntegrationFlowTest
  *
- * Verifies the full authenticated login failure and blocking flow using a real Redis adapter.
+ * Verifies the full authenticated login failure and blocking flow using a real Redis adapter
+ * resolved via the system's AdapterResolver.
  *
  * Flow:
  * Authenticated subject -> Record Failures -> Max Failures Reached -> Block Applied -> Unblock -> Verify Unblock
@@ -38,34 +38,27 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
 
     protected function validateEnvironment(): void
     {
-        // V2 Policy: No skipping.
-        // We do not enforce env vars existence here to allow defaults in createAdapter.
-        // Connection failure in setUp() will handle the "Fail explicitly" requirement.
+        // STRICT: Environment validation is delegated to AdapterResolver / EnvironmentLoader.
+        // We do not check env vars manually here.
     }
 
     protected function createAdapter(): AdapterInterface
     {
-        // Allow defaults to support standard local development without explicit env vars,
-        // matching the behavior of legacy RealRedisAdapter but using the strict Vendor Adapter.
-        $host = getenv('REDIS_HOST') ?: '127.0.0.1';
-        $port = getenv('REDIS_PORT') ? (int)getenv('REDIS_PORT') : 6379;
+        // STRICT: Use AdapterResolver to fetch the configured Redis adapter.
+        // This mimics production behavior where connection details (DSN, Auth, etc.) are hidden.
+        $resolver = new AdapterResolver();
 
-        // Fix: Use positional arguments for EnvironmentConfig to avoid unknown named parameter errors.
-        // Assuming signature is (host, port, ...)
-        $config = new EnvironmentConfig($host, $port);
-
-        return new RedisAdapter($config);
+        // We request 'redis.cache' as a standard profile likely to exist in integration environments.
+        return $resolver->resolve('redis.cache');
     }
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        // STRICT: Fail if not connected.
+        // STRICT: Fail if not connected. No skipping allowed.
         if (!$this->adapter->isConnected()) {
-            $host = getenv('REDIS_HOST') ?: '127.0.0.1';
-            $port = getenv('REDIS_PORT') ?: '6379';
-            $this->fail(sprintf('Redis adapter failed to connect to %s:%s', $host, $port));
+            $this->fail('Redis adapter (redis.cache) failed to connect. Ensure DSN configuration is valid.');
         }
 
         $this->guard = new RedisSecurityGuard($this->adapter, $this->identifierStrategy);
