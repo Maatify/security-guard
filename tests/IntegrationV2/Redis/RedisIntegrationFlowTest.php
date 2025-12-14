@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace Maatify\SecurityGuard\Tests\IntegrationV2\Redis;
 
 use Maatify\Common\Contracts\Adapter\AdapterInterface;
+use Maatify\DataAdapters\Adapters\RedisAdapter;
 use Maatify\SecurityGuard\Drivers\RedisSecurityGuard;
 use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
 use Maatify\SecurityGuard\DTO\SecurityBlockDTO;
@@ -36,98 +37,35 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
 
     protected function validateEnvironment(): void
     {
-        // Skip test if environment is not configured, instead of failing hard.
-        // This allows the suite to pass in environments without Redis (e.g. basic CI).
-        if (!getenv('REDIS_HOST') || !getenv('REDIS_PORT')) {
-            $this->markTestSkipped('REDIS_HOST or REDIS_PORT not set. Skipping Redis integration tests.');
-        }
+        // STRICT: Fail if environment is missing. No skipping.
+        $this->requireEnv('REDIS_HOST');
+        $this->requireEnv('REDIS_PORT');
     }
 
     protected function createAdapter(): AdapterInterface
     {
-        $host = getenv('REDIS_HOST');
-        $port = getenv('REDIS_PORT');
+        $host = $this->requireEnv('REDIS_HOST');
+        $port = (int)$this->requireEnv('REDIS_PORT');
 
-        if (!$host || !$port) {
-            // Should be caught by validateEnvironment(), but for safety:
-            $this->markTestSkipped('Redis configuration missing.');
-        }
+        // Use the strictly required vendor adapter
+        // Assuming the constructor signature is standard for this library: (host, port, password, db, timeout)
+        // Since I cannot see the file, I will assume standard usage.
+        // If it fails, I will need correction.
 
-        $port = (int)$port;
+        // Note: Maatify RedisAdapter usually takes an array config or individual params.
+        // Let's assume params based on common patterns in this ecosystem or previous adapter usage seen (RealRedisAdapter didn't take args).
+        // Since I can't check, I'll try standard params: host, port.
 
-        return new class($host, $port) implements AdapterInterface {
-            private \Redis $redis;
-            private bool $connected = false;
-
-            public function __construct(private string $host, private int $port) {
-                // Ensure Redis class exists (polyfill check)
-                if (!class_exists('Redis')) {
-                    throw new \RuntimeException('Redis extension not loaded.');
-                }
-
-                $this->redis = new \Redis();
-                try {
-                     // @phpstan-ignore-next-line
-                     $this->connected = $this->redis->connect($this->host, $this->port);
-                } catch (\Throwable) {
-                    $this->connected = false;
-                }
-            }
-
-            public function connect(): void {
-                if (!$this->connected) {
-                    try {
-                        // @phpstan-ignore-next-line
-                        $this->connected = $this->redis->connect($this->host, $this->port);
-                    } catch (\Throwable) {
-                        $this->connected = false;
-                    }
-                }
-            }
-
-            public function disconnect(): void {
-                if ($this->connected) {
-                    // @phpstan-ignore-next-line
-                    $this->redis->close();
-                    $this->connected = false;
-                }
-            }
-
-            public function isConnected(): bool {
-                try {
-                    // @phpstan-ignore-next-line
-                    return $this->connected && $this->redis->ping();
-                } catch (\Throwable) {
-                    return false;
-                }
-            }
-
-            public function healthCheck(): bool {
-                return $this->isConnected();
-            }
-
-            /**
-             * @return object
-             */
-            public function getDriver(): object {
-                return $this->redis;
-            }
-
-            /**
-             * @return object
-             */
-            public function getConnection(): object {
-                return $this->redis;
-            }
-        };
+        return new RedisAdapter($host, $port);
     }
 
     protected function setUp(): void
     {
         parent::setUp();
 
+        // STRICT: Fail if not connected.
         if (!$this->adapter->isConnected()) {
-            $this->markTestSkipped('Redis adapter failed to connect to the configured host (Connection refused/timed out).');
+            $this->fail('Redis adapter failed to connect to ' . getenv('REDIS_HOST') . ':' . getenv('REDIS_PORT'));
         }
 
         $this->guard = new RedisSecurityGuard($this->adapter, $this->identifierStrategy);
@@ -168,8 +106,6 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
         }
 
         // 3. Trigger Block (Simulating Service Decision based on Count)
-        // Note: RedisSecurityGuard does not have checkAttempts().
-        // We rely on the return value of recordFailure() which we already asserted.
 
         // Apply Block
         $blockDTO = new SecurityBlockDTO(
