@@ -20,7 +20,6 @@ use Maatify\SecurityGuard\Config\Enum\IdentifierModeEnum;
 use Maatify\SecurityGuard\Config\SecurityConfig;
 use Maatify\SecurityGuard\Config\SecurityConfigDTO;
 use Maatify\SecurityGuard\Identifier\DefaultIdentifierStrategy;
-use Maatify\SecurityGuard\Tests\Fake\FakeAdapter;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -103,21 +102,19 @@ abstract class BaseIntegrationV2TestCase extends TestCase
 
     private function ensureRealAdapter(AdapterInterface $adapter): void
     {
-        // Forbid known fake adapters
-        if ($adapter instanceof FakeAdapter) {
-            $this->fail('IntegrationV2 tests MUST NOT use FakeAdapter. Real infrastructure is required.');
-        }
-
         // Check if the adapter exposes the raw driver and forbid direct raw client usage
         // if it bypasses the adapter contract (though the adapter itself is the interface).
         // The requirement is "Forbid direct Redis / PDO / Mongo clients" in the TEST code.
         // The adapter *wraps* them. We just ensure we are using the Adapter abstraction.
 
         // We can check if the class name contains "Fake" or "Mock" as a heuristic
-        if (str_contains(get_class($adapter), 'Fake') || str_contains(get_class($adapter), 'Mock')) {
+        // This enforces "Real" infrastructure without importing FakeAdapter classes.
+        $className = get_class($adapter);
+
+        if (str_contains($className, 'Fake') || str_contains($className, 'Mock')) {
              $this->fail(sprintf(
                  'IntegrationV2 tests forbid Fake/Mock adapters. Found: %s',
-                 get_class($adapter)
+                 $className
              ));
         }
     }
