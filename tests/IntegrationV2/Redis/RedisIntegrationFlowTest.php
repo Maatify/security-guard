@@ -50,11 +50,9 @@ class RedisIntegrationFlowTest extends BaseIntegrationV2TestCase
         $host = getenv('REDIS_HOST') ?: '127.0.0.1';
         $port = getenv('REDIS_PORT') ? (int)getenv('REDIS_PORT') : 6379;
 
-        // Fix: Use EnvironmentConfig object as required by RedisAdapter constructor
-        $config = new EnvironmentConfig(
-            host: $host,
-            port: $port
-        );
+        // Fix: Use positional arguments for EnvironmentConfig to avoid unknown named parameter errors.
+        // Assuming signature is (host, port, ...)
+        $config = new EnvironmentConfig($host, $port);
 
         return new RedisAdapter($config);
     }
