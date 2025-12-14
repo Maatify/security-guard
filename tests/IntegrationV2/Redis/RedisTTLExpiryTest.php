@@ -96,11 +96,23 @@ class RedisTTLExpiryTest extends BaseIntegrationV2TestCase
         $this->assertGreaterThan(0, $remaining);
         $this->assertLessThanOrEqual($ttlSeconds, $remaining);
 
-        // 4. Wait for Expiry
-        // We wait TTL + 1 second to ensure expiry
-        sleep($ttlSeconds + 1);
+        // 4. Wait for Expiry (Deterministic Polling)
+        $maxWaitSeconds = $ttlSeconds + 2;
+        $waited = 0;
+        $intervalUs = 200000; // 200ms
+        $expired = false;
+
+        $startTime = microtime(true);
+        while ((microtime(true) - $startTime) < $maxWaitSeconds) {
+            if (!$guard->isBlocked($ip, $subject)) {
+                $expired = true;
+                break;
+            }
+            usleep($intervalUs);
+        }
 
         // 5. Assert Expired
+        $this->assertTrue($expired, 'Block did not expire within expected window.');
         $this->assertFalse($guard->isBlocked($ip, $subject), 'Subject should be unblocked after TTL expiry.');
         $this->assertNull($guard->getActiveBlock($ip, $subject), 'Active block should be null after expiry.');
     }
