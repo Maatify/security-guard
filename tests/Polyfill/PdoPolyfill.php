@@ -54,6 +54,7 @@ if (!class_exists('PDOStatement')) {
     /**
      * Polyfill for PDOStatement class for PHPStan analysis.
      * @implements \IteratorAggregate<mixed, mixed>
+     * @phpstan-ignore generics.wrongParent
      */
     class PDOStatement implements \IteratorAggregate
     {
