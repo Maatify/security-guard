@@ -1,15 +1,442 @@
 {
-    "summary": "Implemented Mongo Integration V2 tests and fixed source bug",
-    "status": "completed",
-    "phases": [
-        "IntegrationV2 — A5 (Mongo)"
-    ],
-    "changes": [
-        "tests/IntegrationV2/Mongo/MongoIntegrationFlowTest.php",
-        "tests/IntegrationV2/Mongo/MongoPersistenceTest.php",
-        "src/Drivers/Mongo/MongoSecurityGuard.php",
-        "docs/phases/README.phaseA5.md"
-    ],
-    "coverage": "IntegrationV2/Mongo",
-    "documentation": "docs/phases/README.phaseA5.md"
+  "signature_schema_version": "2.0",
+  "project": "maatify/security-guard",
+  "generated_at": "2025-12-08T16:45:00+02:00",
+  "phases": [
+    {
+      "phase_id": "phase1",
+      "title": "Environment Setup",
+      "version": "1.0.0",
+      "status": "completed",
+      "date": "2025-12-01",
+      "summary": "Initial environment setup including Composer initialization, autoloading configuration, PHPUnit bootstrap, and documentation scaffolding.",
+      "changes": {
+        "added": [
+          "composer.json",
+          ".env.example",
+          "tests/bootstrap.php",
+          "phpunit.xml.dist",
+          "README.md",
+          "docs/README.full.md"
+        ],
+        "updated": [],
+        "removed": []
+      },
+      "tests_result": {
+        "fake": "passed",
+        "real": "not_applicable"
+      },
+      "coverage": "not_applicable",
+      "documentation_files": [
+        "README.md",
+        "docs/README.full.md"
+      ],
+      "reflection": {
+        "mode": "class-index",
+        "affected_classes": []
+      },
+      "examples": {
+        "present": false,
+        "reason": "Phase 1 initializes project environment and infrastructure; no application logic or classes exist yet."
+      }
+    },
+    {
+      "phase_id": "phase2",
+      "title": "Core Architecture & DTOs",
+      "version": "1.0.1",
+      "status": "completed",
+      "date": "2025-12-08",
+      "summary": "Introduced immutable DTOs, BlockTypeEnum, and the unified SecurityGuardDriverInterface contract.",
+      "changes": {
+        "added": [
+          "src/DTO/LoginAttemptDTO.php",
+          "src/DTO/SecurityBlockDTO.php",
+          "src/Enums/BlockTypeEnum.php",
+          "src/Contracts/SecurityGuardDriverInterface.php",
+          "tests/DTO/LoginAttemptDTOTest.php",
+          "tests/DTO/SecurityBlockDTOTest.php",
+          "tests/DTO/BlockTypeEnumTest.php",
+          "tests/Contracts/SecurityGuardDriverInterfaceTest.php",
+          "docs/phases/README.phase2.md"
+        ],
+        "updated": [
+          "api-map.json",
+          "docs/README.full.md",
+          "README.md",
+          "CHANGELOG.md"
+        ],
+        "removed": []
+      },
+      "tests_result": {
+        "fake": "passed",
+        "real": "not_applicable"
+      },
+      "coverage": "100%",
+      "documentation_files": [
+        "docs/phases/README.phase2.md",
+        "docs/README.full.md",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "reflection": {
+        "mode": "class-index",
+        "affected_classes": [
+          {
+            "class": "Maatify\\SecurityGuard\\DTO\\LoginAttemptDTO",
+            "methods_changed": [
+              "__construct",
+              "now",
+              "jsonSerialize"
+            ]
+          },
+          {
+            "class": "Maatify\\SecurityGuard\\DTO\\SecurityBlockDTO",
+            "methods_changed": [
+              "__construct",
+              "getRemainingSeconds",
+              "isExpired",
+              "jsonSerialize"
+            ]
+          },
+          {
+            "class": "Maatify\\SecurityGuard\\Enums\\BlockTypeEnum",
+            "methods_changed": []
+          },
+          {
+            "class": "Maatify\\SecurityGuard\\Contracts\\SecurityGuardDriverInterface",
+            "methods_changed": [
+              "recordFailure",
+              "resetAttempts",
+              "getActiveBlock",
+              "getRemainingBlockSeconds",
+              "block",
+              "unblock",
+              "cleanup",
+              "getStats",
+              "isBlocked"
+            ]
+          }
+        ]
+      },
+      "examples": {
+        "present": false,
+        "reason": "DTOs and interfaces do not require runnable examples."
+      }
+    },
+    {
+      "phase_id": "phase3",
+      "title": "Unified Driver Implementations",
+      "version": "1.0.2",
+      "status": "completed",
+      "date": "2025-12-09",
+      "summary": "Implemented all real storage drivers using maatify/data-adapters only. Added service layer and resolver. First full working engine.",
+      "changes": {
+        "added": [
+          "src/Drivers/AbstractSecurityGuardDriver.php",
+          "src/Drivers/Support/RedisClientProxy.php",
+          "src/Drivers/RedisSecurityGuard.php",
+          "src/Drivers/MySQL/MySQLSecurityGuard.php",
+          "src/Drivers/MySQL/PdoMySQLDriver.php",
+          "src/Drivers/MySQL/DbalMySQLDriver.php",
+          "src/Drivers/MySQL/Contracts/MySQLDriverInterface.php",
+          "src/Drivers/Mongo/MongoSecurityGuard.php",
+          "src/Identifier/Contracts/IdentifierStrategyInterface.php",
+          "src/Identifier/DefaultIdentifierStrategy.php",
+          "src/Resolver/SecurityGuardResolver.php",
+          "src/Service/SecurityGuardService.php"
+        ],
+        "updated": [
+          "src/DTO/LoginAttemptDTO.php",
+          "src/DTO/SecurityBlockDTO.php"
+        ],
+        "removed": []
+      },
+      "tests_result": {
+        "fake": "passed",
+        "real": "passed"
+      },
+      "coverage": "92%",
+      "documentation_files": [
+        "docs/phases/README.phase3.md"
+      ],
+      "reflection": {
+        "mode": "class-index",
+        "affected_classes": [
+          {
+            "class": "Maatify\\SecurityGuard\\Drivers\\AbstractSecurityGuardDriver",
+            "methods_changed": [
+              "makeIdentifier",
+              "encodeBlock",
+              "decodeBlock",
+              "now"
+            ]
+          },
+          {
+            "class": "Maatify\\SecurityGuard\\Drivers\\MySQL\\Contracts\\MySQLDriverInterface",
+            "methods_changed": [
+              "recordFailure",
+              "resetAttempts",
+              "getActiveBlock",
+              "getRemainingBlockSeconds",
+              "block",
+              "unblock",
+              "cleanup",
+              "getStats"
+            ]
+          },
+          {
+            "class": "Maatify\\SecurityGuard\\Drivers\\MySQL\\PdoMySQLDriver",
+            "methods_changed": [
+              "__construct",
+              "recordFailure",
+              "resetAttempts",
+              "getActiveBlock",
+              "getRemainingBlockSeconds",
+              "block",
+              "unblock",
+              "cleanup",
+              "getStats"
+            ]
+          },
+          {
+            "class": "Maatify\\SecurityGuard\\Drivers\\MySQL\\DbalMySQLDriver",
+            "methods_changed": [
+              "__construct",
+              "recordFailure",
+              "resetAttempts",
+              "getActiveBlock",
+              "getRemainingBlockSeconds",
+              "block",
+              "unblock",
+              "cleanup",
+              "getStats"
+            ]
+          },
+          {
+            "class": "Maatify\\SecurityGuard\\Drivers\\MySQL\\MySQLSecurityGuard",
+            "methods_changed": [
+              "__construct",
+              "doRecordFailure",
+              "doResetAttempts",
+              "doGetActiveBlock",
+              "doGetRemainingBlockSeconds",
+              "doBlock",
+              "doUnblock",
+              "doCleanup",
+              "doGetStats"
+            ]
+          },
+          {
+            "class": "Maatify\\SecurityGuard\\Drivers\\Mongo\\MongoSecurityGuard",
+            "methods_changed": [
+              "__construct",
+              "doRecordFailure",
+              "doResetAttempts",
+              "doGetActiveBlock",
+              "doGetRemainingBlockSeconds",
+              "doBlock",
+              "doUnblock",
+              "doCleanup",
+              "doGetStats"
+            ]
+          },
+          {
+            "class": "Maatify\\SecurityGuard\\Drivers\\Support\\RedisClientProxy",
+            "methods_changed": [
+              "__construct",
+              "incr",
+              "hGet",
+              "hSet",
+              "hDel",
+              "hGetAll",
+              "hMSet",
+              "expire",
+              "ttl",
+              "del",
+              "info"
+            ]
+          },
+          {
+            "class": "Maatify\\SecurityGuard\\Identifier\\DefaultIdentifierStrategy",
+            "methods_changed": [
+              "makeId"
+            ]
+          },
+          {
+            "class": "Maatify\\SecurityGuard\\Resolver\\SecurityGuardResolver",
+            "methods_changed": [
+              "resolve"
+            ]
+          },
+          {
+            "class": "Maatify\\SecurityGuard\\Service\\SecurityGuardService",
+            "methods_changed": [
+              "__construct",
+              "recordFailure",
+              "resetAttempts",
+              "getActiveBlock",
+              "isBlocked",
+              "getRemainingBlockSeconds",
+              "block",
+              "unblock",
+              "cleanup",
+              "getStats"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "phase_id": "phase4",
+      "title": "Unified Event System Integration",
+      "version": "1.0.3",
+      "status": "completed",
+      "date": "2025-12-10",
+      "summary": "Integrated full Security Event System including DTOs, dispatchers, listener interface and event emission across the engine.",
+      "changes": {
+        "added": [
+          "src/DTO/SecurityEventDTO.php",
+          "src/Event/SecurityEventFactory.php",
+          "src/Event/SecurityAction.php",
+          "src/Event/SecurityPlatform.php",
+          "src/Event/Contracts/EventDispatcherInterface.php",
+          "src/Event/Contracts/EventListenerInterface.php",
+          "src/Event/Dispatcher/SyncDispatcher.php",
+          "src/Event/Dispatcher/PsrLoggerDispatcher.php",
+          "src/Event/Dispatcher/NullDispatcher.php",
+          "src/Enums/SecurityActionEnum.php",
+          "src/Enums/SecurityEventTypeEnum.php",
+          "src/Enums/SecurityPlatformEnum.php"
+        ],
+        "updated": [
+          "src/Service/SecurityGuardService.php",
+          "src/DTO/LoginAttemptDTO.php",
+          "src/DTO/SecurityBlockDTO.php",
+          "docs/README.full.md",
+          "examples/Examples.md",
+          "docs/phases/README.phase4.md"
+        ],
+        "removed": []
+      },
+      "tests_result": {
+        "fake": "pending",
+        "real": "pending"
+      },
+      "coverage": "pending",
+      "documentation_files": [
+        "docs/phases/README.phase4.md",
+        "docs/README.full.md"
+      ],
+      "commit_metadata": {
+        "type": "feat",
+        "scope": "event-system",
+        "message": "feat: add unified security event system with DTOs, dispatchers, listeners, and service integration",
+        "breaking": false
+      },
+      "git_patch": {
+        "generated": true,
+        "filename": "phase4.patch",
+        "format": "unified"
+      },
+      "reflection": {
+        "mode": "class-index",
+        "affected_classes": [
+          {
+            "class": "Maatify\\SecurityGuard\\DTO\\LoginAttemptDTO",
+            "methods_changed": [
+              "toEvent"
+            ]
+          },
+          {
+            "class": "Maatify\\SecurityGuard\\DTO\\SecurityBlockDTO",
+            "methods_changed": [
+              "toCreatedEvent",
+              "toRemovedEvent"
+            ]
+          },
+          {
+            "class": "Maatify\\SecurityGuard\\Service\\SecurityGuardService",
+            "methods_changed": [
+              "setEventDispatcher",
+              "dispatchEvent"
+            ]
+          },
+          {
+            "class": "Maatify\\SecurityGuard\\Event\\SecurityEventFactory",
+            "methods_changed": [
+              "fromLoginAttempt",
+              "blockCreated",
+              "blockRemoved",
+              "cleanup",
+              "custom"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "phase_id": "phase5",
+      "title": "High-Level Logic & Auto-Blocking Engine",
+      "version": "1.0.4",
+      "status": "completed",
+      "date": "2025-12-12",
+      "summary": "Added the first high-level security logic layer including handleAttempt(), dynamic SecurityConfig usage, getConfig(), AUTO blocking, success-reset logic, remaining-block reporting, and unified high-level event emission.",
+      "changes": {
+        "added": [
+          "src/Config/SecurityConfig.php",
+          "src/Config/SecurityConfigLoader.php",
+          "src/Enums/BlockTypeEnum.php (AUTO case)"
+        ],
+        "updated": [
+          "src/Service/SecurityGuardService.php",
+          "docs/README.full.md",
+          "docs/phases/README.phase5.md",
+          "README.md"
+        ],
+        "removed": []
+      },
+      "tests_result": {
+        "fake": "pending",
+        "real": "pending"
+      },
+      "coverage": "pending",
+      "documentation_files": [
+        "docs/phases/README.phase5.md",
+        "docs/README.full.md",
+        "README.md"
+      ],
+      "commit_metadata": {
+        "type": "feat",
+        "scope": "high-level-logic",
+        "message": "feat: introduce high-level security engine logic with auto-blocking, unified login attempt handling, runtime SecurityConfig, and config accessors",
+        "breaking": false
+      },
+      "git_patch": {
+        "generated": true,
+        "filename": "phase5.patch",
+        "format": "unified"
+      },
+      "reflection": {
+        "mode": "class-index",
+        "affected_classes": [
+          {
+            "class": "Maatify\\SecurityGuard\\Service\\SecurityGuardService",
+            "methods_changed": [
+              "setConfig",
+              "getConfig",
+              "handleAttempt",
+              "handleEvent",
+              "dispatchEvent"
+            ]
+          },
+          {
+            "class": "Maatify\\SecurityGuard\\Enums\\BlockTypeEnum",
+            "methods_changed": [
+              "AUTO (new enum case)"
+            ]
+          }
+        ]
+      }
+    }
+  ]
 }
