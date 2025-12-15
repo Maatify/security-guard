@@ -186,27 +186,51 @@ final class MySQLSecurityGuard extends AbstractSecurityGuardDriver
                     . 'AND TABLE_NAME IN (' . $placeholders . ')'
                 );
 
-                /** @var \PDOStatement|false $stmt */
-                if ($stmt instanceof \PDOStatement) {
+                if ($stmt !== false) {
+                    /** @var \PDOStatement $stmt */
                     $stmt->execute($required);
-                    /** @var array<int,string>|false $present */
-                    $present = $stmt->fetchAll(\PDO::FETCH_COLUMN, 0);
-                    if (is_array($present)) {
-                        $normalized = array_map('strtolower', $present);
-                        $missing = array_values(array_diff($required, $normalized));
+
+                    /** @var callable $fetcher */
+                    $fetcher = [$stmt, 'fetchAll'];
+
+                    if (is_callable($fetcher)) {
+                        /** @var array<int,string>|false $present */
+                        $present = $fetcher(7, 0); // 7 = \PDO::FETCH_COLUMN
+
+                        if (is_array($present)) {
+                            $normalized = array_map('strtolower', $present);
+                            $missing = array_values(array_diff($required, $normalized));
+                        } else {
+                            throw new \RuntimeException('IntegrationV2 MySQL fetch failed.');
+                        }
                     } else {
-                        throw new \RuntimeException('IntegrationV2 MySQL fetch failed.');
+                        throw new \RuntimeException('IntegrationV2 MySQL fetchAll missing.');
                     }
                 } else {
                     throw new \RuntimeException('IntegrationV2 MySQL prepare failed.');
                 }
             } else {
-                /** @var \Doctrine\DBAL\Schema\AbstractSchemaManager<mixed> $schemaManager */
-                $schemaManager = $raw->getSchemaManager();
-                $tables = $schemaManager->listTableNames();
+                /** @var callable $smGetter */
+                $smGetter = [$raw, 'getSchemaManager'];
 
-                $normalized = array_map('strtolower', $tables);
-                $missing = array_values(array_diff($required, $normalized));
+                if (is_callable($smGetter)) {
+                    $schemaManager = $smGetter();
+
+                    /** @var callable $lister */
+                    $lister = [$schemaManager, 'listTableNames'];
+
+                    if (is_callable($lister)) {
+                        /** @var string[] $tables */
+                        $tables = $lister();
+
+                        $normalized = array_map('strtolower', $tables);
+                        $missing = array_values(array_diff($required, $normalized));
+                    } else {
+                        throw new \RuntimeException('IntegrationV2 MySQL listTableNames missing.');
+                    }
+                } else {
+                    throw new \RuntimeException('IntegrationV2 MySQL getSchemaManager missing.');
+                }
             }
 
             if ($missing !== []) {
