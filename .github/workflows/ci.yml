@@ -228,13 +228,20 @@ jobs:
         run: |
           mysql -h $MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASS security_guard_dev < resources/sql/security_guard_schema.sql
 
-      - name: Init Mongo IntegrationV2 Collections
+#      - name: Init Mongo IntegrationV2 Collections
+#        run: |
+#          mongosh <<EOF
+#          use security_guard
+#          db.createCollection("sg_attempts")
+#          db.createCollection("sg_blocks")
+#          EOF
+      - name: Init Mongo IntegrationV2 Schema
         run: |
-          mongosh <<EOF
-          use security_guard
-          db.createCollection("sg_attempts")
-          db.createCollection("sg_blocks")
-          EOF
+          docker exec $(docker ps -q --filter "ancestor=mongo:7") \
+            mongosh "mongodb://127.0.0.1:27017/security_guard" --eval '
+              db.createCollection("sg_attempts");
+              db.createCollection("sg_blocks");
+            '
 
       # ---------------------------------------------
       # 9-C) Run IntegrationV2 Tests ONLY
