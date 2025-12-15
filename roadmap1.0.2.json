@@ -189,42 +189,232 @@
         "examples": { "tasks": [], "outputs": [] }
       }
     },
-
     {
       "id": "phase5_5",
       "title": "IntegrationV2 Stabilization",
-      "version": "1.0.0",
-      "status": "completed",
-      "summary": "Introduce authoritative real infrastructure integration tests (IntegrationV2) and deprecate legacy integration behavior.",
+      "version": "1.0.1",
+      "status": "in_progress",
+      "summary": "Stabilize IntegrationV2 as the single authoritative source of real infrastructure behavior, define explicit infrastructure contracts, and eliminate ambiguous or unsafe integration assumptions.",
       "tracks": {
-        "core": { "tasks": [], "outputs": [] },
+        "core": {
+          "tasks": [],
+          "outputs": []
+        },
         "tests": {
           "tasks": [
             "Create IntegrationV2 test layer",
             "Enforce resolver-based adapter creation",
             "Deprecate legacy integration tests",
-            "Exclude legacy tests from PHPUnit execution",
-            "Validate Redis/MySQL/Mongo real behavior",
-            "Fail explicitly when infrastructure is unavailable"
+            "Exclude legacy integration tests from PHPUnit execution",
+            "Validate Redis/MySQL/Mongo real behavior using real infrastructure",
+            "Fail explicitly when infrastructure is unavailable",
+            "Define explicit MySQL schema contract for IntegrationV2 tests",
+            "Provide schema bootstrap or documentation for MySQL IntegrationV2",
+            "Ensure MySQL integration tests fail clearly when schema is missing",
+            "Eliminate PHPUnit risky tests by enforcing explicit assertions or intent markers"
           ],
           "rules": [
             "IntegrationV2 is the ONLY source of truth for real infrastructure behavior",
-            "Legacy Integration tests are deprecated and excluded",
+            "Legacy integration tests are deprecated and excluded",
             "No mocks, fakes, or hardcoded hosts allowed in IntegrationV2",
-            "All adapters MUST be resolved via DatabaseResolver + EnvironmentLoader"
+            "All adapters MUST be resolved via DatabaseResolver + EnvironmentLoader",
+            "Security Guard MUST NOT auto-create or auto-migrate database schemas",
+            "Integration tests MUST clearly document all external infrastructure expectations"
           ],
           "outputs": [
             "tests/IntegrationV2/",
+            "tests/IntegrationV2/MySQL/schema.sql",
+            "tests/IntegrationV2/MySQL/README.md",
             "tests/Integration/README.md",
-            "phpunit.xml.dist (exclude legacy integration)"
+            "phpunit.xml.dist (exclude legacy integration)",
+            "docs/integration/INTEGRATION_V2_CONTRACT.md"
           ]
         },
-        "examples": { "tasks": [], "outputs": [] }
+        "examples": {
+          "tasks": [],
+          "outputs": []
+        }
+      }
+    },
+
+
+    {
+      "id": "phase6",
+      "title": "Config Normalization & DTO Injection Layer",
+      "version": "1.1.0",
+      "status": "pending",
+      "summary": "Introduce strict DTO-based configuration model. Eliminate all internal defaults and ensure the library is fully controlled by host-provided configuration.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Design SecurityGuardConfigDTO as the single configuration entry point",
+            "Design ActionRateLimitConfigDTO",
+            "Design GlobalRateLimitConfigDTO",
+            "Design BackoffPolicyConfigDTO",
+            "Remove all internal default configuration logic",
+            "Ensure all runtime logic consumes DTOs only"
+          ],
+          "outputs": [
+            "src/Config/DTO/SecurityGuardConfigDTO.php",
+            "src/Config/DTO/ActionRateLimitConfigDTO.php",
+            "src/Config/DTO/GlobalRateLimitConfigDTO.php",
+            "src/Config/DTO/BackoffPolicyConfigDTO.php"
+          ]
+        },
+        "tests": {
+          "tasks": [
+            "Validate DTO acceptance",
+            "Validate resolver wiring using DTOs"
+          ],
+          "outputs": []
+        },
+        "examples": {
+          "tasks": [
+            "Document host-driven configuration injection flow"
+          ],
+          "outputs": [
+            "docs/phases/README.phase6.md"
+          ]
+        }
       }
     },
 
     {
-      "id": "phase6",
+      "id": "phase7",
+      "title": "Global Rate Limiter Overlay Enforcement",
+      "version": "1.1.1",
+      "status": "pending",
+      "summary": "Introduce a real global rate limiter overlay that executes before all action-level enforcement using a dedicated DTO-based configuration.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Introduce GlobalRateLimiter enforcement layer",
+            "Ensure global limiter executes before action limiter",
+            "Ensure global limiter uses GlobalRateLimitConfigDTO only",
+            "Add explicit source attribution for global violations"
+          ],
+          "outputs": [
+            "src/RateLimit/GlobalRateLimiter.php",
+            "src/Enforcement/EnforcingRateLimiter.php"
+          ]
+        },
+        "tests": {
+          "tasks": [
+            "Unit tests for global-before-action enforcement order",
+            "Integration tests using Redis adapter"
+          ],
+          "outputs": []
+        },
+        "examples": {
+          "tasks": [],
+          "outputs": []
+        }
+      }
+    },
+
+    {
+      "id": "phase8",
+      "title": "Backoff Policy Hardening & banTime Integration",
+      "version": "1.1.2",
+      "status": "pending",
+      "summary": "Upgrade exponential backoff logic to a deterministic punishment strategy governed fully by DTO-provided policy, including banTime integration.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Introduce BackoffPolicyInterface",
+            "Implement ExponentialBackoffPolicy using BackoffPolicyConfigDTO",
+            "Integrate banTime as a hard cap on calculated delays",
+            "Remove any implicit backoff assumptions"
+          ],
+          "outputs": [
+            "src/Backoff/BackoffPolicyInterface.php",
+            "src/Backoff/ExponentialBackoffPolicy.php"
+          ]
+        },
+        "tests": {
+          "tasks": [
+            "Unit tests for backoff calculation",
+            "Ensure banTime cap is respected"
+          ],
+          "outputs": []
+        },
+        "examples": {
+          "tasks": [],
+          "outputs": []
+        }
+      }
+    },
+
+    {
+      "id": "phase9",
+      "title": "Phase 5 Coverage Completion & Validation",
+      "version": "1.1.3",
+      "status": "pending",
+      "summary": "Complete missing tests for Phase 5 core logic and enforcement layers to ensure production-grade stability.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "No production code changes allowed"
+          ],
+          "outputs": []
+        },
+        "tests": {
+          "tasks": [
+            "Cover EnforcingRateLimiter logic",
+            "Cover GlobalRateLimiter enforcement",
+            "Cover BackoffPolicy behavior",
+            "Use real Redis adapter only (no mocks)"
+          ],
+          "outputs": [
+            "tests/RateLimit/",
+            "tests/Backoff/"
+          ]
+        },
+        "examples": {
+          "tasks": [],
+          "outputs": []
+        }
+      }
+    },
+
+    {
+      "id": "phase10",
+      "title": "Internal API Freeze (No Public Release)",
+      "version": "1.2.0",
+      "status": "pending",
+      "summary": "Freeze internal APIs for stabilization and validation. No public release, no tags, no Packagist publishing.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Lock public API surface",
+            "Prohibit breaking changes without major version bump",
+            "Tag stable release"
+          ],
+          "outputs": [
+            "CHANGELOG.md",
+            "README.md"
+          ]
+        },
+        "tests": {
+          "tasks": [
+            "Final CI validation",
+            "Coverage threshold enforcement"
+          ],
+          "outputs": []
+        },
+        "examples": {
+          "tasks": [
+            "Final integration documentation"
+          ],
+          "outputs": [
+            "docs/phases/README.phase10.md"
+          ]
+        }
+      }
+    },
+
+    {
+      "id": "phase11",
       "title": "Rate Limiter Bridge",
       "version": "1.0.0",
       "status": "pending",
@@ -259,7 +449,7 @@
     },
 
     {
-      "id": "phase7",
+      "id": "phase12",
       "title": "Audit DTO & Storage",
       "version": "1.0.0",
       "status": "pending",
@@ -282,7 +472,7 @@
     },
 
     {
-      "id": "phase8",
+      "id": "phase13",
       "title": "Mongo Audit Forwarding",
       "version": "1.0.0",
       "status": "pending",
@@ -304,7 +494,7 @@
     },
 
     {
-      "id": "phase9",
+      "id": "phase14",
       "title": "Audit History API",
       "version": "1.0.0",
       "status": "pending",
@@ -326,7 +516,7 @@
     },
 
     {
-      "id": "phase10",
+      "id": "phase15",
       "title": "Audit Filters & Indexes",
       "version": "1.0.0",
       "status": "pending",
@@ -348,7 +538,7 @@
     },
 
     {
-      "id": "phase11",
+      "id": "phase16",
       "title": "PSR Logger Integration",
       "version": "1.0.0",
       "status": "pending",
@@ -370,7 +560,7 @@
     },
 
     {
-      "id": "phase12",
+      "id": "phase17",
       "title": "Telegram Alerts",
       "version": "1.0.0",
       "status": "pending",
@@ -392,7 +582,7 @@
     },
 
     {
-      "id": "phase13",
+      "id": "phase18",
       "title": "Webhook Dispatcher",
       "version": "1.0.0",
       "status": "pending",
@@ -414,7 +604,7 @@
     },
 
     {
-      "id": "phase14",
+      "id": "phase19",
       "title": "Retry Engine & Delivery Tests",
       "version": "1.0.0",
       "status": "pending",
@@ -439,7 +629,7 @@
     },
 
     {
-      "id": "phase15",
+      "id": "phase20",
       "title": "Monitoring APIs",
       "version": "1.0.0",
       "status": "pending",
@@ -461,7 +651,7 @@
     },
 
     {
-      "id": "phase16",
+      "id": "phase21",
       "title": "Unit Consistency Tests",
       "version": "1.0.0",
       "status": "pending",
@@ -482,7 +672,7 @@
     },
 
     {
-      "id": "phase17",
+      "id": "phase22",
       "title": "Attack Simulations",
       "version": "1.0.0",
       "status": "pending",
@@ -503,7 +693,7 @@
     },
 
     {
-      "id": "phase18",
+      "id": "phase23",
       "title": "Redis & Mongo Stress",
       "version": "1.0.0",
       "status": "pending",
@@ -524,7 +714,7 @@
     },
 
     {
-      "id": "phase19",
+      "id": "phase24",
       "title": "Coverage Hardening",
       "version": "1.0.0",
       "status": "pending",
@@ -545,7 +735,7 @@
     },
 
     {
-      "id": "phase20",
+      "id": "phase25",
       "title": "Documentation & Packagist Release",
       "version": "1.0.0",
       "status": "pending",
