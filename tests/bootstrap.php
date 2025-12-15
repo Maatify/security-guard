@@ -40,6 +40,12 @@ use Maatify\Bootstrap\Core\EnvironmentLoader;
 // Override Predis with a fake client BEFORE autoload loads original Predis classes
 require __DIR__ . '/Fake/FakePredisClient.php';
 
+// Polyfills for PHPStan analysis (Redis, PDO, DBAL, Mongo)
+require_once __DIR__ . '/Polyfill/RedisPolyfill.php';
+require_once __DIR__ . '/Polyfill/PdoPolyfill.php';
+require_once __DIR__ . '/Polyfill/DbalPolyfill.php';
+require_once __DIR__ . '/Polyfill/MongoPolyfill.php';
+
 // ------------------------------------------------------------
 // 1) Load composer autoload
 // ------------------------------------------------------------

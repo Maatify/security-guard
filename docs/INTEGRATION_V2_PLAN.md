@@ -160,7 +160,7 @@ tests/
 ## 🧠 Relationship Between Unit & Integration
 
 | Layer         | Purpose           | Uses Fakes |
-| ------------- | ----------------- | ---------- |
+|---------------|-------------------|------------|
 | Unit          | Logic correctness | ✅ Yes      |
 | Coverage      | Edge paths        | ✅ Yes      |
 | IntegrationV2 | Reality check     | ❌ No       |
@@ -198,5 +198,3 @@ IntegrationV2 is considered complete when:
 > Tests exist to protect production.**
 
 ---
-
-لو حابب، الخطوة الجاية تكون واحدة من دول (اختار):

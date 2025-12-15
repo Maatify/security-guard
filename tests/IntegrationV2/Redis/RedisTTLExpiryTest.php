@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace Maatify\SecurityGuard\Tests\IntegrationV2\Redis;
 
+use Maatify\Bootstrap\Core\EnvironmentLoader;
 use Maatify\Common\Contracts\Adapter\AdapterInterface;
 use Maatify\DataAdapters\Core\DatabaseResolver;
 use Maatify\DataAdapters\Core\EnvironmentConfig;
@@ -40,7 +41,12 @@ class RedisTTLExpiryTest extends BaseIntegrationV2TestCase
     protected function createAdapter(): AdapterInterface
     {
         // STRICT: Use DatabaseResolver to fetch the configured Redis adapter.
-        $config = new EnvironmentConfig(__DIR__ . '/../../');
+        $rootPath = dirname(__DIR__, 3);
+
+        // Explicitly load environment to ensure test isolation and strict mode compliance
+        (new EnvironmentLoader($rootPath))->load();
+
+        $config = new EnvironmentConfig($rootPath);
         $resolver = new DatabaseResolver($config);
 
         // Resolve 'redis.cache' profile with auto-connect enabled

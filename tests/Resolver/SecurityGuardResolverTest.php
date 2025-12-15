@@ -2,232 +2,137 @@
 
 declare(strict_types=1);
 
-// -----------------------------------------------------------------------------
-//  Polyfills for missing extensions/libraries in the test environment
-// -----------------------------------------------------------------------------
+namespace Maatify\SecurityGuard\Tests\Resolver;
 
-namespace {
-    if (!class_exists('Redis')) {
-        class Redis {}
-    }
-    if (!class_exists('PDO')) {
-        class PDO {}
-    }
-}
+use Maatify\Common\Contracts\Adapter\AdapterInterface;
+use Maatify\SecurityGuard\Drivers\Mongo\MongoSecurityGuard;
+use Maatify\SecurityGuard\Drivers\MySQL\MySQLSecurityGuard;
+use Maatify\SecurityGuard\Drivers\RedisSecurityGuard;
+use Maatify\SecurityGuard\Identifier\Contracts\IdentifierStrategyInterface;
+use Maatify\SecurityGuard\Resolver\SecurityGuardResolver;
+use PHPUnit\Framework\TestCase;
 
-namespace Doctrine\DBAL {
-    if (!class_exists('Connection')) {
-        class Connection {}
-    }
-}
+class SecurityGuardResolverTest extends TestCase
+{
+    private SecurityGuardResolver $resolver;
 
-namespace MongoDB {
-    if (!class_exists('Database')) {
-        class Database {
-            /**
-             * @param string               $name
-             * @param array<string, mixed> $options
-             */
-            public function selectCollection(string $name, array $options = []): Collection {
-                return new Collection();
-            }
-        }
-    }
-    if (!class_exists('Collection')) {
-        class Collection {
-            /**
-             * @param mixed                $keys
-             * @param array<string, mixed> $options
-             */
-            public function createIndex(mixed $keys, array $options = []): mixed {
-                return '';
-            }
-
-            /**
-             * @param mixed                $filter
-             * @param array<string, mixed> $options
-             */
-            public function countDocuments(mixed $filter = [], array $options = []): int {
-                return 0;
-            }
-
-            /**
-             * @param mixed                $document
-             * @param array<string, mixed> $options
-             */
-            public function insertOne(mixed $document, array $options = []): mixed {
-                return null;
-            }
-
-            /**
-             * @param mixed                $filter
-             * @param array<string, mixed> $options
-             * @return array<string, mixed>|object|null
-             */
-            public function findOne(mixed $filter = [], array $options = []): mixed {
-                return null;
-            }
-
-            /**
-             * @param mixed                $filter
-             * @param mixed                $update
-             * @param array<string, mixed> $options
-             */
-            public function updateOne(mixed $filter, mixed $update, array $options = []): mixed {
-                return null;
-            }
-
-            /**
-             * @param mixed                $filter
-             * @param array<string, mixed> $options
-             */
-            public function deleteOne(mixed $filter, array $options = []): mixed {
-                return null;
-            }
-
-            /**
-             * @param mixed                $filter
-             * @param array<string, mixed> $options
-             */
-            public function deleteMany(mixed $filter, array $options = []): mixed {
-                return null;
-            }
-        }
-    }
-}
-
-namespace Maatify\SecurityGuard\Tests\Resolver {
-
-    use Maatify\Common\Contracts\Adapter\AdapterInterface;
-    use Maatify\SecurityGuard\Drivers\Mongo\MongoSecurityGuard;
-    use Maatify\SecurityGuard\Drivers\MySQL\MySQLSecurityGuard;
-    use Maatify\SecurityGuard\Drivers\RedisSecurityGuard;
-    use Maatify\SecurityGuard\Identifier\Contracts\IdentifierStrategyInterface;
-    use Maatify\SecurityGuard\Resolver\SecurityGuardResolver;
-    use PHPUnit\Framework\TestCase;
-
-    class SecurityGuardResolverTest extends TestCase
+    protected function setUp(): void
     {
-        private SecurityGuardResolver $resolver;
+        $this->resolver = new SecurityGuardResolver();
+    }
 
-        protected function setUp(): void
-        {
-            $this->resolver = new SecurityGuardResolver();
+    public function testResolveRedisNative(): void
+    {
+        $adapter = $this->createMock(AdapterInterface::class);
+        $strategy = $this->createMock(IdentifierStrategyInterface::class);
+
+        $redis = $this->getMockBuilder(\Redis::class)
+                      ->disableOriginalConstructor()
+                      ->getMock();
+
+        $adapter->expects($this->atLeastOnce())
+            ->method('getDriver')
+            ->willReturn($redis);
+
+        $guard = $this->resolver->resolve($adapter, $strategy);
+
+        $this->assertInstanceOf(RedisSecurityGuard::class, $guard);
+    }
+
+    public function testResolveRedisPredis(): void
+    {
+        $adapter = $this->createMock(AdapterInterface::class);
+        $strategy = $this->createMock(IdentifierStrategyInterface::class);
+
+        if (!class_exists(\Predis\Client::class)) {
+            $this->markTestSkipped('Predis\Client class not found');
         }
 
-        public function testResolveRedisNative(): void
-        {
-            $adapter = $this->createMock(AdapterInterface::class);
-            $strategy = $this->createMock(IdentifierStrategyInterface::class);
+        $predis = $this->getMockBuilder(\Predis\Client::class)
+                       ->disableOriginalConstructor()
+                       ->getMock();
 
-            $redis = $this->getMockBuilder(\Redis::class)
-                          ->disableOriginalConstructor()
-                          ->getMock();
+        $adapter->expects($this->atLeastOnce())
+            ->method('getDriver')
+            ->willReturn($predis);
 
-            $adapter->expects($this->atLeastOnce())
-                ->method('getDriver')
-                ->willReturn($redis);
+        $guard = $this->resolver->resolve($adapter, $strategy);
 
-            $guard = $this->resolver->resolve($adapter, $strategy);
+        $this->assertInstanceOf(RedisSecurityGuard::class, $guard);
+    }
 
-            $this->assertInstanceOf(RedisSecurityGuard::class, $guard);
-        }
+    public function testResolveMySQLPDO(): void
+    {
+        $adapter = $this->createMock(AdapterInterface::class);
+        $strategy = $this->createMock(IdentifierStrategyInterface::class);
 
-        public function testResolveRedisPredis(): void
-        {
-            $adapter = $this->createMock(AdapterInterface::class);
-            $strategy = $this->createMock(IdentifierStrategyInterface::class);
+        $pdo = $this->getMockBuilder(\PDO::class)
+                    ->disableOriginalConstructor()
+                    ->getMock();
 
-            if (!class_exists(\Predis\Client::class)) {
-                $this->markTestSkipped('Predis\Client class not found');
-            }
+        $adapter->expects($this->atLeastOnce())
+            ->method('getDriver')
+            ->willReturn($pdo);
 
-            $predis = $this->getMockBuilder(\Predis\Client::class)
-                           ->disableOriginalConstructor()
-                           ->getMock();
+        $guard = $this->resolver->resolve($adapter, $strategy);
 
-            $adapter->expects($this->atLeastOnce())
-                ->method('getDriver')
-                ->willReturn($predis);
+        $this->assertInstanceOf(MySQLSecurityGuard::class, $guard);
+    }
 
-            $guard = $this->resolver->resolve($adapter, $strategy);
+    public function testResolveMySQLDoctrine(): void
+    {
+        $adapter = $this->createMock(AdapterInterface::class);
+        $strategy = $this->createMock(IdentifierStrategyInterface::class);
 
-            $this->assertInstanceOf(RedisSecurityGuard::class, $guard);
-        }
+        $dbal = $this->getMockBuilder(\Doctrine\DBAL\Connection::class)
+                     ->disableOriginalConstructor()
+                     ->getMock();
 
-        public function testResolveMySQLPDO(): void
-        {
-            $adapter = $this->createMock(AdapterInterface::class);
-            $strategy = $this->createMock(IdentifierStrategyInterface::class);
+        $adapter->expects($this->atLeastOnce())
+            ->method('getDriver')
+            ->willReturn($dbal);
 
-            $pdo = $this->getMockBuilder(\PDO::class)
+        $guard = $this->resolver->resolve($adapter, $strategy);
+
+        $this->assertInstanceOf(MySQLSecurityGuard::class, $guard);
+    }
+
+    public function testResolveMongo(): void
+    {
+        $adapter = $this->createMock(AdapterInterface::class);
+        $strategy = $this->createMock(IdentifierStrategyInterface::class);
+
+        $mongoDb = $this->getMockBuilder(\MongoDB\Database::class)
                         ->disableOriginalConstructor()
                         ->getMock();
 
-            $adapter->expects($this->atLeastOnce())
-                ->method('getDriver')
-                ->willReturn($pdo);
+        $collection = $this->getMockBuilder(\MongoDB\Collection::class)
+                           ->disableOriginalConstructor()
+                           ->getMock();
 
-            $guard = $this->resolver->resolve($adapter, $strategy);
+        $mongoDb->method('selectCollection')->willReturn($collection);
 
-            $this->assertInstanceOf(MySQLSecurityGuard::class, $guard);
-        }
+        $adapter->expects($this->atLeastOnce())
+            ->method('getDriver')
+            ->willReturn($mongoDb);
 
-        public function testResolveMySQLDoctrine(): void
-        {
-            $adapter = $this->createMock(AdapterInterface::class);
-            $strategy = $this->createMock(IdentifierStrategyInterface::class);
+        $guard = $this->resolver->resolve($adapter, $strategy);
 
-            $dbal = $this->getMockBuilder(\Doctrine\DBAL\Connection::class)
-                         ->disableOriginalConstructor()
-                         ->getMock();
+        $this->assertInstanceOf(MongoSecurityGuard::class, $guard);
+    }
 
-            $adapter->expects($this->atLeastOnce())
-                ->method('getDriver')
-                ->willReturn($dbal);
+    public function testResolveUnsupported(): void
+    {
+        $adapter = $this->createMock(AdapterInterface::class);
+        $strategy = $this->createMock(IdentifierStrategyInterface::class);
 
-            $guard = $this->resolver->resolve($adapter, $strategy);
+        $adapter->expects($this->atLeastOnce())
+            ->method('getDriver')
+            ->willReturn(new \stdClass());
 
-            $this->assertInstanceOf(MySQLSecurityGuard::class, $guard);
-        }
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Unsupported SecurityGuard driver type');
 
-        public function testResolveMongo(): void
-        {
-            $adapter = $this->createMock(AdapterInterface::class);
-            $strategy = $this->createMock(IdentifierStrategyInterface::class);
-
-            $mongoDb = $this->getMockBuilder(\MongoDB\Database::class)
-                            ->disableOriginalConstructor()
-                            ->getMock();
-
-            $collection = $this->getMockBuilder(\MongoDB\Collection::class)
-                               ->disableOriginalConstructor()
-                               ->getMock();
-
-            $mongoDb->method('selectCollection')->willReturn($collection);
-
-            $adapter->expects($this->atLeastOnce())
-                ->method('getDriver')
-                ->willReturn($mongoDb);
-
-            $guard = $this->resolver->resolve($adapter, $strategy);
-
-            $this->assertInstanceOf(MongoSecurityGuard::class, $guard);
-        }
-
-        public function testResolveUnsupported(): void
-        {
-            $adapter = $this->createMock(AdapterInterface::class);
-            $strategy = $this->createMock(IdentifierStrategyInterface::class);
-
-            $adapter->expects($this->atLeastOnce())
-                ->method('getDriver')
-                ->willReturn(new \stdClass());
-
-            $this->expectException(\RuntimeException::class);
-            $this->expectExceptionMessage('Unsupported SecurityGuard driver type');
-
-            $this->resolver->resolve($adapter, $strategy);
-        }
+        $this->resolver->resolve($adapter, $strategy);
     }
 }
