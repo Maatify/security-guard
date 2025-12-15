@@ -246,14 +246,21 @@ jobs:
       # ---------------------------------------------
       # 9-C) Run IntegrationV2 Tests ONLY
       # ---------------------------------------------
-      - name: 🧪 Run IntegrationV2 Tests
+#      - name: 🧪 Run IntegrationV2 Tests
+#        run: |
+#          vendor/bin/phpunit \
+#            --configuration phpunit.xml.dist \
+#            --testsuite integrationv2 \
+#            --coverage-clover coverage.xml \
+#            --coverage-html coverage \
+#            | tee phpunit-integration.log
+      - name: 🧪 Run PHPUnit with Coverage
         run: |
           vendor/bin/phpunit \
             --configuration phpunit.xml.dist \
-            --testsuite integrationv2 \
             --coverage-clover coverage.xml \
             --coverage-html coverage \
-            | tee phpunit-integration.log
+            | tee phpunit.log
 
 
       - name: Extract Coverage % (Clover)
