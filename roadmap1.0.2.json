@@ -194,7 +194,13 @@
       "title": "IntegrationV2 Stabilization",
       "version": "1.0.1",
       "status": "in_progress",
-      "summary": "Stabilize IntegrationV2 as the single authoritative source of real infrastructure behavior, define explicit infrastructure contracts, and eliminate ambiguous or unsafe integration assumptions.",
+      "summary": "Stabilize IntegrationV2 as the single authoritative source of real infrastructure behavior by enforcing explicit infrastructure contracts, deterministic failure semantics, and zero hidden assumptions.",
+      "principles": [
+        "Security Guard must not auto-create or auto-migrate database schemas",
+        "All infrastructure expectations must be explicit and documented",
+        "Integration failures must be deterministic and human-readable",
+        "No risky or ambiguous tests are allowed"
+      ],
       "tracks": {
         "core": {
           "tasks": [],
@@ -202,41 +208,165 @@
         },
         "tests": {
           "tasks": [
-            "Create IntegrationV2 test layer",
-            "Enforce resolver-based adapter creation",
-            "Deprecate legacy integration tests",
-            "Exclude legacy integration tests from PHPUnit execution",
-            "Validate Redis/MySQL/Mongo real behavior using real infrastructure",
-            "Fail explicitly when infrastructure is unavailable",
-            "Define explicit MySQL schema contract for IntegrationV2 tests",
-            "Provide schema bootstrap or documentation for MySQL IntegrationV2",
-            "Ensure MySQL integration tests fail clearly when schema is missing",
-            "Eliminate PHPUnit risky tests by enforcing explicit assertions or intent markers"
+            {
+              "id": "integrationv2_base",
+              "description": "Create IntegrationV2 test layer",
+              "status": "completed",
+              "done_criteria": [
+                "tests/IntegrationV2 directory exists",
+                "IntegrationV2 tests are isolated from legacy integration tests"
+              ]
+            },
+            {
+              "id": "resolver_enforcement",
+              "description": "Enforce resolver-based adapter creation",
+              "status": "completed",
+              "done_criteria": [
+                "All IntegrationV2 tests resolve adapters via DatabaseResolver",
+                "No adapter instantiated directly in tests"
+              ]
+            },
+            {
+              "id": "legacy_deprecation",
+              "description": "Deprecate legacy integration tests",
+              "status": "completed",
+              "done_criteria": [
+                "Legacy integration tests marked deprecated",
+                "Legacy tests excluded from CI execution"
+              ]
+            },
+            {
+              "id": "phpunit_exclusion",
+              "description": "Exclude legacy integration tests from PHPUnit execution",
+              "status": "completed",
+              "done_criteria": [
+                "phpunit.xml.dist excludes legacy integration suites",
+                "Only IntegrationV2 runs in CI"
+              ]
+            },
+            {
+              "id": "real_infra_validation",
+              "description": "Validate Redis/MySQL/Mongo real behavior using real infrastructure",
+              "status": "completed",
+              "done_criteria": [
+                "Redis IntegrationV2 tests pass on real Redis",
+                "MySQL IntegrationV2 tests execute against real MySQL",
+                "Mongo IntegrationV2 tests execute against real MongoDB"
+              ]
+            },
+            {
+              "id": "decision_lock",
+              "description": "Lock architectural decision: security-guard must not create or migrate schemas",
+              "status": "pending",
+              "done_criteria": [
+                "No CREATE TABLE logic exists in drivers",
+                "No schema auto-bootstrap exists in the library",
+                "Decision documented inside IntegrationV2 contract"
+              ]
+            },
+            {
+              "id": "mysql_schema_contract",
+              "description": "Define explicit MySQL schema contract for IntegrationV2 tests",
+              "status": "pending",
+              "outputs": [
+                "tests/IntegrationV2/MySQL/schema.sql"
+              ],
+              "done_criteria": [
+                "schema.sql defines sg_attempts table",
+                "schema.sql defines sg_blocks table",
+                "No triggers, procedures, or seed data included"
+              ]
+            },
+            {
+              "id": "mysql_schema_docs",
+              "description": "Document MySQL IntegrationV2 schema expectations and setup instructions",
+              "status": "pending",
+              "outputs": [
+                "tests/IntegrationV2/MySQL/README.md"
+              ],
+              "done_criteria": [
+                "Database name expectations documented",
+                "Manual schema setup instructions included",
+                "Explicit note that tests fail if schema is missing"
+              ]
+            },
+            {
+              "id": "mysql_clear_failure",
+              "description": "Ensure IntegrationV2 MySQL tests fail clearly when schema is missing",
+              "status": "pending",
+              "done_criteria": [
+                "Missing schema results in explicit test failure or skip",
+                "No raw PDOException bubbles to CI output",
+                "Failure message mentions missing table name"
+              ]
+            },
+            {
+              "id": "risky_test_elimination",
+              "description": "Eliminate PHPUnit risky integration tests",
+              "status": "pending",
+              "done_criteria": [
+                "All integration tests contain explicit assertions OR intent markers",
+                "No risky tests reported by PHPUnit"
+              ]
+            },
+            {
+              "id": "integration_v2_contract_doc",
+              "description": "Create global IntegrationV2 contract document",
+              "status": "pending",
+              "outputs": [
+                "docs/integration/INTEGRATION_V2_CONTRACT.md"
+              ],
+              "done_criteria": [
+                "Redis expectations documented",
+                "MySQL expectations documented",
+                "Mongo expectations documented",
+                "Host vs library responsibilities clearly separated"
+              ]
+            },
+            {
+              "id": "phpunit_config_validation",
+              "description": "Validate PHPUnit configuration integrity for IntegrationV2",
+              "status": "pending",
+              "done_criteria": [
+                "IntegrationV2 suite runs in isolation",
+                "No unexpected test suites executed"
+              ]
+            },
+            {
+              "id": "ci_gate_validation",
+              "description": "Run CI validation gate for IntegrationV2 stability",
+              "status": "pending",
+              "done_criteria": [
+                "No test errors",
+                "No risky tests",
+                "All infrastructure failures are explicit and readable"
+              ]
+            },
+            {
+              "id": "phase_closure",
+              "description": "Close Phase 5.5",
+              "status": "pending",
+              "done_criteria": [
+                "All Phase 5.5 tasks marked as completed",
+                "Phase status updated to completed",
+                "Roadmap committed with final state"
+              ]
+            }
           ],
           "rules": [
             "IntegrationV2 is the ONLY source of truth for real infrastructure behavior",
-            "Legacy integration tests are deprecated and excluded",
-            "No mocks, fakes, or hardcoded hosts allowed in IntegrationV2",
-            "All adapters MUST be resolved via DatabaseResolver + EnvironmentLoader",
-            "Security Guard MUST NOT auto-create or auto-migrate database schemas",
-            "Integration tests MUST clearly document all external infrastructure expectations"
-          ],
-          "outputs": [
-            "tests/IntegrationV2/",
-            "tests/IntegrationV2/MySQL/schema.sql",
-            "tests/IntegrationV2/MySQL/README.md",
-            "tests/Integration/README.md",
-            "phpunit.xml.dist (exclude legacy integration)",
-            "docs/integration/INTEGRATION_V2_CONTRACT.md"
+            "No mocks, fakes, or hardcoded infrastructure are allowed",
+            "Infrastructure must be prepared by the host system",
+            "Tests must fail fast and clearly when contracts are violated"
           ]
         },
         "examples": {
           "tasks": [],
           "outputs": []
         }
-      }
+      },
+      "closure_rule": "Phase 5.5 can be marked as completed only when all tasks have status = completed."
     },
-
 
     {
       "id": "phase6",
