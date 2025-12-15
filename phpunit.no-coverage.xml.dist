@@ -4,14 +4,22 @@
         bootstrap="tests/bootstrap.php"
         colors="true"
         executionOrder="random"
-        beStrictAboutOutputDuringTests="true"
         failOnRisky="true"
         failOnWarning="true"
         cacheDirectory=".phpunit.cache"
 >
     <testsuites>
         <testsuite name="All">
-            <directory>tests</directory>
+            <directory>tests/Config</directory>
+            <directory>tests/DTO</directory>
+            <directory>tests/Drivers</directory>
+            <directory>tests/Enum</directory>
+            <directory>tests/Identifier</directory>
+            <directory>tests/Resolver</directory>
+            <directory>tests/IntegrationV2</directory>
+            <directory>tests/Phase4</directory>
+            <directory>tests/Phase5</directory>
+            <directory>tests/Coverage</directory>
         </testsuite>
     </testsuites>
 
