@@ -185,16 +185,31 @@ final class MySQLSecurityGuard extends AbstractSecurityGuardDriver
                     . 'WHERE TABLE_SCHEMA = DATABASE() '
                     . 'AND TABLE_NAME IN (' . $placeholders . ')'
                 );
-                $stmt->execute($required);
-                /** @var array<int,string> $present */
-                $present = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
-                $normalized = array_map('strtolower', $present);
-                $missing = array_values(array_diff($required, $normalized));
+
+                if ($stmt instanceof \PDOStatement) {
+                    $stmt->execute($required);
+                    /** @var array<int,string>|false $present */
+                    $present = $stmt->fetchAll(\PDO::FETCH_COLUMN, 0);
+                    if (is_array($present)) {
+                        $normalized = array_map('strtolower', $present);
+                        $missing = array_values(array_diff($required, $normalized));
+                    } else {
+                        throw new \RuntimeException('IntegrationV2 MySQL fetch failed.');
+                    }
+                } else {
+                    throw new \RuntimeException('IntegrationV2 MySQL prepare failed.');
+                }
             } else {
+                /** @var \Doctrine\DBAL\Schema\AbstractSchemaManager $schemaManager */
                 $schemaManager = $raw->createSchemaManager();
                 $tables = $schemaManager->listTableNames();
-                $normalized = array_map('strtolower', $tables);
-                $missing = array_values(array_diff($required, $normalized));
+
+                if (is_array($tables)) {
+                    $normalized = array_map('strtolower', $tables);
+                    $missing = array_values(array_diff($required, $normalized));
+                } else {
+                    throw new \RuntimeException('IntegrationV2 MySQL schema manager failed.');
+                }
             }
 
             if ($missing !== []) {

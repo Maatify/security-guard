@@ -72,9 +72,13 @@ final class MongoSecurityGuard extends AbstractSecurityGuardDriver
         try {
             $existing = [];
 
-            foreach ($this->db->listCollections() as $collectionInfo) {
-                if (method_exists($collectionInfo, 'getName')) {
-                    $existing[] = $collectionInfo->getName();
+            $collections = $this->db->listCollections();
+
+            if (is_iterable($collections)) {
+                foreach ($collections as $collectionInfo) {
+                    if (is_object($collectionInfo) && method_exists($collectionInfo, 'getName')) {
+                        $existing[] = $collectionInfo->getName();
+                    }
                 }
             }
 
