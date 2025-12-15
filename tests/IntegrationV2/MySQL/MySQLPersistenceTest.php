@@ -68,10 +68,13 @@ class MySQLPersistenceTest extends BaseIntegrationV2TestCase
         $this->assertNotNull($this->guard1);
         $this->assertNotNull($this->guard2);
 
+        $guard1 = $this->guard1;
+        $guard2 = $this->guard2;
+
         $ip = '10.0.0.10';
         $subject = 'persist_user_' . bin2hex(random_bytes(4));
 
-        $this->guard1->resetAttempts($ip, $subject);
+        $guard1->resetAttempts($ip, $subject);
 
         $attempt = new LoginAttemptDTO(
             ip: $ip,
@@ -81,13 +84,13 @@ class MySQLPersistenceTest extends BaseIntegrationV2TestCase
         );
 
         // Record failure in Guard 1
-        $this->guard1->recordFailure($attempt);
+        $guard1->recordFailure($attempt);
 
         // Verify count is visible in Guard 2 (simulating next request)
         // Since MySQLSecurityGuard doesn't have explicit `getAttempts` (it returns int on recordFailure),
         // we can verify by recording another failure and checking the incremented count.
 
-        $count = $this->guard2->recordFailure($attempt);
+        $count = $guard2->recordFailure($attempt);
         $this->assertSame(2, $count, 'Failure count should persist and increment to 2 in second guard instance');
     }
 
@@ -96,11 +99,14 @@ class MySQLPersistenceTest extends BaseIntegrationV2TestCase
         $this->assertNotNull($this->guard1);
         $this->assertNotNull($this->guard2);
 
+        $guard1 = $this->guard1;
+        $guard2 = $this->guard2;
+
         $ip = '10.0.0.11';
         $subject = 'persist_block_' . bin2hex(random_bytes(4));
 
-        $this->guard1->resetAttempts($ip, $subject);
-        $this->guard1->unblock($ip, $subject);
+        $guard1->resetAttempts($ip, $subject);
+        $guard1->unblock($ip, $subject);
 
         $blockDTO = new SecurityBlockDTO(
             ip: $ip,
@@ -111,12 +117,12 @@ class MySQLPersistenceTest extends BaseIntegrationV2TestCase
         );
 
         // Block in Guard 1
-        $this->guard1->block($blockDTO);
+        $guard1->block($blockDTO);
 
         // Verify blocked in Guard 2
-        $this->assertTrue($this->guard2->isBlocked($ip, $subject), 'Block state should persist to second guard instance');
+        $this->assertTrue($guard2->isBlocked($ip, $subject), 'Block state should persist to second guard instance');
 
-        $retrieved = $this->guard2->getActiveBlock($ip, $subject);
+        $retrieved = $guard2->getActiveBlock($ip, $subject);
         $this->assertNotNull($retrieved);
         $this->assertSame($subject, $retrieved->subject);
     }
