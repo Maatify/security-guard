@@ -1,7 +1,7 @@
 {
-  "roadmap_version": "1.0.2",
+  "roadmap_version": "1.0.3",
   "project": "maatify/security-guard",
-  "note": "v1.0.2 introduces the new unified SecurityEventDTO architecture and shifts phase numbering forward accordingly.",
+  "note": "introduces the new unified SecurityEventDTO architecture and shifts phase numbering forward accordingly.",
 
   "core_dependencies": {
     "storage_layer": "maatify/data-adapters",
@@ -394,7 +394,7 @@
             },
             {
               "id": "phase_closure",
-              "description": "Close Phase 5.5",
+              "description": "Close Phase 7",
               "status": "pending",
               "done_criteria": [
                 "All Phase 5.5 tasks marked as completed",
