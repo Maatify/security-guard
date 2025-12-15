@@ -1,5 +1,5 @@
 {
-  "roadmap_version": "1.0.3",
+  "roadmap_version": "1.0.4",
   "project": "maatify/security-guard",
   "note": "introduces the new unified SecurityEventDTO architecture and shifts phase numbering forward accordingly.",
 
@@ -195,7 +195,7 @@
       "id": "phase6",
       "title": "Driver Lifecycle & Resolver Responsibility Contract",
       "version": "1.0.0",
-      "status": "pending",
+      "status": "blocking",
       "summary": "Formalize driver lifecycle states and strictly define resolver responsibilities to eliminate side effects, duplicated initialization, and implicit infrastructure access.",
       "tracks": {
         "core": {
@@ -239,71 +239,16 @@
       ]
     },
 
+
     {
       "id": "phase7",
-      "title": "IntegrationV2 Stabilization",
-      "version": "1.0.1",
+      "title": "IntegrationV2 Contracts & Architectural Decision Lock",
+      "version": "1.1.1",
       "status": "in_progress",
-      "summary": "Stabilize IntegrationV2 as the single authoritative source of real infrastructure behavior by enforcing explicit infrastructure contracts, deterministic failure semantics, and zero hidden assumptions.",
-      "principles": [
-        "Security Guard must not auto-create or auto-migrate database schemas",
-        "All infrastructure expectations must be explicit and documented",
-        "Integration failures must be deterministic and human-readable",
-        "No risky or ambiguous tests are allowed"
-      ],
+      "summary": "Lock IntegrationV2 architectural decisions and define explicit host vs library responsibilities.",
       "tracks": {
-        "core": {
-          "tasks": [],
-          "outputs": []
-        },
         "tests": {
           "tasks": [
-            {
-              "id": "integrationv2_base",
-              "description": "Create IntegrationV2 test layer",
-              "status": "completed",
-              "done_criteria": [
-                "tests/IntegrationV2 directory exists",
-                "IntegrationV2 tests are isolated from legacy integration tests"
-              ]
-            },
-            {
-              "id": "resolver_enforcement",
-              "description": "Enforce resolver-based adapter creation",
-              "status": "completed",
-              "done_criteria": [
-                "All IntegrationV2 tests resolve adapters via DatabaseResolver",
-                "No adapter instantiated directly in tests"
-              ]
-            },
-            {
-              "id": "legacy_deprecation",
-              "description": "Deprecate legacy integration tests",
-              "status": "completed",
-              "done_criteria": [
-                "Legacy integration tests marked deprecated",
-                "Legacy tests excluded from CI execution"
-              ]
-            },
-            {
-              "id": "phpunit_exclusion",
-              "description": "Exclude legacy integration tests from PHPUnit execution",
-              "status": "completed",
-              "done_criteria": [
-                "phpunit.xml.dist excludes legacy integration suites",
-                "Only IntegrationV2 runs in CI"
-              ]
-            },
-            {
-              "id": "real_infra_validation",
-              "description": "Validate Redis/MySQL/Mongo real behavior using real infrastructure",
-              "status": "completed",
-              "done_criteria": [
-                "Redis IntegrationV2 tests pass on real Redis",
-                "MySQL IntegrationV2 tests execute against real MySQL",
-                "Mongo IntegrationV2 tests execute against real MongoDB"
-              ]
-            },
             {
               "id": "decision_lock",
               "description": "Lock architectural decision: security-guard must not create or migrate schemas",
@@ -312,51 +257,6 @@
                 "No CREATE TABLE logic exists in drivers",
                 "No schema auto-bootstrap exists in the library",
                 "Decision documented inside IntegrationV2 contract"
-              ]
-            },
-            {
-              "id": "mysql_schema_contract",
-              "description": "Define explicit MySQL schema contract for IntegrationV2 tests",
-              "status": "pending",
-              "outputs": [
-                "tests/IntegrationV2/MySQL/schema.sql"
-              ],
-              "done_criteria": [
-                "schema.sql defines sg_attempts table",
-                "schema.sql defines sg_blocks table",
-                "No triggers, procedures, or seed data included"
-              ]
-            },
-            {
-              "id": "mysql_schema_docs",
-              "description": "Document MySQL IntegrationV2 schema expectations and setup instructions",
-              "status": "pending",
-              "outputs": [
-                "tests/IntegrationV2/MySQL/README.md"
-              ],
-              "done_criteria": [
-                "Database name expectations documented",
-                "Manual schema setup instructions included",
-                "Explicit note that tests fail if schema is missing"
-              ]
-            },
-            {
-              "id": "mysql_clear_failure",
-              "description": "Ensure IntegrationV2 MySQL tests fail clearly when schema is missing",
-              "status": "pending",
-              "done_criteria": [
-                "Missing schema results in explicit test failure or skip",
-                "No raw PDOException bubbles to CI output",
-                "Failure message mentions missing table name"
-              ]
-            },
-            {
-              "id": "risky_test_elimination",
-              "description": "Eliminate PHPUnit risky integration tests",
-              "status": "pending",
-              "done_criteria": [
-                "All integration tests contain explicit assertions OR intent markers",
-                "No risky tests reported by PHPUnit"
               ]
             },
             {
@@ -372,54 +272,113 @@
                 "Mongo expectations documented",
                 "Host vs library responsibilities clearly separated"
               ]
-            },
-            {
-              "id": "phpunit_config_validation",
-              "description": "Validate PHPUnit configuration integrity for IntegrationV2",
-              "status": "pending",
-              "done_criteria": [
-                "IntegrationV2 suite runs in isolation",
-                "No unexpected test suites executed"
-              ]
-            },
-            {
-              "id": "ci_gate_validation",
-              "description": "Run CI validation gate for IntegrationV2 stability",
-              "status": "pending",
-              "done_criteria": [
-                "No test errors",
-                "No risky tests",
-                "All infrastructure failures are explicit and readable"
-              ]
-            },
-            {
-              "id": "phase_closure",
-              "description": "Close Phase 7",
-              "status": "pending",
-              "done_criteria": [
-                "All Phase 5.5 tasks marked as completed",
-                "Phase status updated to completed",
-                "Roadmap committed with final state"
-              ]
             }
           ],
           "rules": [
             "IntegrationV2 is the ONLY source of truth for real infrastructure behavior",
-            "No mocks, fakes, or hardcoded infrastructure are allowed",
             "Infrastructure must be prepared by the host system",
-            "Tests must fail fast and clearly when contracts are violated"
+            "Library must fail fast and clearly when contracts are violated"
           ]
-        },
-        "examples": {
-          "tasks": [],
-          "outputs": []
         }
-      },
-      "closure_rule": "Phase 5.5 can be marked as completed only when all tasks have status = completed."
+      }
     },
 
     {
       "id": "phase8",
+      "title": "IntegrationV2 Real Infrastructure Validation",
+      "version": "1.1.2",
+      "status": "pending",
+      "summary": "Validate Redis, MySQL, and Mongo behavior using real infrastructure with explicit schema contracts.",
+      "tracks": {
+        "tests": {
+          "tasks": [
+            {
+              "id": "integrationv2_base",
+              "description": "Create IntegrationV2 test layer",
+              "status": "completed"
+            },
+            {
+              "id": "real_infra_validation",
+              "description": "Validate Redis/MySQL/Mongo real behavior using real infrastructure",
+              "status": "completed"
+            },
+            {
+              "id": "mysql_schema_contract",
+              "description": "Define explicit MySQL schema contract",
+              "status": "pending",
+              "outputs": [
+                "tests/IntegrationV2/MySQL/schema.sql"
+              ]
+            },
+            {
+              "id": "mysql_schema_docs",
+              "description": "Document MySQL schema expectations",
+              "status": "pending",
+              "outputs": [
+                "tests/IntegrationV2/MySQL/README.md"
+              ]
+            },
+            {
+              "id": "mysql_clear_failure",
+              "description": "Ensure MySQL tests fail clearly when schema is missing",
+              "status": "pending"
+            }
+          ]
+        }
+      }
+    },
+
+    {
+      "id": "phase9",
+      "title": "IntegrationV2 Test Governance & CI Stability",
+      "version": "1.1.3",
+      "status": "pending",
+      "summary": "Eliminate risky tests, validate PHPUnit configuration, and enforce CI stability.",
+      "tracks": {
+        "tests": {
+          "tasks": [
+            {
+              "id": "resolver_enforcement",
+              "description": "Enforce resolver-based adapter creation",
+              "status": "completed"
+            },
+            {
+              "id": "legacy_deprecation",
+              "description": "Deprecate legacy integration tests",
+              "status": "completed"
+            },
+            {
+              "id": "phpunit_exclusion",
+              "description": "Exclude legacy integration tests from PHPUnit execution",
+              "status": "completed"
+            },
+            {
+              "id": "phpunit_config_validation",
+              "description": "Validate PHPUnit configuration integrity",
+              "status": "pending"
+            },
+            {
+              "id": "risky_test_elimination",
+              "description": "Eliminate PHPUnit risky integration tests",
+              "status": "pending"
+            },
+            {
+              "id": "ci_gate_validation",
+              "description": "Run CI validation gate for IntegrationV2 stability",
+              "status": "pending"
+            },
+            {
+              "id": "phase_closure",
+              "description": "Close IntegrationV2 architectural contract phase",
+              "status": "pending"
+            }
+          ]
+        }
+      }
+    },
+
+    {
+      "id": "phase10",
       "title": "Config Normalization & DTO Injection Layer",
       "version": "1.1.0",
       "status": "pending",
@@ -460,7 +419,7 @@
     },
 
     {
-      "id": "phase9",
+      "id": "phase11",
       "title": "Global Rate Limiter Overlay Enforcement",
       "version": "1.1.1",
       "status": "pending",
@@ -493,7 +452,7 @@
     },
 
     {
-      "id": "phase10",
+      "id": "phase12",
       "title": "Backoff Policy Hardening & banTime Integration",
       "version": "1.1.2",
       "status": "pending",
@@ -526,7 +485,7 @@
     },
 
     {
-      "id": "phase11",
+      "id": "phase13",
       "title": "Phase 5 Coverage Completion & Validation",
       "version": "1.1.3",
       "status": "pending",
@@ -558,7 +517,7 @@
     },
 
     {
-      "id": "phase12",
+      "id": "phase14",
       "title": "Internal API Freeze (No Public Release)",
       "version": "1.2.0",
       "status": "pending",
@@ -594,7 +553,7 @@
     },
 
     {
-      "id": "phase13",
+      "id": "phase15",
       "title": "Rate Limiter Bridge",
       "version": "1.0.0",
       "status": "pending",
@@ -629,7 +588,7 @@
     },
 
     {
-      "id": "phase14",
+      "id": "phase16",
       "title": "Audit DTO & Storage",
       "version": "1.0.0",
       "status": "pending",
@@ -652,7 +611,7 @@
     },
 
     {
-      "id": "phase15",
+      "id": "phase17",
       "title": "Mongo Audit Forwarding",
       "version": "1.0.0",
       "status": "pending",
@@ -674,7 +633,7 @@
     },
 
     {
-      "id": "phase16",
+      "id": "phase18",
       "title": "Audit History API",
       "version": "1.0.0",
       "status": "pending",
@@ -696,7 +655,7 @@
     },
 
     {
-      "id": "phase17",
+      "id": "phase19",
       "title": "Audit Filters & Indexes",
       "version": "1.0.0",
       "status": "pending",
@@ -718,7 +677,7 @@
     },
 
     {
-      "id": "phase18",
+      "id": "phase20",
       "title": "PSR Logger Integration",
       "version": "1.0.0",
       "status": "pending",
@@ -740,7 +699,7 @@
     },
 
     {
-      "id": "phase19",
+      "id": "phase21",
       "title": "Telegram Alerts",
       "version": "1.0.0",
       "status": "pending",
@@ -762,7 +721,7 @@
     },
 
     {
-      "id": "phase20",
+      "id": "phase22",
       "title": "Webhook Dispatcher",
       "version": "1.0.0",
       "status": "pending",
@@ -784,7 +743,7 @@
     },
 
     {
-      "id": "phase21",
+      "id": "phase23",
       "title": "Retry Engine & Delivery Tests",
       "version": "1.0.0",
       "status": "pending",
@@ -809,7 +768,7 @@
     },
 
     {
-      "id": "phase22",
+      "id": "phase24",
       "title": "Monitoring APIs",
       "version": "1.0.0",
       "status": "pending",
@@ -831,7 +790,7 @@
     },
 
     {
-      "id": "phase23",
+      "id": "phase25",
       "title": "Unit Consistency Tests",
       "version": "1.0.0",
       "status": "pending",
@@ -852,7 +811,7 @@
     },
 
     {
-      "id": "phase24",
+      "id": "phase26",
       "title": "Attack Simulations",
       "version": "1.0.0",
       "status": "pending",
@@ -873,7 +832,7 @@
     },
 
     {
-      "id": "phase25",
+      "id": "phase27",
       "title": "Redis & Mongo Stress",
       "version": "1.0.0",
       "status": "pending",
@@ -894,7 +853,7 @@
     },
 
     {
-      "id": "phase26",
+      "id": "phase28",
       "title": "Coverage Hardening",
       "version": "1.0.0",
       "status": "pending",
@@ -915,7 +874,7 @@
     },
 
     {
-      "id": "phase27",
+      "id": "phase29",
       "title": "Documentation & Packagist Release",
       "version": "1.0.0",
       "status": "pending",
