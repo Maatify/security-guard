@@ -108,7 +108,7 @@
       "id": "phase4",
       "title": "Unified Security Events (NEW)",
       "version": "1.0.0",
-      "status": "pending",
+      "status": "completed",
       "summary": "Introduce unified SecurityEventDTO and event normalization across all security actions.",
       "tasks": [
         "Create SecurityEventDTO (action/platform/userId/userType/context)",
@@ -132,7 +132,7 @@
       "id": "phase5",
       "title": "Core Logic & Service Layer",
       "version": "1.0.0",
-      "status": "pending",
+      "status": "completed",
       "summary": "Main security orchestration logic built on top of unified security events.",
       "tasks": [
         "handleEvent() logic",
@@ -147,6 +147,34 @@
         "src/SecurityGuardService.php"
       ]
     },
+
+    {
+      "id": "phase5_5",
+      "title": "IntegrationV2 Stabilization",
+      "version": "1.0.0",
+      "status": "completed",
+      "summary": "Introduce authoritative real infrastructure integration tests (IntegrationV2) and deprecate legacy integration behavior.",
+      "tasks": [
+        "Create IntegrationV2 test layer",
+        "Enforce resolver-based adapter creation",
+        "Deprecate legacy integration tests",
+        "Exclude legacy tests from PHPUnit execution",
+        "Validate Redis/MySQL/Mongo real behavior",
+        "Fail explicitly when infrastructure is unavailable"
+      ],
+      "rules": [
+        "IntegrationV2 is the ONLY source of truth for real infrastructure behavior",
+        "Legacy Integration tests are deprecated and excluded",
+        "No mocks, fakes, or hardcoded hosts allowed in IntegrationV2",
+        "All adapters MUST be resolved via DatabaseResolver + EnvironmentLoader"
+      ],
+      "outputs": [
+        "tests/IntegrationV2/",
+        "tests/Integration/README.md",
+        "phpunit.xml.dist (exclude legacy integration)"
+      ]
+    },
+
 
     {
       "id": "phase6",
@@ -391,5 +419,17 @@
         "CHANGELOG.md"
       ]
     }
-  ]
+  ],
+  "testing_policy": {
+    "phpunit": "latest",
+    "phpstan": "level-max",
+    "psr": ["PSR-4", "PSR-12", "PSR-3", "PSR-14 (events)"],
+    "rules": [
+      "Legacy integration tests must not run in CI",
+      "IntegrationV2 tests require real infrastructure",
+      "Unit tests may use data-fakes",
+      "Coverage tests must not rely on real infrastructure",
+      "No test exists to make CI green; tests exist to protect production"
+    ]
+  }
 }
