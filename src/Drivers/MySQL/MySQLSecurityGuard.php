@@ -186,6 +186,7 @@ final class MySQLSecurityGuard extends AbstractSecurityGuardDriver
                     . 'AND TABLE_NAME IN (' . $placeholders . ')'
                 );
 
+                /** @var \PDOStatement|false $stmt */
                 if ($stmt instanceof \PDOStatement) {
                     $stmt->execute($required);
                     /** @var array<int,string>|false $present */
@@ -200,16 +201,12 @@ final class MySQLSecurityGuard extends AbstractSecurityGuardDriver
                     throw new \RuntimeException('IntegrationV2 MySQL prepare failed.');
                 }
             } else {
-                /** @var \Doctrine\DBAL\Schema\AbstractSchemaManager $schemaManager */
-                $schemaManager = $raw->createSchemaManager();
+                /** @var \Doctrine\DBAL\Schema\AbstractSchemaManager<mixed> $schemaManager */
+                $schemaManager = $raw->getSchemaManager();
                 $tables = $schemaManager->listTableNames();
 
-                if (is_array($tables)) {
-                    $normalized = array_map('strtolower', $tables);
-                    $missing = array_values(array_diff($required, $normalized));
-                } else {
-                    throw new \RuntimeException('IntegrationV2 MySQL schema manager failed.');
-                }
+                $normalized = array_map('strtolower', $tables);
+                $missing = array_values(array_diff($required, $normalized));
             }
 
             if ($missing !== []) {

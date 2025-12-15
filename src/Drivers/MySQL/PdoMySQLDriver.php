@@ -75,7 +75,7 @@ final class PdoMySQLDriver implements MySQLDriverInterface
         /** @var array{c:string}|false $row */
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (is_array($row) && isset($row['c'])) {
+        if (is_array($row)) {
             return (int)$row['c'];
         }
 
