@@ -19,6 +19,8 @@ use Maatify\SecurityGuard\Contracts\SecurityGuardDriverInterface;
 use Maatify\SecurityGuard\Drivers\Support\RedisClientProxy;
 use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
 use Maatify\SecurityGuard\DTO\SecurityBlockDTO;
+use RuntimeException;
+use Throwable;
 
 /**
  * 🚀 RedisSecurityGuard
@@ -42,6 +44,8 @@ class RedisSecurityGuard extends AbstractSecurityGuardDriver implements Security
     ) {
         parent::__construct($adapter, $strategy);
 
+        $this->assertConnected();
+
         $raw = $adapter->getDriver(); // استخدم getDriver وليس getConnection
 
         // ✨ Type Safety (يحل مشكلة PHPStan بالكامل)
@@ -53,6 +57,31 @@ class RedisSecurityGuard extends AbstractSecurityGuardDriver implements Security
 
         /** @var \Redis|\Predis\Client $raw */
         $this->redis = new RedisClientProxy($raw);
+    }
+
+    // -------------------------------------------------------------------------
+    //  IntegrationV2 safeguards
+    // -------------------------------------------------------------------------
+
+    private function assertConnected(): void
+    {
+        if (! $this->adapter->isConnected()) {
+            throw new RuntimeException('IntegrationV2 Redis connection failed.');
+        }
+    }
+
+    /**
+     * @template TReturn
+     * @param callable():TReturn $operation
+     * @return TReturn
+     */
+    private function executeRedis(callable $operation, string $context)
+    {
+        try {
+            return $operation();
+        } catch (Throwable $e) {
+            throw new RuntimeException('IntegrationV2 Redis connection failed.', 0, $e);
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -75,25 +104,35 @@ class RedisSecurityGuard extends AbstractSecurityGuardDriver implements Security
 
     protected function doRecordFailure(LoginAttemptDTO $attempt): int
     {
-        $id = $this->makeIdentifier($attempt->ip, $attempt->subject, $attempt->context);
+        return $this->executeRedis(
+            function () use ($attempt): int {
+                $id = $this->makeIdentifier($attempt->ip, $attempt->subject, $attempt->context);
 
-        $key = $this->keyFailures($id);
+                $key = $this->keyFailures($id);
 
-        // Redis INCR is atomic
-        $count = $this->redis->incr($key);
+                // Redis INCR is atomic
+                $count = $this->redis->incr($key);
 
-        // Auto-expire attempts window
-        if ($attempt->resetAfter > 0) {
-            $this->redis->expire($key, $attempt->resetAfter);
-        }
+                // Auto-expire attempts window
+                if ($attempt->resetAfter > 0) {
+                    $this->redis->expire($key, $attempt->resetAfter);
+                }
 
-        return (int)$count;
+                return (int)$count;
+            },
+            'recordFailure'
+        );
     }
 
     protected function doResetAttempts(string $ip, string $subject): void
     {
-        $id = $this->makeIdentifier($ip, $subject);
-        $this->redis->del($this->keyFailures($id));
+        $this->executeRedis(
+            function () use ($ip, $subject): void {
+                $id = $this->makeIdentifier($ip, $subject);
+                $this->redis->del($this->keyFailures($id));
+            },
+            'resetAttempts'
+        );
     }
 
     // -------------------------------------------------------------------------
@@ -102,84 +141,104 @@ class RedisSecurityGuard extends AbstractSecurityGuardDriver implements Security
 
     protected function doBlock(SecurityBlockDTO $block): void
     {
-        $id = $this->makeIdentifier($block->ip, $block->subject);
-        $key = $this->keyBlock($id);
+        $this->executeRedis(
+            function () use ($block): void {
+                $id = $this->makeIdentifier($block->ip, $block->subject);
+                $key = $this->keyBlock($id);
 
-        $payload = $this->encodeBlock($block);
+                $payload = $this->encodeBlock($block);
 
-        // Save as Redis Hash
-        $this->redis->hMSet($key, $payload);
+                // Save as Redis Hash
+                $this->redis->hMSet($key, $payload);
 
-        // TTL only if expiresAt != 0 (permanent)
-        if ($block->expiresAt > 0) {
-            $ttl = max(1, $block->expiresAt - $this->now());
-            $this->redis->expire($key, $ttl);
-        }
+                // TTL only if expiresAt != 0 (permanent)
+                if ($block->expiresAt > 0) {
+                    $ttl = max(1, $block->expiresAt - $this->now());
+                    $this->redis->expire($key, $ttl);
+                }
+            },
+            'block'
+        );
     }
 
     protected function doUnblock(string $ip, string $subject): void
     {
-        $id = $this->makeIdentifier($ip, $subject);
-        $this->redis->del($this->keyBlock($id));
+        $this->executeRedis(
+            function () use ($ip, $subject): void {
+                $id = $this->makeIdentifier($ip, $subject);
+                $this->redis->del($this->keyBlock($id));
+            },
+            'unblock'
+        );
     }
 
     protected function doGetActiveBlock(string $ip, string $subject): ?SecurityBlockDTO
     {
-        $id = $this->makeIdentifier($ip, $subject);
+        return $this->executeRedis(
+            function () use ($ip, $subject): ?SecurityBlockDTO {
+                $id = $this->makeIdentifier($ip, $subject);
 
-        $data = $this->redis->hGetAll($this->keyBlock($id));
+                $data = $this->redis->hGetAll($this->keyBlock($id));
 
-        if (!is_array($data) || $data === []) {
-            return null;
-        }
+                if (!is_array($data) || $data === []) {
+                    return null;
+                }
 
-        // convert Redis string values to an expected mixed array
-        $normalized = [];
-        foreach ($data as $k => $v) {
-            $normalized[(string)$k] = $v;
-        }
+                // convert Redis string values to an expected mixed array
+                $normalized = [];
+                foreach ($data as $k => $v) {
+                    $normalized[(string)$k] = $v;
+                }
 
-        if (isset($normalized['expires_at'])) {
-            $normalized['expires_at'] = (int) $normalized['expires_at'];
-        }
+                if (isset($normalized['expires_at'])) {
+                    $normalized['expires_at'] = (int) $normalized['expires_at'];
+                }
 
-        if (isset($normalized['created_at'])) {
-            $normalized['created_at'] = (int) $normalized['created_at'];
-        }
+                if (isset($normalized['created_at'])) {
+                    $normalized['created_at'] = (int) $normalized['created_at'];
+                }
 
-        // Check if block is expired
-        if (isset($normalized['expires_at'])) {
-            $expiresAt = (int) $normalized['expires_at'];
-            if ($expiresAt > 0 && $expiresAt <= $this->now()) {
-                // Block has expired - delete it and return null
-                $this->redis->del($this->keyBlock($id));
-                return null;
-            }
-        }
+                // Check if block is expired
+                if (isset($normalized['expires_at'])) {
+                    $expiresAt = (int) $normalized['expires_at'];
+                    if ($expiresAt > 0 && $expiresAt <= $this->now()) {
+                        // Block has expired - delete it and return null
+                        $this->redis->del($this->keyBlock($id));
+                        return null;
+                    }
+                }
 
-        /** @var array<string,mixed> $normalized */
-        return $this->decodeBlock($normalized);
+                /** @var array<string,mixed> $normalized */
+                return $this->decodeBlock($normalized);
+            },
+            'getActiveBlock'
+        );
     }
 
     protected function doGetRemainingBlockSeconds(string $ip, string $subject): ?int
     {
-        $id = $this->makeIdentifier($ip, $subject);
-        $key = $this->keyBlock($id);
+        return $this->executeRedis(
+            function () use ($ip, $subject): ?int {
+                $id = $this->makeIdentifier($ip, $subject);
+                $key = $this->keyBlock($id);
 
-        $ttl = $this->redis->ttl($key);
+                $ttl = $this->redis->ttl($key);
 
-        if ($ttl < 0) {
-            // -1 (no expire) → permanent block OR no key
-            $block = $this->doGetActiveBlock($ip, $subject);
+                if ($ttl < 0) {
+                    // -1 (no expire) → permanent block OR no key
+                    $block = $this->doGetActiveBlock($ip, $subject);
 
-            if ($block === null) {
-                return null;
-            }
+                    if ($block === null) {
+                        return null;
+                    }
 
-            return $block->expiresAt === 0 ? null : max(0, $block->expiresAt - $this->now());
-        }
+                    return $block->expiresAt === 0 ? null : max(0, $block->expiresAt - $this->now());
+                }
 
-        return $ttl;
+                return $ttl;
+            },
+            'getRemainingBlockSeconds'
+        );
     }
 
     // -------------------------------------------------------------------------
@@ -198,10 +257,15 @@ class RedisSecurityGuard extends AbstractSecurityGuardDriver implements Security
 
     public function doGetStats(): array
     {
-        return [
-            'driver'     => 'redis',
-            'connected'  => $this->adapter->isConnected(),
-            'redis_info' => $this->redis->info(),
-        ];
+        return $this->executeRedis(
+            function (): array {
+                return [
+                    'driver'     => 'redis',
+                    'connected'  => $this->adapter->isConnected(),
+                    'redis_info' => $this->redis->info(),
+                ];
+            },
+            'getStats'
+        );
     }
 }

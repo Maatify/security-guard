@@ -237,6 +237,10 @@ abstract class AbstractSecurityGuardDriver implements SecurityGuardDriverInterfa
             return false;
         }
 
+        if ($block->expiresAt === 0) {
+            return true; // permanent block
+        }
+
         return $block->expiresAt > $this->now();
     }
 

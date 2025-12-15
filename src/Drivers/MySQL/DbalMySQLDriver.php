@@ -100,7 +100,7 @@ SQL;
     public function doGetActiveBlock(string $ip, string $subject): ?SecurityBlockDTO
     {
         $sql = <<<SQL
-SELECT type, expires_at, created_at
+SELECT ip, subject, type, expires_at, created_at
 FROM sg_blocks
 WHERE ip = :ip
   AND subject = :subject
@@ -125,10 +125,15 @@ SQL;
             return null;
         }
 
+        $type = BlockTypeEnum::tryFrom((string)$row['type']);
+        if ($type === null) {
+            return null;
+        }
+
         return new SecurityBlockDTO(
-            ip       : $ip,
-            subject  : $subject,
-            type     : BlockTypeEnum::from($row['type']),
+            ip       : (string)$row['ip'],
+            subject  : (string)$row['subject'],
+            type     : $type,
             expiresAt: (int)$row['expires_at'],
             createdAt: (int)$row['created_at'],
         );
@@ -143,33 +148,17 @@ SQL;
      */
     public function doGetRemainingBlockSeconds(string $ip, string $subject): ?int
     {
-        $sql = <<<SQL
-SELECT expires_at
-FROM sg_blocks
-WHERE ip = :ip
-  AND subject = :subject
-  AND (expires_at = 0 OR expires_at > :now)
-LIMIT 1
-SQL;
+        $block = $this->doGetActiveBlock($ip, $subject);
 
-        /** @var array{expires_at:int|string}|false $row */
-        $row = $this->db->fetchAssociative($sql, [
-            'ip'      => $ip,
-            'subject' => $subject,
-            'now'     => time(),
-        ]);
-
-        if ($row === false) {
+        if ($block === null) {
             return null;
         }
 
-        $expiresAt = (int)$row['expires_at'];
-
-        if ($expiresAt === 0) {
+        if ($block->expiresAt === 0) {
             return null;
         }
 
-        return max(0, $expiresAt - time());
+        return max(0, $block->expiresAt - time());
     }
 
     // ------------------------------------------------------------------------

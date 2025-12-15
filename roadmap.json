@@ -23,19 +23,33 @@
       "version": "1.0.0",
       "status": "completed",
       "summary": "Project bootstrap, Composer setup, testing environment, and namespace preparation.",
-      "tasks": [
-        "Create GitHub repository",
-        "Initialize Composer project",
-        "Prepare .env.example",
-        "Setup PHPUnit",
-        "Prepare CI environment",
-        "Setup autoloading namespaces"
-      ],
-      "outputs": [
-        "composer.json",
-        ".env.example",
-        "tests/bootstrap.php"
-      ]
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Create GitHub repository",
+            "Initialize Composer project",
+            "Prepare .env.example",
+            "Setup autoloading namespaces"
+          ],
+          "outputs": [
+            "composer.json",
+            ".env.example"
+          ]
+        },
+        "tests": {
+          "tasks": [
+            "Setup PHPUnit",
+            "Prepare CI environment"
+          ],
+          "outputs": [
+            "tests/bootstrap.php"
+          ]
+        },
+        "examples": {
+          "tasks": [],
+          "outputs": []
+        }
+      }
     },
 
     {
@@ -44,25 +58,31 @@
       "version": "1.0.0",
       "status": "completed",
       "summary": "Finalize core DTO structures, interfaces, and the high-level Facade.",
-      "tasks": [
-        "Create LoginAttemptDTO",
-        "Create SecurityBlockDTO (final int-based timestamps version)",
-        "Design SecurityGuardDriverInterface",
-        "Create AbstractSecurityGuardDriver",
-        "Create SecurityGuardService (Facade)",
-        "IdentifierStrategy integration",
-        "Normalization + block encoding/decoding",
-        "Prepare config loader"
-      ],
-      "outputs": [
-        "src/DTO/LoginAttemptDTO.php",
-        "src/DTO/SecurityBlockDTO.php",
-        "src/Contracts/SecurityGuardDriverInterface.php",
-        "src/Drivers/AbstractSecurityGuardDriver.php",
-        "src/Service/SecurityGuardService.php",
-        "src/Identifier/Contracts/IdentifierStrategyInterface.php",
-        "src/Config/SecurityConfigLoader.php"
-      ]
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Create LoginAttemptDTO",
+            "Create SecurityBlockDTO (final int-based timestamps version)",
+            "Design SecurityGuardDriverInterface",
+            "Create AbstractSecurityGuardDriver",
+            "Create SecurityGuardService (Facade)",
+            "IdentifierStrategy integration",
+            "Normalization + block encoding/decoding",
+            "Prepare config loader"
+          ],
+          "outputs": [
+            "src/DTO/LoginAttemptDTO.php",
+            "src/DTO/SecurityBlockDTO.php",
+            "src/Contracts/SecurityGuardDriverInterface.php",
+            "src/Drivers/AbstractSecurityGuardDriver.php",
+            "src/Service/SecurityGuardService.php",
+            "src/Identifier/Contracts/IdentifierStrategyInterface.php",
+            "src/Config/SecurityConfigLoader.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
     },
 
     {
@@ -71,37 +91,43 @@
       "version": "1.0.0",
       "status": "completed",
       "summary": "Implement all Security Guard storage drivers on top of maatify/data-adapters.",
-      "tasks": [
-        "Implement RedisSecurityGuard using RedisClientProxy",
-        "Implement PdoMySQLDriver",
-        "Implement DbalMySQLDriver",
-        "Implement MySQLSecurityGuard",
-        "Implement MongoSecurityGuard",
-        "Create SecurityGuardResolver",
-        "Fix PHPStan generics + safe casting",
-        "Unify block/unblock/cleanup behavior",
-        "Normalize identifier using strategy"
-      ],
-      "outputs": [
-        "src/Drivers/RedisSecurityGuard.php",
-        "src/Drivers/MySQL/PdoMySQLDriver.php",
-        "src/Drivers/MySQL/DbalMySQLDriver.php",
-        "src/Drivers/MySQL/MySQLSecurityGuard.php",
-        "src/Drivers/Mongo/MongoSecurityGuard.php",
-        "src/Drivers/Support/RedisClientProxy.php",
-        "src/Resolver/SecurityGuardResolver.php"
-      ],
-      "changes": [
-        "RedisSecurityGuard now fully uses RedisClientProxy abstraction",
-        "PdoMySQLDriver: fixed fetchColumn|false logic + strict int timestamps",
-        "DbalMySQLDriver: safe casting + consistent SQL + REPLACE INTO support",
-        "MySQLSecurityGuard delegates to PDO/DBAL transparently",
-        "MongoSecurityGuard rewritten with proper Collection handling + indexes",
-        "Resolver fixed to match MongoDatabase instead of MongoClient",
-        "Resolver refactored to remove unreachable conditions",
-        "Redis proxy unified commands: hGet, hSet, hDel, hGetAll, expire, del, info",
-        "Abstract driver now strictly validates block payload during decodeBlock()"
-      ]
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Implement RedisSecurityGuard using RedisClientProxy",
+            "Implement PdoMySQLDriver",
+            "Implement DbalMySQLDriver",
+            "Implement MySQLSecurityGuard",
+            "Implement MongoSecurityGuard",
+            "Create SecurityGuardResolver",
+            "Fix PHPStan generics + safe casting",
+            "Unify block/unblock/cleanup behavior",
+            "Normalize identifier using strategy"
+          ],
+          "outputs": [
+            "src/Drivers/RedisSecurityGuard.php",
+            "src/Drivers/MySQL/PdoMySQLDriver.php",
+            "src/Drivers/MySQL/DbalMySQLDriver.php",
+            "src/Drivers/MySQL/MySQLSecurityGuard.php",
+            "src/Drivers/Mongo/MongoSecurityGuard.php",
+            "src/Drivers/Support/RedisClientProxy.php",
+            "src/Resolver/SecurityGuardResolver.php"
+          ],
+          "changes": [
+            "RedisSecurityGuard now fully uses RedisClientProxy abstraction",
+            "PdoMySQLDriver: fixed fetchColumn|false logic + strict int timestamps",
+            "DbalMySQLDriver: safe casting + consistent SQL + REPLACE INTO support",
+            "MySQLSecurityGuard delegates to PDO/DBAL transparently",
+            "MongoSecurityGuard rewritten with proper Collection handling + indexes",
+            "Resolver fixed to match MongoDatabase instead of MongoClient",
+            "Resolver refactored to remove unreachable conditions",
+            "Redis proxy unified commands: hGet, hSet, hDel, hGetAll, expire, del, info",
+            "Abstract driver now strictly validates block payload during decodeBlock()"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
     },
 
     {
@@ -110,22 +136,32 @@
       "version": "1.0.0",
       "status": "completed",
       "summary": "Introduce unified SecurityEventDTO and event normalization across all security actions.",
-      "tasks": [
-        "Create SecurityEventDTO (action/platform/userId/userType/context)",
-        "Create SecurityEventTypeEnum",
-        "Refactor LoginAttemptDTO to extend SecurityEventDTO",
-        "Introduce SecurityEventFactory",
-        "Unify event timestamps",
-        "Normalize subject/platform/action rules",
-        "Ensure driver compatibility with unified event model"
-      ],
-      "outputs": [
-        "src/DTO/SecurityEventDTO.php",
-        "src/Enums/SecurityEventTypeEnum.php",
-        "src/DTO/LoginAttemptDTO.php",
-        "src/Event/SecurityEventFactory.php",
-        "docs/phases/README.phase4.md"
-      ]
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Create SecurityEventDTO (action/platform/userId/userType/context)",
+            "Create SecurityEventTypeEnum",
+            "Refactor LoginAttemptDTO to extend SecurityEventDTO",
+            "Introduce SecurityEventFactory",
+            "Unify event timestamps",
+            "Normalize subject/platform/action rules",
+            "Ensure driver compatibility with unified event model"
+          ],
+          "outputs": [
+            "src/DTO/SecurityEventDTO.php",
+            "src/Enums/SecurityEventTypeEnum.php",
+            "src/DTO/LoginAttemptDTO.php",
+            "src/Event/SecurityEventFactory.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": {
+          "tasks": [],
+          "outputs": [
+            "docs/phases/README.phase4.md"
+          ]
+        }
+      }
     },
 
     {
@@ -134,292 +170,727 @@
       "version": "1.0.0",
       "status": "completed",
       "summary": "Main security orchestration logic built on top of unified security events.",
-      "tasks": [
-        "handleEvent() logic",
-        "handleAttempt() logic",
-        "Reset on success",
-        "Block/unblock logic",
-        "IP failure counters",
-        "Expose isBlocked()",
-        "ENV thresholds integration"
-      ],
-      "outputs": [
-        "src/SecurityGuardService.php"
-      ]
+      "tracks": {
+        "core": {
+          "tasks": [
+            "handleEvent() logic",
+            "handleAttempt() logic",
+            "Reset on success",
+            "Block/unblock logic",
+            "IP failure counters",
+            "Expose isBlocked()",
+            "ENV thresholds integration"
+          ],
+          "outputs": [
+            "src/SecurityGuardService.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
     },
-
     {
       "id": "phase5_5",
       "title": "IntegrationV2 Stabilization",
-      "version": "1.0.0",
-      "status": "completed",
-      "summary": "Introduce authoritative real infrastructure integration tests (IntegrationV2) and deprecate legacy integration behavior.",
-      "tasks": [
-        "Create IntegrationV2 test layer",
-        "Enforce resolver-based adapter creation",
-        "Deprecate legacy integration tests",
-        "Exclude legacy tests from PHPUnit execution",
-        "Validate Redis/MySQL/Mongo real behavior",
-        "Fail explicitly when infrastructure is unavailable"
+      "version": "1.0.1",
+      "status": "in_progress",
+      "summary": "Stabilize IntegrationV2 as the single authoritative source of real infrastructure behavior by enforcing explicit infrastructure contracts, deterministic failure semantics, and zero hidden assumptions.",
+      "principles": [
+        "Security Guard must not auto-create or auto-migrate database schemas",
+        "All infrastructure expectations must be explicit and documented",
+        "Integration failures must be deterministic and human-readable",
+        "No risky or ambiguous tests are allowed"
       ],
-      "rules": [
-        "IntegrationV2 is the ONLY source of truth for real infrastructure behavior",
-        "Legacy Integration tests are deprecated and excluded",
-        "No mocks, fakes, or hardcoded hosts allowed in IntegrationV2",
-        "All adapters MUST be resolved via DatabaseResolver + EnvironmentLoader"
-      ],
-      "outputs": [
-        "tests/IntegrationV2/",
-        "tests/Integration/README.md",
-        "phpunit.xml.dist (exclude legacy integration)"
-      ]
+      "tracks": {
+        "core": {
+          "tasks": [],
+          "outputs": []
+        },
+        "tests": {
+          "tasks": [
+            {
+              "id": "integrationv2_base",
+              "description": "Create IntegrationV2 test layer",
+              "status": "completed",
+              "done_criteria": [
+                "tests/IntegrationV2 directory exists",
+                "IntegrationV2 tests are isolated from legacy integration tests"
+              ]
+            },
+            {
+              "id": "resolver_enforcement",
+              "description": "Enforce resolver-based adapter creation",
+              "status": "completed",
+              "done_criteria": [
+                "All IntegrationV2 tests resolve adapters via DatabaseResolver",
+                "No adapter instantiated directly in tests"
+              ]
+            },
+            {
+              "id": "legacy_deprecation",
+              "description": "Deprecate legacy integration tests",
+              "status": "completed",
+              "done_criteria": [
+                "Legacy integration tests marked deprecated",
+                "Legacy tests excluded from CI execution"
+              ]
+            },
+            {
+              "id": "phpunit_exclusion",
+              "description": "Exclude legacy integration tests from PHPUnit execution",
+              "status": "completed",
+              "done_criteria": [
+                "phpunit.xml.dist excludes legacy integration suites",
+                "Only IntegrationV2 runs in CI"
+              ]
+            },
+            {
+              "id": "real_infra_validation",
+              "description": "Validate Redis/MySQL/Mongo real behavior using real infrastructure",
+              "status": "completed",
+              "done_criteria": [
+                "Redis IntegrationV2 tests pass on real Redis",
+                "MySQL IntegrationV2 tests execute against real MySQL",
+                "Mongo IntegrationV2 tests execute against real MongoDB"
+              ]
+            },
+            {
+              "id": "decision_lock",
+              "description": "Lock architectural decision: security-guard must not create or migrate schemas",
+              "status": "pending",
+              "done_criteria": [
+                "No CREATE TABLE logic exists in drivers",
+                "No schema auto-bootstrap exists in the library",
+                "Decision documented inside IntegrationV2 contract"
+              ]
+            },
+            {
+              "id": "mysql_schema_contract",
+              "description": "Define explicit MySQL schema contract for IntegrationV2 tests",
+              "status": "pending",
+              "outputs": [
+                "tests/IntegrationV2/MySQL/schema.sql"
+              ],
+              "done_criteria": [
+                "schema.sql defines sg_attempts table",
+                "schema.sql defines sg_blocks table",
+                "No triggers, procedures, or seed data included"
+              ]
+            },
+            {
+              "id": "mysql_schema_docs",
+              "description": "Document MySQL IntegrationV2 schema expectations and setup instructions",
+              "status": "pending",
+              "outputs": [
+                "tests/IntegrationV2/MySQL/README.md"
+              ],
+              "done_criteria": [
+                "Database name expectations documented",
+                "Manual schema setup instructions included",
+                "Explicit note that tests fail if schema is missing"
+              ]
+            },
+            {
+              "id": "mysql_clear_failure",
+              "description": "Ensure IntegrationV2 MySQL tests fail clearly when schema is missing",
+              "status": "pending",
+              "done_criteria": [
+                "Missing schema results in explicit test failure or skip",
+                "No raw PDOException bubbles to CI output",
+                "Failure message mentions missing table name"
+              ]
+            },
+            {
+              "id": "risky_test_elimination",
+              "description": "Eliminate PHPUnit risky integration tests",
+              "status": "pending",
+              "done_criteria": [
+                "All integration tests contain explicit assertions OR intent markers",
+                "No risky tests reported by PHPUnit"
+              ]
+            },
+            {
+              "id": "integration_v2_contract_doc",
+              "description": "Create global IntegrationV2 contract document",
+              "status": "pending",
+              "outputs": [
+                "docs/integration/INTEGRATION_V2_CONTRACT.md"
+              ],
+              "done_criteria": [
+                "Redis expectations documented",
+                "MySQL expectations documented",
+                "Mongo expectations documented",
+                "Host vs library responsibilities clearly separated"
+              ]
+            },
+            {
+              "id": "phpunit_config_validation",
+              "description": "Validate PHPUnit configuration integrity for IntegrationV2",
+              "status": "pending",
+              "done_criteria": [
+                "IntegrationV2 suite runs in isolation",
+                "No unexpected test suites executed"
+              ]
+            },
+            {
+              "id": "ci_gate_validation",
+              "description": "Run CI validation gate for IntegrationV2 stability",
+              "status": "pending",
+              "done_criteria": [
+                "No test errors",
+                "No risky tests",
+                "All infrastructure failures are explicit and readable"
+              ]
+            },
+            {
+              "id": "phase_closure",
+              "description": "Close Phase 5.5",
+              "status": "pending",
+              "done_criteria": [
+                "All Phase 5.5 tasks marked as completed",
+                "Phase status updated to completed",
+                "Roadmap committed with final state"
+              ]
+            }
+          ],
+          "rules": [
+            "IntegrationV2 is the ONLY source of truth for real infrastructure behavior",
+            "No mocks, fakes, or hardcoded infrastructure are allowed",
+            "Infrastructure must be prepared by the host system",
+            "Tests must fail fast and clearly when contracts are violated"
+          ]
+        },
+        "examples": {
+          "tasks": [],
+          "outputs": []
+        }
+      },
+      "closure_rule": "Phase 5.5 can be marked as completed only when all tasks have status = completed."
     },
-
 
     {
       "id": "phase6",
-      "title": "Rate Limiter Bridge",
-      "version": "1.0.0",
+      "title": "Config Normalization & DTO Injection Layer",
+      "version": "1.1.0",
       "status": "pending",
-      "summary": "Integration with maatify/rate-limiter using unified event pipeline.",
-      "tasks": [
-        "Design event hooks",
-        "Implement bridge listener",
-        "Forward rate-limit violations as SecurityEventDTO",
-        "Manual integration support",
-        "Flood attack testing",
-        "Documentation"
-      ],
-      "outputs": [
-        "src/Bridge/RateLimiterBridge.php",
-        "docs/phases/README.phase6.md"
-      ]
+      "summary": "Introduce strict DTO-based configuration model. Eliminate all internal defaults and ensure the library is fully controlled by host-provided configuration.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Design SecurityGuardConfigDTO as the single configuration entry point",
+            "Design ActionRateLimitConfigDTO",
+            "Design GlobalRateLimitConfigDTO",
+            "Design BackoffPolicyConfigDTO",
+            "Remove all internal default configuration logic",
+            "Ensure all runtime logic consumes DTOs only"
+          ],
+          "outputs": [
+            "src/Config/DTO/SecurityGuardConfigDTO.php",
+            "src/Config/DTO/ActionRateLimitConfigDTO.php",
+            "src/Config/DTO/GlobalRateLimitConfigDTO.php",
+            "src/Config/DTO/BackoffPolicyConfigDTO.php"
+          ]
+        },
+        "tests": {
+          "tasks": [
+            "Validate DTO acceptance",
+            "Validate resolver wiring using DTOs"
+          ],
+          "outputs": []
+        },
+        "examples": {
+          "tasks": [
+            "Document host-driven configuration injection flow"
+          ],
+          "outputs": [
+            "docs/phases/README.phase6.md"
+          ]
+        }
+      }
     },
 
     {
       "id": "phase7",
-      "title": "Audit DTO & Storage",
-      "version": "1.0.0",
+      "title": "Global Rate Limiter Overlay Enforcement",
+      "version": "1.1.1",
       "status": "pending",
-      "summary": "Introduce audit event DTO and base storage abstraction.",
-      "tasks": [
-        "Create AuditEventDTO",
-        "Define AuditStorageInterface",
-        "Implement base audit repository via maatify/data-adapters"
-      ],
-      "outputs": [
-        "src/Audit/AuditEventDTO.php",
-        "src/Audit/Contracts/AuditStorageInterface.php"
-      ]
+      "summary": "Introduce a real global rate limiter overlay that executes before all action-level enforcement using a dedicated DTO-based configuration.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Introduce GlobalRateLimiter enforcement layer",
+            "Ensure global limiter executes before action limiter",
+            "Ensure global limiter uses GlobalRateLimitConfigDTO only",
+            "Add explicit source attribution for global violations"
+          ],
+          "outputs": [
+            "src/RateLimit/GlobalRateLimiter.php",
+            "src/Enforcement/EnforcingRateLimiter.php"
+          ]
+        },
+        "tests": {
+          "tasks": [
+            "Unit tests for global-before-action enforcement order",
+            "Integration tests using Redis adapter"
+          ],
+          "outputs": []
+        },
+        "examples": {
+          "tasks": [],
+          "outputs": []
+        }
+      }
     },
 
     {
       "id": "phase8",
-      "title": "Mongo Audit Forwarding",
-      "version": "1.0.0",
+      "title": "Backoff Policy Hardening & banTime Integration",
+      "version": "1.1.2",
       "status": "pending",
-      "summary": "Forward unified audit events into MongoDB collections.",
-      "tasks": [
-        "Create Mongo audit driver",
-        "TTL index setup",
-        "Fallback handling via resolver"
-      ],
-      "outputs": [
-        "src/Audit/Drivers/MongoAuditDriver.php"
-      ]
+      "summary": "Upgrade exponential backoff logic to a deterministic punishment strategy governed fully by DTO-provided policy, including banTime integration.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Introduce BackoffPolicyInterface",
+            "Implement ExponentialBackoffPolicy using BackoffPolicyConfigDTO",
+            "Integrate banTime as a hard cap on calculated delays",
+            "Remove any implicit backoff assumptions"
+          ],
+          "outputs": [
+            "src/Backoff/BackoffPolicyInterface.php",
+            "src/Backoff/ExponentialBackoffPolicy.php"
+          ]
+        },
+        "tests": {
+          "tasks": [
+            "Unit tests for backoff calculation",
+            "Ensure banTime cap is respected"
+          ],
+          "outputs": []
+        },
+        "examples": {
+          "tasks": [],
+          "outputs": []
+        }
+      }
     },
 
     {
       "id": "phase9",
-      "title": "Audit History API",
-      "version": "1.0.0",
+      "title": "Phase 5 Coverage Completion & Validation",
+      "version": "1.1.3",
       "status": "pending",
-      "summary": "Expose security audit history.",
-      "tasks": [
-        "Audit query service",
-        "Pagination",
-        "Date range filtering"
-      ],
-      "outputs": [
-        "src/Audit/AuditHistoryService.php"
-      ]
+      "summary": "Complete missing tests for Phase 5 core logic and enforcement layers to ensure production-grade stability.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "No production code changes allowed"
+          ],
+          "outputs": []
+        },
+        "tests": {
+          "tasks": [
+            "Cover EnforcingRateLimiter logic",
+            "Cover GlobalRateLimiter enforcement",
+            "Cover BackoffPolicy behavior",
+            "Use real Redis adapter only (no mocks)"
+          ],
+          "outputs": [
+            "tests/RateLimit/",
+            "tests/Backoff/"
+          ]
+        },
+        "examples": {
+          "tasks": [],
+          "outputs": []
+        }
+      }
     },
 
     {
       "id": "phase10",
-      "title": "Audit Filters & Indexes",
-      "version": "1.0.0",
+      "title": "Internal API Freeze (No Public Release)",
+      "version": "1.2.0",
       "status": "pending",
-      "summary": "Advanced filtering and indexing.",
-      "tasks": [
-        "IP filtering",
-        "User type filtering",
-        "Composite indexes"
-      ],
-      "outputs": [
-        "docs/phases/README.phase10.md"
-      ]
+      "summary": "Freeze internal APIs for stabilization and validation. No public release, no tags, no Packagist publishing.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Lock public API surface",
+            "Prohibit breaking changes without major version bump",
+            "Tag stable release"
+          ],
+          "outputs": [
+            "CHANGELOG.md",
+            "README.md"
+          ]
+        },
+        "tests": {
+          "tasks": [
+            "Final CI validation",
+            "Coverage threshold enforcement"
+          ],
+          "outputs": []
+        },
+        "examples": {
+          "tasks": [
+            "Final integration documentation"
+          ],
+          "outputs": [
+            "docs/phases/README.phase10.md"
+          ]
+        }
+      }
     },
 
     {
       "id": "phase11",
-      "title": "PSR Logger Integration",
+      "title": "Rate Limiter Bridge",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Structured logging for security actions.",
-      "tasks": [
-        "Inject PSR logger",
-        "Log block/unblock actions",
-        "Log suspicious patterns"
-      ],
-      "outputs": [
-        "src/Logging/SecurityLogger.php"
-      ]
+      "summary": "Integration with maatify/rate-limiter using unified event pipeline.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Design event hooks",
+            "Implement bridge listener",
+            "Forward rate-limit violations as SecurityEventDTO"
+          ],
+          "outputs": [
+            "src/Bridge/RateLimiterBridge.php"
+          ]
+        },
+        "tests": {
+          "tasks": [
+            "Flood attack testing"
+          ],
+          "outputs": []
+        },
+        "examples": {
+          "tasks": [
+            "Manual integration support",
+            "Documentation"
+          ],
+          "outputs": [
+            "docs/phases/README.phase6.md"
+          ]
+        }
+      }
     },
 
     {
       "id": "phase12",
-      "title": "Telegram Alerts",
+      "title": "Audit DTO & Storage",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Real-time alerts via Telegram bot.",
-      "tasks": [
-        "Telegram notifier",
-        "Configurable alert channels",
-        "Critical alert levels"
-      ],
-      "outputs": [
-        "src/Alerts/TelegramAlertService.php"
-      ]
+      "summary": "Introduce audit event DTO and base storage abstraction.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Create AuditEventDTO",
+            "Define AuditStorageInterface",
+            "Implement base audit repository via maatify/data-adapters"
+          ],
+          "outputs": [
+            "src/Audit/AuditEventDTO.php",
+            "src/Audit/Contracts/AuditStorageInterface.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
     },
 
     {
       "id": "phase13",
-      "title": "Webhook Dispatcher",
+      "title": "Mongo Audit Forwarding",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Generic webhook dispatcher.",
-      "tasks": [
-        "Webhook payload schema",
-        "POST dispatcher",
-        "Async retry policy"
-      ],
-      "outputs": [
-        "src/Webhook/WebhookDispatcher.php"
-      ]
+      "summary": "Forward unified audit events into MongoDB collections.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Create Mongo audit driver",
+            "TTL index setup",
+            "Fallback handling via resolver"
+          ],
+          "outputs": [
+            "src/Audit/Drivers/MongoAuditDriver.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
     },
 
     {
       "id": "phase14",
-      "title": "Retry Engine & Delivery Tests",
+      "title": "Audit History API",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Reliable delivery system.",
-      "tasks": [
-        "Retry queue",
-        "Backoff strategy",
-        "Failure simulations"
-      ],
-      "outputs": [
-        "tests/Webhook/RetryTest.php"
-      ]
+      "summary": "Expose security audit history.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Audit query service",
+            "Pagination",
+            "Date range filtering"
+          ],
+          "outputs": [
+            "src/Audit/AuditHistoryService.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
     },
 
     {
       "id": "phase15",
-      "title": "Monitoring APIs",
+      "title": "Audit Filters & Indexes",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Monitoring endpoints and admin API controls.",
-      "tasks": [
-        "Health endpoint",
-        "Stats endpoint",
-        "Manual unblock API"
-      ],
-      "outputs": [
-        "src/Monitoring/SecurityMetricsService.php"
-      ]
+      "summary": "Advanced filtering and indexing.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "IP filtering",
+            "User type filtering",
+            "Composite indexes"
+          ],
+          "outputs": [
+            "docs/phases/README.phase10.md"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
     },
 
     {
       "id": "phase16",
-      "title": "Unit Consistency Tests",
+      "title": "PSR Logger Integration",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Validate driver parity.",
-      "tasks": [
-        "Driver parity tests",
-        "Edge case consistency"
-      ],
-      "outputs": [
-        "tests/Consistency/"
-      ]
+      "summary": "Structured logging for security actions.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Inject PSR logger",
+            "Log block/unblock actions",
+            "Log suspicious patterns"
+          ],
+          "outputs": [
+            "src/Logging/SecurityLogger.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
     },
 
     {
       "id": "phase17",
-      "title": "Attack Simulations",
+      "title": "Telegram Alerts",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Simulate distributed and burst attacks.",
-      "tasks": [
-        "Multi-IP brute force",
-        "Burst login attempts"
-      ],
-      "outputs": [
-        "tests/Simulation/"
-      ]
+      "summary": "Real-time alerts via Telegram bot.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Telegram notifier",
+            "Configurable alert channels",
+            "Critical alert levels"
+          ],
+          "outputs": [
+            "src/Alerts/TelegramAlertService.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
     },
 
     {
       "id": "phase18",
-      "title": "Redis & Mongo Stress",
+      "title": "Webhook Dispatcher",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "High-load performance stress tests.",
-      "tasks": [
-        "Redis load",
-        "Mongo TTL stress"
-      ],
-      "outputs": [
-        "tests/Stress/"
-      ]
+      "summary": "Generic webhook dispatcher.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Webhook payload schema",
+            "POST dispatcher",
+            "Async retry policy"
+          ],
+          "outputs": [
+            "src/Webhook/WebhookDispatcher.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
     },
 
     {
       "id": "phase19",
-      "title": "Coverage Hardening",
+      "title": "Retry Engine & Delivery Tests",
       "version": "1.0.0",
       "status": "pending",
-      "summary": "Achieve stable 85%+ coverage.",
-      "tasks": [
-        "Coverage gap analysis",
-        "Critical path coverage enforcement"
-      ],
-      "outputs": [
-        "coverage/"
-      ]
+      "summary": "Reliable delivery system.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Retry queue",
+            "Backoff strategy",
+            "Failure simulations"
+          ],
+          "outputs": []
+        },
+        "tests": {
+          "tasks": [],
+          "outputs": [
+            "tests/Webhook/RetryTest.php"
+          ]
+        },
+        "examples": { "tasks": [], "outputs": [] }
+      }
     },
 
     {
       "id": "phase20",
+      "title": "Monitoring APIs",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Monitoring endpoints and admin API controls.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Health endpoint",
+            "Stats endpoint",
+            "Manual unblock API"
+          ],
+          "outputs": [
+            "src/Monitoring/SecurityMetricsService.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase21",
+      "title": "Unit Consistency Tests",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Validate driver parity.",
+      "tracks": {
+        "core": { "tasks": [], "outputs": [] },
+        "tests": {
+          "tasks": [
+            "Driver parity tests",
+            "Edge case consistency"
+          ],
+          "outputs": [
+            "tests/Consistency/"
+          ]
+        },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase22",
+      "title": "Attack Simulations",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Simulate distributed and burst attacks.",
+      "tracks": {
+        "core": { "tasks": [], "outputs": [] },
+        "tests": {
+          "tasks": [
+            "Multi-IP brute force",
+            "Burst login attempts"
+          ],
+          "outputs": [
+            "tests/Simulation/"
+          ]
+        },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase23",
+      "title": "Redis & Mongo Stress",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "High-load performance stress tests.",
+      "tracks": {
+        "core": { "tasks": [], "outputs": [] },
+        "tests": {
+          "tasks": [
+            "Redis load",
+            "Mongo TTL stress"
+          ],
+          "outputs": [
+            "tests/Stress/"
+          ]
+        },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase24",
+      "title": "Coverage Hardening",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Achieve stable 85%+ coverage.",
+      "tracks": {
+        "core": { "tasks": [], "outputs": [] },
+        "tests": {
+          "tasks": [
+            "Coverage gap analysis",
+            "Critical path coverage enforcement"
+          ],
+          "outputs": [
+            "coverage/"
+          ]
+        },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase25",
       "title": "Documentation & Packagist Release",
       "version": "1.0.0",
       "status": "pending",
       "summary": "Finalize documentation & release.",
-      "tasks": [
-        "README.md",
-        "CHANGELOG.md",
-        "Phase documentation",
-        "Packagist publishing",
-        "Integration validation"
-      ],
-      "outputs": [
-        "README.md",
-        "CHANGELOG.md"
-      ]
+      "tracks": {
+        "core": {
+          "tasks": [
+            "README.md",
+            "CHANGELOG.md",
+            "Phase documentation",
+            "Packagist publishing",
+            "Integration validation"
+          ],
+          "outputs": [
+            "README.md",
+            "CHANGELOG.md"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
     }
+
   ],
+
   "testing_policy": {
     "phpunit": "latest",
     "phpstan": "level-max",

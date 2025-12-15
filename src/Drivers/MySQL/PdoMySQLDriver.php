@@ -101,7 +101,7 @@ final class PdoMySQLDriver implements MySQLDriverInterface
     public function doGetActiveBlock(string $ip, string $subject): ?SecurityBlockDTO
     {
         $stmt = $this->pdo->prepare(
-            'SELECT type, expires_at, created_at
+            'SELECT ip, subject, type, expires_at, created_at
                FROM sg_blocks
               WHERE ip = :ip
                 AND subject = :subject
@@ -122,10 +122,16 @@ final class PdoMySQLDriver implements MySQLDriverInterface
             return null;
         }
 
+        $type = BlockTypeEnum::tryFrom((string)$row['type']);
+
+        if ($type === null) {
+            return null;
+        }
+
         return new SecurityBlockDTO(
-            ip: $ip,
-            subject: $subject,
-            type: BlockTypeEnum::from($row['type']),
+            ip: (string)$row['ip'],
+            subject: (string)$row['subject'],
+            type: $type,
             expiresAt: (int)$row['expires_at'],
             createdAt: (int)$row['created_at'],
         );
@@ -137,35 +143,17 @@ final class PdoMySQLDriver implements MySQLDriverInterface
 
     public function doGetRemainingBlockSeconds(string $ip, string $subject): ?int
     {
-        $stmt = $this->pdo->prepare(
-            'SELECT expires_at
-               FROM sg_blocks
-              WHERE ip = :ip
-                AND subject = :subject
-                AND (expires_at = 0 OR expires_at > :now)
-              LIMIT 1'
-        );
+        $block = $this->doGetActiveBlock($ip, $subject);
 
-        $stmt->execute([
-            ':ip'      => $ip,
-            ':subject' => $subject,
-            ':now'     => time(),
-        ]);
-
-        /** @var array{expires_at:int|string}|false $row */
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (! $row) {
+        if ($block === null) {
             return null;
         }
 
-        $expiresAt = (int)$row['expires_at'];
-
-        if ($expiresAt === 0) {
+        if ($block->expiresAt === 0) {
             return null;
         }
 
-        return max(0, $expiresAt - time());
+        return max(0, $block->expiresAt - time());
     }
 
     // ------------------------------------------------------------------------

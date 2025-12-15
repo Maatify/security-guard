@@ -25,6 +25,7 @@ use Maatify\SecurityGuard\Drivers\MySQL\Contracts\MySQLDriverInterface;
 use Maatify\SecurityGuard\Identifier\Contracts\IdentifierStrategyInterface;
 use PDO;
 use RuntimeException;
+use Throwable;
 
 /**
  * 🧩 MySQLSecurityGuard
@@ -49,6 +50,8 @@ final class MySQLSecurityGuard extends AbstractSecurityGuardDriver
     ) {
         parent::__construct($adapter, $strategy);
 
+        $this->assertConnected($adapter);
+
         $raw = $adapter->getDriver();
 
         if ($raw instanceof PDO) {
@@ -60,6 +63,8 @@ final class MySQLSecurityGuard extends AbstractSecurityGuardDriver
                 'MySQLSecurityGuard requires PDO or Doctrine\DBAL\Connection. Got: ' . get_debug_type($raw)
             );
         }
+
+        $this->assertSchema($raw);
     }
 
     // -------------------------------------------------------------------------
@@ -71,7 +76,10 @@ final class MySQLSecurityGuard extends AbstractSecurityGuardDriver
      */
     protected function doRecordFailure(LoginAttemptDTO $attempt): int
     {
-        return $this->driver->doRecordFailure($attempt);
+        return $this->executeSafely(
+            fn() => $this->driver->doRecordFailure($attempt),
+            'recordFailure'
+        );
     }
 
     /**
@@ -79,7 +87,10 @@ final class MySQLSecurityGuard extends AbstractSecurityGuardDriver
      */
     protected function doResetAttempts(string $ip, string $subject): void
     {
-        $this->driver->doResetAttempts($ip, $subject);
+        $this->executeSafely(
+            fn() => $this->driver->doResetAttempts($ip, $subject),
+            'resetAttempts'
+        );
     }
 
     /**
@@ -87,7 +98,10 @@ final class MySQLSecurityGuard extends AbstractSecurityGuardDriver
      */
     protected function doGetActiveBlock(string $ip, string $subject): ?SecurityBlockDTO
     {
-        return $this->driver->doGetActiveBlock($ip, $subject);
+        return $this->executeSafely(
+            fn() => $this->driver->doGetActiveBlock($ip, $subject),
+            'getActiveBlock'
+        );
     }
 
     /**
@@ -95,7 +109,10 @@ final class MySQLSecurityGuard extends AbstractSecurityGuardDriver
      */
     protected function doGetRemainingBlockSeconds(string $ip, string $subject): ?int
     {
-        return $this->driver->doGetRemainingBlockSeconds($ip, $subject);
+        return $this->executeSafely(
+            fn() => $this->driver->doGetRemainingBlockSeconds($ip, $subject),
+            'getRemainingBlockSeconds'
+        );
     }
 
     /**
@@ -103,7 +120,10 @@ final class MySQLSecurityGuard extends AbstractSecurityGuardDriver
      */
     protected function doBlock(SecurityBlockDTO $block): void
     {
-        $this->driver->doBlock($block);
+        $this->executeSafely(
+            fn() => $this->driver->doBlock($block),
+            'block'
+        );
     }
 
     /**
@@ -111,7 +131,10 @@ final class MySQLSecurityGuard extends AbstractSecurityGuardDriver
      */
     protected function doUnblock(string $ip, string $subject): void
     {
-        $this->driver->doUnblock($ip, $subject);
+        $this->executeSafely(
+            fn() => $this->driver->doUnblock($ip, $subject),
+            'unblock'
+        );
     }
 
     /**
@@ -119,7 +142,10 @@ final class MySQLSecurityGuard extends AbstractSecurityGuardDriver
      */
     protected function doCleanup(): void
     {
-        $this->driver->doCleanup();
+        $this->executeSafely(
+            fn() => $this->driver->doCleanup(),
+            'cleanup'
+        );
     }
 
     /**
@@ -128,6 +154,70 @@ final class MySQLSecurityGuard extends AbstractSecurityGuardDriver
      */
     protected function doGetStats(): array
     {
-        return $this->driver->doGetStats();
+        return $this->executeSafely(
+            fn() => $this->driver->doGetStats(),
+            'getStats'
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    //  IntegrationV2 safeguards
+    // -------------------------------------------------------------------------
+
+    private function assertConnected(AdapterInterface $adapter): void
+    {
+        if (! $adapter->isConnected()) {
+            throw new RuntimeException('IntegrationV2 MySQL connection failed.');
+        }
+    }
+
+    private function assertSchema(PDO|Connection $raw): void
+    {
+        $required = array_map('strtolower', ['sg_attempts', 'sg_blocks']);
+
+        try {
+            $missing = [];
+
+            if ($raw instanceof PDO) {
+                $placeholders = implode(', ', array_fill(0, count($required), '?'));
+                $stmt = $raw->prepare(
+                    'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES '
+                    . 'WHERE TABLE_SCHEMA = DATABASE() '
+                    . 'AND TABLE_NAME IN (' . $placeholders . ')'
+                );
+                $stmt->execute($required);
+                /** @var array<int,string> $present */
+                $present = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+                $normalized = array_map('strtolower', $present);
+                $missing = array_values(array_diff($required, $normalized));
+            } else {
+                $schemaManager = $raw->createSchemaManager();
+                $tables = $schemaManager->listTableNames();
+                $normalized = array_map('strtolower', $tables);
+                $missing = array_values(array_diff($required, $normalized));
+            }
+
+            if ($missing !== []) {
+                throw new RuntimeException('IntegrationV2 MySQL schema missing.');
+            }
+        } catch (RuntimeException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            throw new RuntimeException('IntegrationV2 MySQL connection failed.', 0, $e);
+        }
+    }
+
+    /**
+     * @template TReturn
+     * @param callable():TReturn $operation
+     * @return TReturn
+     */
+    private function executeSafely(callable $operation, string $context)
+    {
+        try {
+            return $operation();
+        } catch (Throwable $e) {
+            throw new RuntimeException('IntegrationV2 MySQL connection failed.', 0, $e);
+        }
     }
 }
