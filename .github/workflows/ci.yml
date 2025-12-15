@@ -226,7 +226,7 @@ jobs:
       # ---------------------------------------------
       - name: Init MySQL IntegrationV2 Schema
         run: |
-          mysql -h $MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASS security_guard_dev < tests/IntegrationV2/MySQL/schema.sql
+          mysql -h $MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASS security_guard_dev < resources/sql/security_guard_schema.sql
 
       - name: Init Mongo IntegrationV2 Collections
         run: |
