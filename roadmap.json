@@ -20,7 +20,7 @@
     {
       "id": "phase1",
       "title": "Environment Setup",
-      "version": "1.0.0",
+      "version": "0.0.1",
       "status": "completed",
       "summary": "Project bootstrap, Composer setup, testing environment, and namespace preparation.",
       "tracks": {
@@ -55,7 +55,7 @@
     {
       "id": "phase2",
       "title": "Core Architecture & DTOs",
-      "version": "1.0.0",
+      "version": "0.0.2",
       "status": "completed",
       "summary": "Finalize core DTO structures, interfaces, and the high-level Facade.",
       "tracks": {
@@ -88,7 +88,7 @@
     {
       "id": "phase3",
       "title": "Driver Implementations",
-      "version": "1.0.0",
+      "version": "0.0.3",
       "status": "completed",
       "summary": "Implement all Security Guard storage drivers on top of maatify/data-adapters.",
       "tracks": {
@@ -133,7 +133,7 @@
     {
       "id": "phase4",
       "title": "Unified Security Events (NEW)",
-      "version": "1.0.0",
+      "version": "0.0.4",
       "status": "completed",
       "summary": "Introduce unified SecurityEventDTO and event normalization across all security actions.",
       "tracks": {
@@ -167,7 +167,7 @@
     {
       "id": "phase5",
       "title": "Core Logic & Service Layer",
-      "version": "1.0.0",
+      "version": "0.0.5",
       "status": "completed",
       "summary": "Main security orchestration logic built on top of unified security events.",
       "tracks": {
@@ -194,7 +194,7 @@
     {
       "id": "phase6",
       "title": "Driver Lifecycle & Resolver Responsibility Contract",
-      "version": "1.0.0",
+      "version": "0.0.6",
       "status": "blocking",
       "summary": "Formalize driver lifecycle states and strictly define resolver responsibilities to eliminate side effects, duplicated initialization, and implicit infrastructure access.",
       "tracks": {
@@ -243,7 +243,7 @@
     {
       "id": "phase7",
       "title": "IntegrationV2 Contracts & Architectural Decision Lock",
-      "version": "1.1.1",
+      "version": "0.0.7",
       "status": "in_progress",
       "summary": "Lock IntegrationV2 architectural decisions and define explicit host vs library responsibilities.",
       "tracks": {
@@ -286,7 +286,7 @@
     {
       "id": "phase8",
       "title": "IntegrationV2 Real Infrastructure Validation",
-      "version": "1.1.2",
+      "version": "0.0.8",
       "status": "pending",
       "summary": "Validate Redis, MySQL, and Mongo behavior using real infrastructure with explicit schema contracts.",
       "tracks": {
@@ -331,7 +331,7 @@
     {
       "id": "phase9",
       "title": "IntegrationV2 Test Governance & CI Stability",
-      "version": "1.1.3",
+      "version": "0.0.9",
       "status": "pending",
       "summary": "Eliminate risky tests, validate PHPUnit configuration, and enforce CI stability.",
       "tracks": {
@@ -380,7 +380,7 @@
     {
       "id": "phase10",
       "title": "Config Normalization & DTO Injection Layer",
-      "version": "1.1.0",
+      "version": "0.0.10",
       "status": "pending",
       "summary": "Introduce strict DTO-based configuration model. Eliminate all internal defaults and ensure the library is fully controlled by host-provided configuration.",
       "tracks": {
@@ -421,7 +421,7 @@
     {
       "id": "phase11",
       "title": "Global Rate Limiter Overlay Enforcement",
-      "version": "1.1.1",
+      "version": "0.0.11",
       "status": "pending",
       "summary": "Introduce a real global rate limiter overlay that executes before all action-level enforcement using a dedicated DTO-based configuration.",
       "tracks": {
@@ -454,7 +454,7 @@
     {
       "id": "phase12",
       "title": "Backoff Policy Hardening & banTime Integration",
-      "version": "1.1.2",
+      "version": "0.0.12",
       "status": "pending",
       "summary": "Upgrade exponential backoff logic to a deterministic punishment strategy governed fully by DTO-provided policy, including banTime integration.",
       "tracks": {
@@ -487,7 +487,7 @@
     {
       "id": "phase13",
       "title": "Phase 5 Coverage Completion & Validation",
-      "version": "1.1.3",
+      "version": "0.0.13",
       "status": "pending",
       "summary": "Complete missing tests for Phase 5 core logic and enforcement layers to ensure production-grade stability.",
       "tracks": {
@@ -519,7 +519,7 @@
     {
       "id": "phase14",
       "title": "Internal API Freeze (No Public Release)",
-      "version": "1.2.0",
+      "version": "0.14.0",
       "status": "pending",
       "summary": "Freeze internal APIs for stabilization and validation. No public release, no tags, no Packagist publishing.",
       "tracks": {
@@ -555,7 +555,7 @@
     {
       "id": "phase15",
       "title": "Rate Limiter Bridge",
-      "version": "1.0.0",
+      "version": "0.15.0",
       "status": "pending",
       "summary": "Integration with maatify/rate-limiter using unified event pipeline.",
       "tracks": {
@@ -590,7 +590,7 @@
     {
       "id": "phase16",
       "title": "Audit DTO & Storage",
-      "version": "1.0.0",
+      "version": "0.16.0",
       "status": "pending",
       "summary": "Introduce audit event DTO and base storage abstraction.",
       "tracks": {
@@ -613,7 +613,7 @@
     {
       "id": "phase17",
       "title": "Mongo Audit Forwarding",
-      "version": "1.0.0",
+      "version": "0.17.0",
       "status": "pending",
       "summary": "Forward unified audit events into MongoDB collections.",
       "tracks": {
@@ -635,7 +635,7 @@
     {
       "id": "phase18",
       "title": "Audit History API",
-      "version": "1.0.0",
+      "version": "0.18.0",
       "status": "pending",
       "summary": "Expose security audit history.",
       "tracks": {
@@ -657,7 +657,7 @@
     {
       "id": "phase19",
       "title": "Audit Filters & Indexes",
-      "version": "1.0.0",
+      "version": "0.19.0",
       "status": "pending",
       "summary": "Advanced filtering and indexing.",
       "tracks": {
@@ -679,7 +679,7 @@
     {
       "id": "phase20",
       "title": "PSR Logger Integration",
-      "version": "1.0.0",
+      "version": "0.20.0",
       "status": "pending",
       "summary": "Structured logging for security actions.",
       "tracks": {
@@ -701,7 +701,7 @@
     {
       "id": "phase21",
       "title": "Telegram Alerts",
-      "version": "1.0.0",
+      "version": "0.21.0",
       "status": "pending",
       "summary": "Real-time alerts via Telegram bot.",
       "tracks": {
@@ -723,7 +723,7 @@
     {
       "id": "phase22",
       "title": "Webhook Dispatcher",
-      "version": "1.0.0",
+      "version": "0.22.0",
       "status": "pending",
       "summary": "Generic webhook dispatcher.",
       "tracks": {
@@ -745,7 +745,7 @@
     {
       "id": "phase23",
       "title": "Retry Engine & Delivery Tests",
-      "version": "1.0.0",
+      "version": "0.23.0",
       "status": "pending",
       "summary": "Reliable delivery system.",
       "tracks": {
@@ -770,7 +770,7 @@
     {
       "id": "phase24",
       "title": "Monitoring APIs",
-      "version": "1.0.0",
+      "version": "0.24.0",
       "status": "pending",
       "summary": "Monitoring endpoints and admin API controls.",
       "tracks": {
@@ -792,7 +792,7 @@
     {
       "id": "phase25",
       "title": "Unit Consistency Tests",
-      "version": "1.0.0",
+      "version": "0.25.0",
       "status": "pending",
       "summary": "Validate driver parity.",
       "tracks": {
@@ -813,7 +813,7 @@
     {
       "id": "phase26",
       "title": "Attack Simulations",
-      "version": "1.0.0",
+      "version": "0.26.0",
       "status": "pending",
       "summary": "Simulate distributed and burst attacks.",
       "tracks": {
@@ -834,7 +834,7 @@
     {
       "id": "phase27",
       "title": "Redis & Mongo Stress",
-      "version": "1.0.0",
+      "version": "0.27.0",
       "status": "pending",
       "summary": "High-load performance stress tests.",
       "tracks": {
@@ -855,7 +855,7 @@
     {
       "id": "phase28",
       "title": "Coverage Hardening",
-      "version": "1.0.0",
+      "version": "0.28.0",
       "status": "pending",
       "summary": "Achieve stable 85%+ coverage.",
       "tracks": {
@@ -876,7 +876,7 @@
     {
       "id": "phase29",
       "title": "Documentation & Packagist Release",
-      "version": "1.0.0",
+      "version": "0.29.0",
       "status": "pending",
       "summary": "Finalize documentation & release.",
       "tracks": {
