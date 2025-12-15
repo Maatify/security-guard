@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * @deprecated
+ * Legacy integration test.
+ * Superseded by IntegrationV2 (tests/IntegrationV2).
+ * Do not extend, modify, or rely on this test.
+ */
+
 declare(strict_types=1);
 
 namespace Maatify\SecurityGuard\Tests\Integration\Redis;
