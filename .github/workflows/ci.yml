@@ -199,17 +199,55 @@ jobs:
       - name: Install bc
         run: sudo apt-get install -y bc
 
-      - name: 🧪 Run PHPUnit with Coverage
-        id: tests
+#      - name: 🧪 Run PHPUnit with Coverage
+#        id: tests
+#        run: |
+#          php -d pcov.enabled=1 \
+#            -d pcov.directory=./src \
+#            -d pcov.exclude="~(tests|vendor)~" \
+#            vendor/bin/phpunit \
+#            --configuration phpunit.xml.dist \
+#            --coverage-clover coverage.xml \
+#            --coverage-html coverage \
+#            | tee phpunit.log
+
+      # ---------------------------------------------
+      # 9-A) Run Resolver + Unit tests (NO IntegrationV2)
+      # ---------------------------------------------
+      - name: 🧪 Run Unit & Resolver Tests
         run: |
-          php -d pcov.enabled=1 \
-            -d pcov.directory=./src \
-            -d pcov.exclude="~(tests|vendor)~" \
-            vendor/bin/phpunit \
+          vendor/bin/phpunit \
             --configuration phpunit.xml.dist \
+            --testsuite unit,resolver \
+            | tee phpunit-unit.log
+
+      # ---------------------------------------------
+      # 9-B) Prepare IntegrationV2 Infrastructure
+      # ---------------------------------------------
+      - name: Init MySQL IntegrationV2 Schema
+        run: |
+          mysql -h $MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASS security_guard_dev < tests/IntegrationV2/MySQL/schema.sql
+
+      - name: Init Mongo IntegrationV2 Collections
+        run: |
+          mongosh <<EOF
+          use security_guard
+          db.createCollection("sg_attempts")
+          db.createCollection("sg_blocks")
+          EOF
+
+      # ---------------------------------------------
+      # 9-C) Run IntegrationV2 Tests ONLY
+      # ---------------------------------------------
+      - name: 🧪 Run IntegrationV2 Tests
+        run: |
+          vendor/bin/phpunit \
+            --configuration phpunit.xml.dist \
+            --testsuite integrationv2 \
             --coverage-clover coverage.xml \
             --coverage-html coverage \
-            | tee phpunit.log
+            | tee phpunit-integration.log
+
 
       - name: Extract Coverage % (Clover)
         id: coverage
