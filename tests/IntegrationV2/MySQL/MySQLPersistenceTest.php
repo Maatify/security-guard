@@ -65,11 +65,11 @@ class MySQLPersistenceTest extends BaseIntegrationV2TestCase
 
     public function testFailureCountsPersistAcrossInstances(): void
     {
-        $this->assertNotNull($this->guard1);
-        $this->assertNotNull($this->guard2);
-
         $guard1 = $this->guard1;
         $guard2 = $this->guard2;
+
+        $this->assertNotNull($guard1);
+        $this->assertNotNull($guard2);
 
         $ip = '10.0.0.10';
         $subject = 'persist_user_' . bin2hex(random_bytes(4));
@@ -87,20 +87,17 @@ class MySQLPersistenceTest extends BaseIntegrationV2TestCase
         $guard1->recordFailure($attempt);
 
         // Verify count is visible in Guard 2 (simulating next request)
-        // Since MySQLSecurityGuard doesn't have explicit `getAttempts` (it returns int on recordFailure),
-        // we can verify by recording another failure and checking the incremented count.
-
         $count = $guard2->recordFailure($attempt);
         $this->assertSame(2, $count, 'Failure count should persist and increment to 2 in second guard instance');
     }
 
     public function testBlockPersistsAcrossInstances(): void
     {
-        $this->assertNotNull($this->guard1);
-        $this->assertNotNull($this->guard2);
-
         $guard1 = $this->guard1;
         $guard2 = $this->guard2;
+
+        $this->assertNotNull($guard1);
+        $this->assertNotNull($guard2);
 
         $ip = '10.0.0.11';
         $subject = 'persist_block_' . bin2hex(random_bytes(4));
