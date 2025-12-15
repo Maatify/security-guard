@@ -1,0 +1,586 @@
+{
+  "roadmap_version": "1.0.2",
+  "project": "maatify/security-guard",
+  "note": "v1.0.2 introduces the new unified SecurityEventDTO architecture and shifts phase numbering forward accordingly.",
+
+  "core_dependencies": {
+    "storage_layer": "maatify/data-adapters",
+    "fake_layer": "maatify/data-fakes",
+    "contracts": "maatify/common",
+    "rules": [
+      "All MySQL, Redis, and MongoDB access MUST go through AdapterInterface",
+      "All real execution MUST use maatify/data-adapters",
+      "All fake execution and adapter behavior tests MUST use maatify/data-fakes",
+      "Direct PDO, Redis, or MongoDB client usage inside security-guard is forbidden"
+    ]
+  },
+
+  "phases": [
+
+    {
+      "id": "phase1",
+      "title": "Environment Setup",
+      "version": "1.0.0",
+      "status": "completed",
+      "summary": "Project bootstrap, Composer setup, testing environment, and namespace preparation.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Create GitHub repository",
+            "Initialize Composer project",
+            "Prepare .env.example",
+            "Setup autoloading namespaces"
+          ],
+          "outputs": [
+            "composer.json",
+            ".env.example"
+          ]
+        },
+        "tests": {
+          "tasks": [
+            "Setup PHPUnit",
+            "Prepare CI environment"
+          ],
+          "outputs": [
+            "tests/bootstrap.php"
+          ]
+        },
+        "examples": {
+          "tasks": [],
+          "outputs": []
+        }
+      }
+    },
+
+    {
+      "id": "phase2",
+      "title": "Core Architecture & DTOs",
+      "version": "1.0.0",
+      "status": "completed",
+      "summary": "Finalize core DTO structures, interfaces, and the high-level Facade.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Create LoginAttemptDTO",
+            "Create SecurityBlockDTO (final int-based timestamps version)",
+            "Design SecurityGuardDriverInterface",
+            "Create AbstractSecurityGuardDriver",
+            "Create SecurityGuardService (Facade)",
+            "IdentifierStrategy integration",
+            "Normalization + block encoding/decoding",
+            "Prepare config loader"
+          ],
+          "outputs": [
+            "src/DTO/LoginAttemptDTO.php",
+            "src/DTO/SecurityBlockDTO.php",
+            "src/Contracts/SecurityGuardDriverInterface.php",
+            "src/Drivers/AbstractSecurityGuardDriver.php",
+            "src/Service/SecurityGuardService.php",
+            "src/Identifier/Contracts/IdentifierStrategyInterface.php",
+            "src/Config/SecurityConfigLoader.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase3",
+      "title": "Driver Implementations",
+      "version": "1.0.0",
+      "status": "completed",
+      "summary": "Implement all Security Guard storage drivers on top of maatify/data-adapters.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Implement RedisSecurityGuard using RedisClientProxy",
+            "Implement PdoMySQLDriver",
+            "Implement DbalMySQLDriver",
+            "Implement MySQLSecurityGuard",
+            "Implement MongoSecurityGuard",
+            "Create SecurityGuardResolver",
+            "Fix PHPStan generics + safe casting",
+            "Unify block/unblock/cleanup behavior",
+            "Normalize identifier using strategy"
+          ],
+          "outputs": [
+            "src/Drivers/RedisSecurityGuard.php",
+            "src/Drivers/MySQL/PdoMySQLDriver.php",
+            "src/Drivers/MySQL/DbalMySQLDriver.php",
+            "src/Drivers/MySQL/MySQLSecurityGuard.php",
+            "src/Drivers/Mongo/MongoSecurityGuard.php",
+            "src/Drivers/Support/RedisClientProxy.php",
+            "src/Resolver/SecurityGuardResolver.php"
+          ],
+          "changes": [
+            "RedisSecurityGuard now fully uses RedisClientProxy abstraction",
+            "PdoMySQLDriver: fixed fetchColumn|false logic + strict int timestamps",
+            "DbalMySQLDriver: safe casting + consistent SQL + REPLACE INTO support",
+            "MySQLSecurityGuard delegates to PDO/DBAL transparently",
+            "MongoSecurityGuard rewritten with proper Collection handling + indexes",
+            "Resolver fixed to match MongoDatabase instead of MongoClient",
+            "Resolver refactored to remove unreachable conditions",
+            "Redis proxy unified commands: hGet, hSet, hDel, hGetAll, expire, del, info",
+            "Abstract driver now strictly validates block payload during decodeBlock()"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase4",
+      "title": "Unified Security Events (NEW)",
+      "version": "1.0.0",
+      "status": "completed",
+      "summary": "Introduce unified SecurityEventDTO and event normalization across all security actions.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Create SecurityEventDTO (action/platform/userId/userType/context)",
+            "Create SecurityEventTypeEnum",
+            "Refactor LoginAttemptDTO to extend SecurityEventDTO",
+            "Introduce SecurityEventFactory",
+            "Unify event timestamps",
+            "Normalize subject/platform/action rules",
+            "Ensure driver compatibility with unified event model"
+          ],
+          "outputs": [
+            "src/DTO/SecurityEventDTO.php",
+            "src/Enums/SecurityEventTypeEnum.php",
+            "src/DTO/LoginAttemptDTO.php",
+            "src/Event/SecurityEventFactory.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": {
+          "tasks": [],
+          "outputs": [
+            "docs/phases/README.phase4.md"
+          ]
+        }
+      }
+    },
+
+    {
+      "id": "phase5",
+      "title": "Core Logic & Service Layer",
+      "version": "1.0.0",
+      "status": "completed",
+      "summary": "Main security orchestration logic built on top of unified security events.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "handleEvent() logic",
+            "handleAttempt() logic",
+            "Reset on success",
+            "Block/unblock logic",
+            "IP failure counters",
+            "Expose isBlocked()",
+            "ENV thresholds integration"
+          ],
+          "outputs": [
+            "src/SecurityGuardService.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase5_5",
+      "title": "IntegrationV2 Stabilization",
+      "version": "1.0.0",
+      "status": "completed",
+      "summary": "Introduce authoritative real infrastructure integration tests (IntegrationV2) and deprecate legacy integration behavior.",
+      "tracks": {
+        "core": { "tasks": [], "outputs": [] },
+        "tests": {
+          "tasks": [
+            "Create IntegrationV2 test layer",
+            "Enforce resolver-based adapter creation",
+            "Deprecate legacy integration tests",
+            "Exclude legacy tests from PHPUnit execution",
+            "Validate Redis/MySQL/Mongo real behavior",
+            "Fail explicitly when infrastructure is unavailable"
+          ],
+          "rules": [
+            "IntegrationV2 is the ONLY source of truth for real infrastructure behavior",
+            "Legacy Integration tests are deprecated and excluded",
+            "No mocks, fakes, or hardcoded hosts allowed in IntegrationV2",
+            "All adapters MUST be resolved via DatabaseResolver + EnvironmentLoader"
+          ],
+          "outputs": [
+            "tests/IntegrationV2/",
+            "tests/Integration/README.md",
+            "phpunit.xml.dist (exclude legacy integration)"
+          ]
+        },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase6",
+      "title": "Rate Limiter Bridge",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Integration with maatify/rate-limiter using unified event pipeline.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Design event hooks",
+            "Implement bridge listener",
+            "Forward rate-limit violations as SecurityEventDTO"
+          ],
+          "outputs": [
+            "src/Bridge/RateLimiterBridge.php"
+          ]
+        },
+        "tests": {
+          "tasks": [
+            "Flood attack testing"
+          ],
+          "outputs": []
+        },
+        "examples": {
+          "tasks": [
+            "Manual integration support",
+            "Documentation"
+          ],
+          "outputs": [
+            "docs/phases/README.phase6.md"
+          ]
+        }
+      }
+    },
+
+    {
+      "id": "phase7",
+      "title": "Audit DTO & Storage",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Introduce audit event DTO and base storage abstraction.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Create AuditEventDTO",
+            "Define AuditStorageInterface",
+            "Implement base audit repository via maatify/data-adapters"
+          ],
+          "outputs": [
+            "src/Audit/AuditEventDTO.php",
+            "src/Audit/Contracts/AuditStorageInterface.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase8",
+      "title": "Mongo Audit Forwarding",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Forward unified audit events into MongoDB collections.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Create Mongo audit driver",
+            "TTL index setup",
+            "Fallback handling via resolver"
+          ],
+          "outputs": [
+            "src/Audit/Drivers/MongoAuditDriver.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase9",
+      "title": "Audit History API",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Expose security audit history.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Audit query service",
+            "Pagination",
+            "Date range filtering"
+          ],
+          "outputs": [
+            "src/Audit/AuditHistoryService.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase10",
+      "title": "Audit Filters & Indexes",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Advanced filtering and indexing.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "IP filtering",
+            "User type filtering",
+            "Composite indexes"
+          ],
+          "outputs": [
+            "docs/phases/README.phase10.md"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase11",
+      "title": "PSR Logger Integration",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Structured logging for security actions.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Inject PSR logger",
+            "Log block/unblock actions",
+            "Log suspicious patterns"
+          ],
+          "outputs": [
+            "src/Logging/SecurityLogger.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase12",
+      "title": "Telegram Alerts",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Real-time alerts via Telegram bot.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Telegram notifier",
+            "Configurable alert channels",
+            "Critical alert levels"
+          ],
+          "outputs": [
+            "src/Alerts/TelegramAlertService.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase13",
+      "title": "Webhook Dispatcher",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Generic webhook dispatcher.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Webhook payload schema",
+            "POST dispatcher",
+            "Async retry policy"
+          ],
+          "outputs": [
+            "src/Webhook/WebhookDispatcher.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase14",
+      "title": "Retry Engine & Delivery Tests",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Reliable delivery system.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Retry queue",
+            "Backoff strategy",
+            "Failure simulations"
+          ],
+          "outputs": []
+        },
+        "tests": {
+          "tasks": [],
+          "outputs": [
+            "tests/Webhook/RetryTest.php"
+          ]
+        },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase15",
+      "title": "Monitoring APIs",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Monitoring endpoints and admin API controls.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "Health endpoint",
+            "Stats endpoint",
+            "Manual unblock API"
+          ],
+          "outputs": [
+            "src/Monitoring/SecurityMetricsService.php"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase16",
+      "title": "Unit Consistency Tests",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Validate driver parity.",
+      "tracks": {
+        "core": { "tasks": [], "outputs": [] },
+        "tests": {
+          "tasks": [
+            "Driver parity tests",
+            "Edge case consistency"
+          ],
+          "outputs": [
+            "tests/Consistency/"
+          ]
+        },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase17",
+      "title": "Attack Simulations",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Simulate distributed and burst attacks.",
+      "tracks": {
+        "core": { "tasks": [], "outputs": [] },
+        "tests": {
+          "tasks": [
+            "Multi-IP brute force",
+            "Burst login attempts"
+          ],
+          "outputs": [
+            "tests/Simulation/"
+          ]
+        },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase18",
+      "title": "Redis & Mongo Stress",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "High-load performance stress tests.",
+      "tracks": {
+        "core": { "tasks": [], "outputs": [] },
+        "tests": {
+          "tasks": [
+            "Redis load",
+            "Mongo TTL stress"
+          ],
+          "outputs": [
+            "tests/Stress/"
+          ]
+        },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase19",
+      "title": "Coverage Hardening",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Achieve stable 85%+ coverage.",
+      "tracks": {
+        "core": { "tasks": [], "outputs": [] },
+        "tests": {
+          "tasks": [
+            "Coverage gap analysis",
+            "Critical path coverage enforcement"
+          ],
+          "outputs": [
+            "coverage/"
+          ]
+        },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    },
+
+    {
+      "id": "phase20",
+      "title": "Documentation & Packagist Release",
+      "version": "1.0.0",
+      "status": "pending",
+      "summary": "Finalize documentation & release.",
+      "tracks": {
+        "core": {
+          "tasks": [
+            "README.md",
+            "CHANGELOG.md",
+            "Phase documentation",
+            "Packagist publishing",
+            "Integration validation"
+          ],
+          "outputs": [
+            "README.md",
+            "CHANGELOG.md"
+          ]
+        },
+        "tests": { "tasks": [], "outputs": [] },
+        "examples": { "tasks": [], "outputs": [] }
+      }
+    }
+
+  ],
+
+  "testing_policy": {
+    "phpunit": "latest",
+    "phpstan": "level-max",
+    "psr": ["PSR-4", "PSR-12", "PSR-3", "PSR-14 (events)"],
+    "rules": [
+      "Legacy integration tests must not run in CI",
+      "IntegrationV2 tests require real infrastructure",
+      "Unit tests may use data-fakes",
+      "Coverage tests must not rely on real infrastructure",
+      "No test exists to make CI green; tests exist to protect production"
+    ]
+  }
+}
