@@ -15,8 +15,6 @@ declare(strict_types=1);
 
 namespace Maatify\SecurityGuard\Drivers\Mongo;
 
-namespace Maatify\SecurityGuard\Drivers\Mongo;
-
 use Maatify\Common\Contracts\Adapter\AdapterInterface;
 use Maatify\SecurityGuard\DTO\LoginAttemptDTO;
 use Maatify\SecurityGuard\DTO\SecurityBlockDTO;
