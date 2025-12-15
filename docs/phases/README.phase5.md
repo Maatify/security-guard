@@ -202,6 +202,25 @@ This phase establishes the essential decision-making intelligence that later pha
 
 ---
 
+## 🔐 Phase 5.5 — IntegrationV2 Stabilization (Addendum)
+
+This sub-phase introduced the final authoritative IntegrationV2 layer.
+
+Key clarifications:
+- IntegrationV2 tests are the only source of truth for real infrastructure behavior.
+- Legacy integration tests are deprecated and excluded from PHPUnit execution.
+- Unit and Coverage tests remain unchanged.
+- All IntegrationV2 tests must:
+  - Use DatabaseResolver
+  - Load environment via EnvironmentLoader
+  - Fail explicitly when infrastructure is unavailable
+  - Avoid mocks, fakes, and hardcoded hosts
+
+No production code was modified as part of this sub-phase,
+except for bug fixes discovered by real integration tests.
+
+---
+
 # 🔜 Next Phase
 
 ## **Phase 6: Security Analytics & Real-Time Behavior Insights**
