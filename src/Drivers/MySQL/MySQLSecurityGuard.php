@@ -180,35 +180,41 @@ final class MySQLSecurityGuard extends AbstractSecurityGuardDriver
 
             if ($raw instanceof PDO) {
                 $placeholders = implode(', ', array_fill(0, count($required), '?'));
-                $stmt = $raw->prepare(
-                    'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES '
-                    . 'WHERE TABLE_SCHEMA = DATABASE() '
-                    . 'AND TABLE_NAME IN (' . $placeholders . ')'
-                );
+                /** @var mixed $preparer */
+                $preparer = [$raw, 'prepare'];
 
-                /** @var mixed $stmt */
-                if ($stmt !== false) {
-                    /** @var \PDOStatement $stmt */
-                    $stmt->execute($required);
+                if (is_callable($preparer)) {
+                    $stmt = $preparer(
+                        'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES '
+                        . 'WHERE TABLE_SCHEMA = DATABASE() '
+                        . 'AND TABLE_NAME IN (' . $placeholders . ')'
+                    );
 
-                    /** @var mixed $fetcher */
-                    $fetcher = [$stmt, 'fetchAll'];
+                    if ($stmt !== false) {
+                        /** @var \PDOStatement $stmt */
+                        $stmt->execute($required);
 
-                    if (is_callable($fetcher)) {
-                        /** @var array<int,string>|false $present */
-                        $present = $fetcher(7, 0); // 7 = \PDO::FETCH_COLUMN
+                        /** @var mixed $fetcher */
+                        $fetcher = [$stmt, 'fetchAll'];
 
-                        if (is_array($present)) {
-                            $normalized = array_map('strtolower', $present);
-                            $missing = array_values(array_diff($required, $normalized));
+                        if (is_callable($fetcher)) {
+                            /** @var array<int,string>|false $present */
+                            $present = $fetcher(7, 0); // 7 = \PDO::FETCH_COLUMN
+
+                            if (is_array($present)) {
+                                $normalized = array_map('strtolower', $present);
+                                $missing = array_values(array_diff($required, $normalized));
+                            } else {
+                                throw new \RuntimeException('IntegrationV2 MySQL fetch failed.');
+                            }
                         } else {
-                            throw new \RuntimeException('IntegrationV2 MySQL fetch failed.');
+                            throw new \RuntimeException('IntegrationV2 MySQL fetchAll missing.');
                         }
                     } else {
-                        throw new \RuntimeException('IntegrationV2 MySQL fetchAll missing.');
+                        throw new \RuntimeException('IntegrationV2 MySQL prepare failed.');
                     }
                 } else {
-                    throw new \RuntimeException('IntegrationV2 MySQL prepare failed.');
+                    throw new \RuntimeException('IntegrationV2 MySQL prepare missing.');
                 }
             } else {
                 /** @var mixed $smGetter */
