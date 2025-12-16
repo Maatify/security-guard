@@ -72,10 +72,22 @@ final class MongoSecurityGuard extends AbstractSecurityGuardDriver
         try {
             $existing = [];
 
-            foreach ($this->db->listCollections() as $collectionInfo) {
-                if (method_exists($collectionInfo, 'getName')) {
-                    $existing[] = $collectionInfo->getName();
+            /** @var mixed $cmd */
+            $cmd = [$this->db, 'command'];
+            if (is_callable($cmd)) {
+                /** @var iterable<mixed> $cursor */
+                $cursor = $cmd(['listCollections' => 1]);
+
+                foreach ($cursor as $collection) {
+                    if (is_array($collection) && isset($collection['name']) && is_string($collection['name'])) {
+                        $existing[] = $collection['name'];
+                    } elseif (is_object($collection) && isset($collection->name) && is_string($collection->name)) {
+                        $existing[] = $collection->name;
+                    }
                 }
+            } else {
+                // Fallback for strict PHPStan analysis where command() is hidden
+                throw new RuntimeException('IntegrationV2 Mongo command not callable.');
             }
 
             $missing = array_values(array_diff($required, $existing));

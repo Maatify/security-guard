@@ -110,6 +110,8 @@ SQL;
 
         /**
          * @var array{
+         *     ip:string,
+         *     subject:string,
          *     type:string|int,
          *     expires_at:int|string,
          *     created_at:int|string

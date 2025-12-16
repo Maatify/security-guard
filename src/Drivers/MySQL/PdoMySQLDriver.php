@@ -75,7 +75,11 @@ final class PdoMySQLDriver implements MySQLDriverInterface
         /** @var array{c:string}|false $row */
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return isset($row['c']) ? (int)$row['c'] : 0;
+        if (is_array($row)) {
+            return (int)$row['c'];
+        }
+
+        return 0;
     }
 
     // ------------------------------------------------------------------------
@@ -115,10 +119,18 @@ final class PdoMySQLDriver implements MySQLDriverInterface
             ':now'     => time(),
         ]);
 
-        /** @var array{type:string,expires_at:int|string,created_at:int|string}|false $row */
+        /**
+         * @var array{
+         *     ip:string,
+         *     subject:string,
+         *     type:string,
+         *     expires_at:int|string,
+         *     created_at:int|string
+         * }|false $row
+         */
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (! $row) {
+        if (! is_array($row)) {
             return null;
         }
 

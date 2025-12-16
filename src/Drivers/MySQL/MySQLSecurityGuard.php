@@ -180,21 +180,64 @@ final class MySQLSecurityGuard extends AbstractSecurityGuardDriver
 
             if ($raw instanceof PDO) {
                 $placeholders = implode(', ', array_fill(0, count($required), '?'));
-                $stmt = $raw->prepare(
-                    'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES '
-                    . 'WHERE TABLE_SCHEMA = DATABASE() '
-                    . 'AND TABLE_NAME IN (' . $placeholders . ')'
-                );
-                $stmt->execute($required);
-                /** @var array<int,string> $present */
-                $present = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
-                $normalized = array_map('strtolower', $present);
-                $missing = array_values(array_diff($required, $normalized));
+                /** @var mixed $preparer */
+                $preparer = [$raw, 'prepare'];
+
+                if (is_callable($preparer)) {
+                    $stmt = $preparer(
+                        'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES '
+                        . 'WHERE TABLE_SCHEMA = DATABASE() '
+                        . 'AND TABLE_NAME IN (' . $placeholders . ')'
+                    );
+
+                    if ($stmt !== false) {
+                        /** @var \PDOStatement $stmt */
+                        $stmt->execute($required);
+
+                        /** @var mixed $fetcher */
+                        $fetcher = [$stmt, 'fetchAll'];
+
+                        if (is_callable($fetcher)) {
+                            /** @var array<int,string>|false $present */
+                            $present = $fetcher(7, 0); // 7 = \PDO::FETCH_COLUMN
+
+                            if (is_array($present)) {
+                                $normalized = array_map('strtolower', $present);
+                                $missing = array_values(array_diff($required, $normalized));
+                            } else {
+                                throw new \RuntimeException('IntegrationV2 MySQL fetch failed.');
+                            }
+                        } else {
+                            throw new \RuntimeException('IntegrationV2 MySQL fetchAll missing.');
+                        }
+                    } else {
+                        throw new \RuntimeException('IntegrationV2 MySQL prepare failed.');
+                    }
+                } else {
+                    throw new \RuntimeException('IntegrationV2 MySQL prepare missing.');
+                }
             } else {
-                $schemaManager = $raw->createSchemaManager();
-                $tables = $schemaManager->listTableNames();
-                $normalized = array_map('strtolower', $tables);
-                $missing = array_values(array_diff($required, $normalized));
+                /** @var mixed $smGetter */
+                $smGetter = [$raw, 'getSchemaManager'];
+
+                if (is_callable($smGetter)) {
+                    $schemaManager = $smGetter();
+
+                    /** @var mixed $lister */
+                    $lister = [$schemaManager, 'listTableNames'];
+
+                    if (is_callable($lister)) {
+                        /** @var string[] $tables */
+                        $tables = $lister();
+
+                        $normalized = array_map('strtolower', $tables);
+                        $missing = array_values(array_diff($required, $normalized));
+                    } else {
+                        throw new \RuntimeException('IntegrationV2 MySQL listTableNames missing.');
+                    }
+                } else {
+                    throw new \RuntimeException('IntegrationV2 MySQL getSchemaManager missing.');
+                }
             }
 
             if ($missing !== []) {
