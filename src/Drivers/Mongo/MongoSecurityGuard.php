@@ -72,17 +72,17 @@ final class MongoSecurityGuard extends AbstractSecurityGuardDriver
         try {
             $existing = [];
 
-            /** @var callable $cmd */
+            /** @var mixed $cmd */
             $cmd = [$this->db, 'command'];
             if (is_callable($cmd)) {
                 /** @var iterable<mixed> $cursor */
                 $cursor = $cmd(['listCollections' => 1]);
 
                 foreach ($cursor as $collection) {
-                    if (is_array($collection) && isset($collection['name'])) {
-                        $existing[] = (string)$collection['name'];
-                    } elseif (is_object($collection) && isset($collection->name)) {
-                        $existing[] = (string)$collection->name;
+                    if (is_array($collection) && isset($collection['name']) && is_string($collection['name'])) {
+                        $existing[] = $collection['name'];
+                    } elseif (is_object($collection) && isset($collection->name) && is_string($collection->name)) {
+                        $existing[] = $collection->name;
                     }
                 }
             } else {

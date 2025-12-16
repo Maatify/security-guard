@@ -186,11 +186,12 @@ final class MySQLSecurityGuard extends AbstractSecurityGuardDriver
                     . 'AND TABLE_NAME IN (' . $placeholders . ')'
                 );
 
+                /** @var mixed $stmt */
                 if ($stmt !== false) {
                     /** @var \PDOStatement $stmt */
                     $stmt->execute($required);
 
-                    /** @var callable $fetcher */
+                    /** @var mixed $fetcher */
                     $fetcher = [$stmt, 'fetchAll'];
 
                     if (is_callable($fetcher)) {
@@ -210,13 +211,13 @@ final class MySQLSecurityGuard extends AbstractSecurityGuardDriver
                     throw new \RuntimeException('IntegrationV2 MySQL prepare failed.');
                 }
             } else {
-                /** @var callable $smGetter */
+                /** @var mixed $smGetter */
                 $smGetter = [$raw, 'getSchemaManager'];
 
                 if (is_callable($smGetter)) {
                     $schemaManager = $smGetter();
 
-                    /** @var callable $lister */
+                    /** @var mixed $lister */
                     $lister = [$schemaManager, 'listTableNames'];
 
                     if (is_callable($lister)) {
